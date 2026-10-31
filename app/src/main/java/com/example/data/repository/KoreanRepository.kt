@@ -289,22 +289,108 @@ class KoreanRepository(context: Context) {
                 VocabCard("v19", "지금", "jigeum", "Sekarang / Saat ini", "지금 몇 시예요?", "Sekarang jam berapa?", "Waktu"),
                 VocabCard("v20", "오늘", "oneul", "Hari ini", "오늘 날씨가 정말 좋아요.", "Hari ini cuacanya sangat bagus.", "Waktu")
             )
-            vocabDao.insertAll(initialCards)
+
+            // Kosakata Keseharian: Toilet, Kamar Mandi, Sepeda, dan Transportasi
+            val dailyLifeCards = listOf(
+                VocabCard("v21", "화장실", "hwajangsil", "Toilet / Kamar Mandi", "화장실이 어디예요?", "Di mana letak toilet?", "Toilet & Mandi"),
+                VocabCard("v22", "휴지", "hyuji", "Tisu Toilet", "화장실에 휴지가 없어요.", "Di toilet tidak ada tisu.", "Toilet & Mandi"),
+                VocabCard("v23", "비누", "binu", "Sabun Cuci / Mandi", "비누로 손을 씻어요.", "Mencuci tangan dengan sabun.", "Toilet & Mandi"),
+                VocabCard("v24", "칫솔", "chitsol", "Sikat Gigi", "칫솔과 치약 주세요.", "Tolong berikan sikat gigi dan pasta gigi.", "Toilet & Mandi"),
+                VocabCard("v25", "치약", "chiyak", "Pasta Gigi", "치약이 상쾌해요.", "Pasta giginya menyegarkan.", "Toilet & Mandi"),
+                VocabCard("v26", "수건", "sugeon", "Handuk", "깨끗한 수건 한 장 주세요.", "Tolong satu handuk yang bersih.", "Toilet & Mandi"),
+                VocabCard("v27", "샴푸", "syampu", "Shampo", "샴푸로 머리를 감아요.", "Mencuci rambut / keramas dengan shampo.", "Toilet & Mandi"),
+                VocabCard("v28", "샤워하다", "syawohada", "Mandi (Shower)", "따뜻한 물로 샤워해요.", "Mandi dengan air hangat.", "Toilet & Mandi"),
+                VocabCard("v29", "세수하다", "sesuhada", "Cuci Muka", "아침에 일어나서 세수해요.", "Bangun di pagi hari lalu cuci muka.", "Toilet & Mandi"),
+                VocabCard("v30", "양치하다", "yangchihada", "Menyikat Gigi", "식사 후 3분 안에 양치해요.", "Menyikat gigi dalam 3 menit setelah makan.", "Toilet & Mandi"),
+                VocabCard("v31", "따뜻한 물", "ttatteut-han mul", "Air Hangat", "샤워실에 따뜻한 물이 잘 나와요.", "Air hangat di kamar mandi mengalir lancar.", "Toilet & Mandi"),
+                VocabCard("v32", "비밀번호", "bimilbeonho", "Nomor Sandi / PIN", "카페 화장실 비밀번호가 뭐예요?", "Berapa nomor sandi toilet kafe?", "Toilet & Mandi"),
+                VocabCard("v33", "자전거", "jajeongeo", "Sepeda", "날씨가 좋아서 자전거를 타요.", "Karena cuaca bagus, saya naik sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v34", "따릉이", "ttareung-i", "Sepeda Sewa Publik Seoul", "한강에서 따릉이를 빌렸어요.", "Menyewa sepeda Ttareungi di tepi sungai Han.", "Sepeda & Transportasi"),
+                VocabCard("v35", "타다", "tada", "Naik / Mengendarai", "자전거를 타고 공원에 가요.", "Naik sepeda pergi ke taman.", "Sepeda & Transportasi"),
+                VocabCard("v36", "내리다", "naerida", "Turun (dari kendaraan)", "다음 버스 정류장에서 내려요.", "Turun di halte bus berikutnya.", "Sepeda & Transportasi"),
+                VocabCard("v37", "자전거 도로", "jajeongeo doro", "Jalur Khusus Sepeda", "자전거 도로로 안전하게 달리세요.", "Bersepedalah dengan aman di jalur sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v38", "헬멧", "helmet", "Helm Pengaman", "자전거 탈 때는 헬멧을 착용해요.", "Kenakan helm saat mengendarai sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v39", "버스 정류장", "beoseu jeongnyujang", "Halte Bus", "버스 정류장에서 5분 기다려요.", "Menunggu 5 menit di halte bus.", "Sepeda & Transportasi"),
+                VocabCard("v40", "교통카드", "gyotongkadeu", "Kartu Transportasi (T-Money)", "교통카드를 단말기에 찍으세요.", "Tempelkan kartu transportasi ke mesin kartu.", "Sepeda & Transportasi"),
+                VocabCard("v41", "충전하다", "chungjeonhada", "Mengisi Saldo / Top-up", "편의점에서 교통카드 만 원 충전해요.", "Isi saldo kartu transportasi 10.000 won di minimarket.", "Sepeda & Transportasi"),
+                VocabCard("v42", "환승", "hwanseung", "Transit / Pindah Kendaraan", "30분 이내에 환승하면 무료예요.", "Transit gratis jika berpindah dalam 30 menit.", "Sepeda & Transportasi"),
+                VocabCard("v43", "편의점", "pyeon-uijeom", "Minimarket (24 Jam)", "편의점에서 생수와 삼각김밥을 사요.", "Beli air mineral dan kimbap segitiga di minimarket.", "Keseharian & Rumah"),
+                VocabCard("v44", "봉투", "bongtu", "Kantong Belanja", "봉투 필요하세요?", "Apakah Anda butuh kantong plastik?", "Keseharian & Rumah"),
+                VocabCard("v45", "영수증", "yeongsujeung", "Struk Pembayaran", "영수증 버려 주세요.", "Tolong buang saja struknya.", "Keseharian & Rumah"),
+                VocabCard("v46", "세탁기", "setakgi", "Mesin Cuci", "주말에 세탁기를 돌려요.", "Menjalankan mesin cuci di akhir pekan.", "Keseharian & Rumah"),
+                VocabCard("v47", "냉장고", "naengjanggo", "Kulkas", "음식을 냉장고에 보관해요.", "Menyimpan makanan di dalam kulkas.", "Keseharian & Rumah"),
+                VocabCard("v48", "분리수거", "bunrisugeo", "Pemilahan Sampah Daur Ulang", "플라스틱과 캔을 분리수거해요.", "Memilah sampah plastik dan kaleng daur ulang.", "Keseharian & Rumah"),
+                // Emosi & Kesal
+                VocabCard("v49", "짜증나다", "jjajeungnada", "Merasa Kesal / Menyebalkan", "차가 막혀서 진짜 짜증나요.", "Macetnya parah jadi benar-benar bikin kesal.", "Emosi & Kesal"),
+                VocabCard("v50", "열받다", "yeolbatda", "Naik Darah / Bikin Emosi", "거짓말을 들어서 완전 열받아요.", "Mendengar kebohongan membuat saya naik darah sekali.", "Emosi & Kesal"),
+                VocabCard("v51", "답답하다", "dapdaphada", "Nyesek / Bikin Frustrasi", "일이 잘 안 풀려서 답답해요.", "Urusan tidak lancar jadi bikin frustrasi.", "Emosi & Kesal"),
+                VocabCard("v52", "속상하다", "soksanghada", "Sakit Hati / Kecewa", "친구와 다퉈서 마음이 속상해요.", "Bertengkar dengan teman membuat hati sedih.", "Emosi & Kesal"),
+                VocabCard("v53", "어이없다", "eoieopda", "Nggak Habis Pikir / Speechless", "그 말을 들으니 정말 어이가 없어요.", "Mendengar hal itu membuat saya speechless.", "Emosi & Kesal"),
+                VocabCard("v54", "대박", "daebak", "Gila / Luar Biasa / Hebat", "와, 대박! 시험에 합격했어요!", "Wah hebat! Lulus ujian!", "Emosi & Kesal"),
+                VocabCard("v55", "헐", "heol", "Astaga / Kaget", "헐, 스마트폰을 집에 두고 왔어요.", "Astaga, ponsel tertinggal di rumah.", "Emosi & Kesal"),
+                VocabCard("v56", "다행이다", "dahaeng-ida", "Untunglah / Syukurlah", "비가 그쳐서 정말 다행이에요.", "Hujan sudah reda jadi sungguh untunglah.", "Emosi & Kesal"),
+                // Tegur Sapa
+                VocabCard("v57", "식사하다", "siksahada", "Makan (Bentuk Sopan)", "점심 식사 맛있게 하셨어요?", "Apakah sudah makan siang dengan enak?", "Tegur Sapa"),
+                VocabCard("v58", "수고하다", "sugohada", "Bekerja Keras / Jerih Payah", "오늘 하루도 수고하셨습니다.", "Terima kasih atas kerja kerasnya hari ini.", "Tegur Sapa"),
+                VocabCard("v59", "오랜만", "oraenman", "Lama Tidak Berjumpa", "오랜만이에요! 잘 지냈어요?", "Lama tidak berjumpa! Kabarmu baik?", "Tegur Sapa"),
+                VocabCard("v60", "어디 가다", "eodi gada", "Mau Pergi ke Mana", "어디 가시는 길이에요?", "Sedang dalam perjalanan ke mana?", "Tegur Sapa"),
+                VocabCard("v61", "조심하다", "josimhada", "Berhati-hati", "눈길 조심해서 들어가세요.", "Hati-hati di jalan bersalju saat pulang.", "Tegur Sapa"),
+                VocabCard("v62", "내일 봬요", "naeil bwaeyo", "Sampai Jumpa Besok (Sopan)", "오늘 먼저 퇴근할게요, 내일 봬요!", "Saya pulang kerja duluan ya, sampai jumpa besok!", "Tegur Sapa"),
+                VocabCard("v63", "죄송하다", "joesonghada", "Mohon Maaf (Sopan)", "늦어서 정말 죄송합니다.", "Benar-benar mohon maaf karena terlambat.", "Tegur Sapa"),
+                VocabCard("v64", "말씀", "malsseum", "Perkataan / Bicara (Halus)", "말씀 좀 여쭤봐도 될까요?", "Bolehkah saya bertanya sesuatu sebentar?", "Tegur Sapa")
+            )
+            vocabDao.insertAll(initialCards + dailyLifeCards)
         } else {
-            val existing = vocabDao.getAllVocab().firstOrNull() ?: emptyList()
-            if (existing.size < 18) {
-                val moreCards = listOf(
-                    VocabCard("v12", "일, 이, 삼", "il, i, sam", "Satu, dua, tiga (Angka Sino-Korea)", "일, 이, 삼, 사, 오!", "Satu, dua, tiga, empat, lima!", "Angka"),
-                    VocabCard("v14", "저기요", "jeogiyo", "Permisi (memanggil pelayan)", "저기요, 주문할게요.", "Permisi, saya mau pesan.", "Kehidupan"),
-                    VocabCard("v15", "어디예요?", "eodiyeyo?", "Di mana letaknya?", "화장실이 어디예요?", "Toilet di mana letaknya?", "Arah & Tempat"),
-                    VocabCard("v16", "지하철", "jihacheol", "Kereta bawah tanah / MRT", "지하철을 타고 가요.", "Pergi naik kereta bawah tanah.", "Arah & Tempat"),
-                    VocabCard("v17", "괜찮아요", "gwaenchanayo", "Tidak apa-apa / Baik-baik saja", "괜찮아요, 걱정하지 마세요.", "Tidak apa-apa, jangan khawatir.", "Salam"),
-                    VocabCard("v18", "커피", "keopi", "Kopi", "따뜻한 커피 한 잔 주세요.", "Tolong beri saya secangkir kopi hangat.", "Makanan & Minuman"),
-                    VocabCard("v19", "지금", "jigeum", "Sekarang / Saat ini", "지금 몇 시예요?", "Sekarang jam berapa?", "Waktu"),
-                    VocabCard("v20", "오늘", "oneul", "Hari ini", "오늘 날씨가 정말 좋아요.", "Hari ini cuacanya sangat bagus.", "Waktu")
-                )
-                vocabDao.insertAll(moreCards)
-            }
+            // Ensure daily life cards are present in existing user profiles
+            val dailyLifeCards = listOf(
+                VocabCard("v21", "화장실", "hwajangsil", "Toilet / Kamar Mandi", "화장실이 어디예요?", "Di mana letak toilet?", "Toilet & Mandi"),
+                VocabCard("v22", "휴지", "hyuji", "Tisu Toilet", "화장실에 휴지가 없어요.", "Di toilet tidak ada tisu.", "Toilet & Mandi"),
+                VocabCard("v23", "비누", "binu", "Sabun Cuci / Mandi", "비누로 손을 씻어요.", "Mencuci tangan dengan sabun.", "Toilet & Mandi"),
+                VocabCard("v24", "칫솔", "chitsol", "Sikat Gigi", "칫솔과 치약 주세요.", "Tolong berikan sikat gigi dan pasta gigi.", "Toilet & Mandi"),
+                VocabCard("v25", "치약", "chiyak", "Pasta Gigi", "치약이 상쾌해요.", "Pasta giginya menyegarkan.", "Toilet & Mandi"),
+                VocabCard("v26", "수건", "sugeon", "Handuk", "깨끗한 수건 한 장 주세요.", "Tolong satu handuk yang bersih.", "Toilet & Mandi"),
+                VocabCard("v27", "샴푸", "syampu", "Shampo", "샴푸로 머리를 감아요.", "Mencuci rambut / keramas dengan shampo.", "Toilet & Mandi"),
+                VocabCard("v28", "샤워하다", "syawohada", "Mandi (Shower)", "따뜻한 물로 샤워해요.", "Mandi dengan air hangat.", "Toilet & Mandi"),
+                VocabCard("v29", "세수하다", "sesuhada", "Cuci Muka", "아침에 일어나서 세수해요.", "Bangun di pagi hari lalu cuci muka.", "Toilet & Mandi"),
+                VocabCard("v30", "양치하다", "yangchihada", "Menyikat Gigi", "식사 후 3분 안에 양치해요.", "Menyikat gigi dalam 3 menit setelah makan.", "Toilet & Mandi"),
+                VocabCard("v31", "따뜻한 물", "ttatteut-han mul", "Air Hangat", "샤워실에 따뜻한 물이 잘 나와요.", "Air hangat di kamar mandi mengalir lancar.", "Toilet & Mandi"),
+                VocabCard("v32", "비밀번호", "bimilbeonho", "Nomor Sandi / PIN", "카페 화장실 비밀번호가 뭐예요?", "Berapa nomor sandi toilet kafe?", "Toilet & Mandi"),
+                VocabCard("v33", "자전거", "jajeongeo", "Sepeda", "날씨가 좋아서 자전거를 타요.", "Karena cuaca bagus, saya naik sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v34", "따릉이", "ttareung-i", "Sepeda Sewa Publik Seoul", "한강에서 따릉이를 빌렸어요.", "Menyewa sepeda Ttareungi di tepi sungai Han.", "Sepeda & Transportasi"),
+                VocabCard("v35", "타다", "tada", "Naik / Mengendarai", "자전거를 타고 공원에 가요.", "Naik sepeda pergi ke taman.", "Sepeda & Transportasi"),
+                VocabCard("v36", "내리다", "naerida", "Turun (dari kendaraan)", "다음 버스 정류장에서 내려요.", "Turun di halte bus berikutnya.", "Sepeda & Transportasi"),
+                VocabCard("v37", "자전거 도로", "jajeongeo doro", "Jalur Khusus Sepeda", "자전거 도로로 안전하게 달리세요.", "Bersepedalah dengan aman di jalur sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v38", "헬멧", "helmet", "Helm Pengaman", "자전거 탈 때는 헬멧을 착용해요.", "Kenakan helm saat mengendarai sepeda.", "Sepeda & Transportasi"),
+                VocabCard("v39", "버스 정류장", "beoseu jeongnyujang", "Halte Bus", "버스 정류장에서 5분 기다려요.", "Menunggu 5 menit di halte bus.", "Sepeda & Transportasi"),
+                VocabCard("v40", "교통카드", "gyotongkadeu", "Kartu Transportasi (T-Money)", "교통카드를 단말기에 찍으세요.", "Tempelkan kartu transportasi ke mesin kartu.", "Sepeda & Transportasi"),
+                VocabCard("v41", "충전하다", "chungjeonhada", "Mengisi Saldo / Top-up", "편의점에서 교통카드 만 원 충전해요.", "Isi saldo kartu transportasi 10.000 won di minimarket.", "Sepeda & Transportasi"),
+                VocabCard("v42", "환승", "hwanseung", "Transit / Pindah Kendaraan", "30분 이내에 환승하면 무료예요.", "Transit gratis jika berpindah dalam 30 menit.", "Sepeda & Transportasi"),
+                VocabCard("v43", "편의점", "pyeon-uijeom", "Minimarket (24 Jam)", "편의점에서 생수와 삼각김밥을 사요.", "Beli air mineral dan kimbap segitiga di minimarket.", "Keseharian & Rumah"),
+                VocabCard("v44", "봉투", "bongtu", "Kantong Belanja", "봉투 필요하세요?", "Apakah Anda butuh kantong plastik?", "Keseharian & Rumah"),
+                VocabCard("v45", "영수증", "yeongsujeung", "Struk Pembayaran", "영수증 버려 주세요.", "Tolong buang saja struknya.", "Keseharian & Rumah"),
+                VocabCard("v46", "세탁기", "setakgi", "Mesin Cuci", "주말에 세탁기를 돌려요.", "Menjalankan mesin cuci di akhir pekan.", "Keseharian & Rumah"),
+                VocabCard("v47", "냉장고", "naengjanggo", "Kulkas", "음식을 냉장고에 보관해요.", "Menyimpan makanan di dalam kulkas.", "Keseharian & Rumah"),
+                VocabCard("v48", "분리수거", "bunrisugeo", "Pemilahan Sampah Daur Ulang", "플라스틱과 캔을 분리수거해요.", "Memilah sampah plastik dan kaleng daur ulang.", "Keseharian & Rumah"),
+                // Emosi & Kesal
+                VocabCard("v49", "짜증나다", "jjajeungnada", "Merasa Kesal / Menyebalkan", "차가 막혀서 진짜 짜증나요.", "Macetnya parah jadi benar-benar bikin kesal.", "Emosi & Kesal"),
+                VocabCard("v50", "열받다", "yeolbatda", "Naik Darah / Bikin Emosi", "거짓말을 들어서 완전 열받아요.", "Mendengar kebohongan membuat saya naik darah sekali.", "Emosi & Kesal"),
+                VocabCard("v51", "답답하다", "dapdaphada", "Nyesek / Bikin Frustrasi", "일이 잘 안 풀려서 답답해요.", "Urusan tidak lancar jadi bikin frustrasi.", "Emosi & Kesal"),
+                VocabCard("v52", "속상하다", "soksanghada", "Sakit Hati / Kecewa", "친구와 다퉈서 마음이 속상해요.", "Bertengkar dengan teman membuat hati sedih.", "Emosi & Kesal"),
+                VocabCard("v53", "어이없다", "eoieopda", "Nggak Habis Pikir / Speechless", "그 말을 들으니 정말 어이가 없어요.", "Mendengar hal itu membuat saya speechless.", "Emosi & Kesal"),
+                VocabCard("v54", "대박", "daebak", "Gila / Luar Biasa / Hebat", "와, 대박! 시험에 합격했어요!", "Wah hebat! Lulus ujian!", "Emosi & Kesal"),
+                VocabCard("v55", "헐", "heol", "Astaga / Kaget", "헐, 스마트폰을 집에 두고 왔어요.", "Astaga, ponsel tertinggal di rumah.", "Emosi & Kesal"),
+                VocabCard("v56", "다행이다", "dahaeng-ida", "Untunglah / Syukurlah", "비가 그쳐서 정말 다행이에요.", "Hujan sudah reda jadi sungguh untunglah.", "Emosi & Kesal"),
+                // Tegur Sapa
+                VocabCard("v57", "식사하다", "siksahada", "Makan (Bentuk Sopan)", "점심 식사 맛있게 하셨어요?", "Apakah sudah makan siang dengan enak?", "Tegur Sapa"),
+                VocabCard("v58", "수고하다", "sugohada", "Bekerja Keras / Jerih Payah", "오늘 하루도 수고하셨습니다.", "Terima kasih atas kerja kerasnya hari ini.", "Tegur Sapa"),
+                VocabCard("v59", "오랜만", "oraenman", "Lama Tidak Berjumpa", "오랜만이에요! 잘 지냈어요?", "Lama tidak berjumpa! Kabarmu baik?", "Tegur Sapa"),
+                VocabCard("v60", "어디 가다", "eodi gada", "Mau Pergi ke Mana", "어디 가시는 길이에요?", "Sedang dalam perjalanan ke mana?", "Tegur Sapa"),
+                VocabCard("v61", "조심하다", "josimhada", "Berhati-hati", "눈길 조심해서 들어가세요.", "Hati-hati di jalan bersalju saat pulang.", "Tegur Sapa"),
+                VocabCard("v62", "내일 봬요", "naeil bwaeyo", "Sampai Jumpa Besok (Sopan)", "오늘 먼저 퇴근할게요, 내일 봬요!", "Saya pulang kerja duluan ya, sampai jumpa besok!", "Tegur Sapa"),
+                VocabCard("v63", "죄송하다", "joesonghada", "Mohon Maaf (Sopan)", "늦어서 정말 죄송합니다.", "Benar-benar mohon maaf karena terlambat.", "Tegur Sapa"),
+                VocabCard("v64", "말씀", "malsseum", "Perkataan / Bicara (Halus)", "말씀 좀 여쭤봐도 될까요?", "Bolehkah saya bertanya sesuatu sebentar?", "Tegur Sapa")
+            )
+            vocabDao.insertAll(dailyLifeCards)
         }
     }
 
@@ -367,6 +453,61 @@ class KoreanRepository(context: Context) {
                 RolePlayOption("죄송합니다.", "Mohon maaf.", false, "Jawaban kurang relevan dengan pertanyaan.")
             ),
             hint = "Katakan '네' (Ya) atau '재미있어요' (Menyenangkan)."
+        ),
+        RolePlayStep(
+            id = 4,
+            hannieDialogueKo = "주문하신 음료 나왔습니다. 영수증 밑에 보시면 와이파이랑 화장실 정보가 있어요.",
+            hannieDialogueId = "Minuman yang Anda pesan sudah jadi. Di bagian bawah struk belanja ada info Wi-Fi dan toilet.",
+            userOptions = listOf(
+                RolePlayOption("감사합니다! 그런데 화장실 비밀번호가 몇 번이에요?", "Terima kasih! Ngomong-ngomong berapa nomor sandi pintu toiletnya?", true, "Tepat sekali! Di kafe Korea kode toilet sering berupa nomor 4 digit."),
+                RolePlayOption("물 주세요.", "Tolong beri saya air.", false, "Kurang relevan, Hannie sedang memberikan minuman dan info struk."),
+                RolePlayOption("잘 가요.", "Selamat tinggal.", false, "Terlalu informal dan Anda baru saja menerima minuman.")
+            ),
+            hint = "Tanyakan nomor sandi toilet: 화장실 비밀번호가 몇 번이에요?"
+        ),
+        RolePlayStep(
+            id = 5,
+            hannieDialogueKo = "오늘 한강 날씨가 정말 화창해요! 우리 따릉이 자전거 빌려서 여의도 공원 한 바퀴 돌까요?",
+            hannieDialogueId = "Hari ini cuaca di Sungai Han sangat cerah! Mau sewa sepeda Ttareungi dan keliling taman Yeouido?",
+            userOptions = listOf(
+                RolePlayOption("좋아요! 따릉이 앱으로 QR코드 찍고 헬멧 착용할게요.", "Bagus! Saya akan scan QR code dengan aplikasi Ttareungi dan pakai helm.", true, "Luar biasa! Ini kebiasaan bersepeda yang sangat aman dan populer di Seoul."),
+                RolePlayOption("자전거 싫어요, 비행기 타요.", "Saya tidak suka sepeda, ayo naik pesawat.", false, "Jawaban kurang cocok untuk suasana santai di Sungai Han."),
+                RolePlayOption("지금 몇 시예요?", "Sekarang jam berapa?", false, "Belum menjawab ajakan Hannie untuk bersepeda.")
+            ),
+            hint = "Setujui ajakan dan sebutkan sewa sepeda Ttareungi: 좋아요! 따릉이 빌려요."
+        ),
+        RolePlayStep(
+            id = 6,
+            hannieDialogueKo = "교통카드 잔액이 부족해서 버스를 탈 수 없네요. 어떡하죠?",
+            hannieDialogueId = "Saldo kartu transportasi kurang jadi belum bisa naik bus. Bagaimana ya?",
+            userOptions = listOf(
+                RolePlayOption("저기 앞 편의점에서 교통카드 만 원 충전하고 와요!", "Ayo isi saldo kartu transportasi 10.000 won di minimarket depan sana!", true, "Solusi sempurna! Minimarket Korea melayani isi ulang T-Money kapan saja."),
+                RolePlayOption("집에 걸어가세요.", "Silakan jalan kaki pulang ke rumah.", false, "Kurang ramah kepada teman seperjalanan."),
+                RolePlayOption("배고파요.", "Saya lapar.", false, "Tidak menjawab kendala kartu transportasi.")
+            ),
+            hint = "Ajak isi ulang kartu di minimarket: 편의점에서 충전해요."
+        ),
+        RolePlayStep(
+            id = 7,
+            hannieDialogueKo = "갑자기 지하철이 고장 나서 30분이나 지연된대요! 밖에는 비까지 쏟아지는데... 진짜 어쩌죠?",
+            hannieDialogueId = "Tiba-tiba subway mogok dan katanya tertunda sampai 30 menit! Di luar pun hujan deras... benar-benar gimana dong?",
+            userOptions = listOf(
+                RolePlayOption("아, 진짜 답답하네요! 그래도 근처 편의점에서 따뜻한 음료 마시며 기다려요.", "Ah, sungguh bikin nyesek/frustrasi! Tapi ayo minum minuman hangat di minimarket terdekat sambil menunggu.", true, "Respon sangat dewasa dan empatik! Mengungkapkan '답답하네요' secara wajar tanpa kehilangan ketenangan."),
+                RolePlayOption("운전사한테 가서 소리 질러요!", "Pergi ke masinis lalu berteriak marah!", false, "Jangan agresif! Dalam budaya Korea, bersikap tenang saat kendala publik sangat diutamakan."),
+                RolePlayOption("배고프니까 그냥 집에 가요.", "Karena lapar saya pulang saja ke rumah.", false, "Kurang menanggapi situasi subway dan tidak menawarkan jalan keluar bersama teman.")
+            ),
+            hint = "Ungkapkan rasa frustrasi santun lalu beri solusi: 진짜 답답하네요! 편의점에서 기다려요."
+        ),
+        RolePlayStep(
+            id = 8,
+            hannieDialogueKo = "어, 안녕하세요! 오늘 아침 일찍 외출하시네요. 식사는 맛있게 챙겨 드셨어요?",
+            hannieDialogueId = "Eh, halo! Pagi-pagi begini sudah bepergian ya. Apakah sudah sarapan dengan enak?",
+            userOptions = listOf(
+                RolePlayOption("네, 좋은 아침이에요! 든든하게 먹었습니다. 하니 씨도 오늘도 수고하세요!", "Ya, selamat pagi! Saya makan kenyang. Hannie juga semangat dan terima kasih atas kerja kerasnya hari ini!", true, "Tegur sapa yang sempurna! Menjawab pertanyaan '식사하셨어요' dengan sopan dan mendoakan '수고하세요'."),
+                RolePlayOption("밥 안 먹었어요. 밥 사주세요.", "Belum makan. Tolong traktir saya makan.", false, "Terlalu blak-blakan untuk tegur sapa sehari-hari dengan kenalan."),
+                RolePlayOption("안녕히 주무세요.", "Selamat tidur.", false, "Ini ucapan selamat tidur di malam hari, bukan sapaan pagi.")
+            ),
+            hint = "Gunakan salam pagi dan jawab sapaan makan: 좋은 아침이에요! 든든하게 먹었어요."
         )
     )
 
@@ -447,6 +588,58 @@ class KoreanRepository(context: Context) {
                 TemplatePlaceholder("nama", "Nama Anda", "Achmat"),
                 TemplatePlaceholder("asal", "Asal", "인도네시아", listOf("인도네시아", "자카르타")),
                 TemplatePlaceholder("hobi", "Hobi", "음악 듣기 (Mendengarkan Musik)", listOf("음악 듣기 (Mendengarkan Musik)", "영화 보기 (Nonton Film)", "요리하기 (Memasak)", "코딩하기 (Coding)"))
+            )
+        ),
+        IntroTemplate(
+            id = "intro_level_4",
+            level = 2,
+            title = "Rutinitas Pagi & Kamar Mandi (아침 루틴)",
+            description = "Menceritakan kebiasaan pagi di kamar mandi, sarapan, dan persiapan memulai hari.",
+            templateKo = "저는 아침 {{jam}}시에 일어납니다. 화장실에서 먼저 {{kebersihan}}을 하고, {{minuman}}을 한 잔 마십니다. 그리고 활기차게 하루를 시작합니다!",
+            templateId = "Saya bangun pagi jam {{jam}}. Di kamar mandi pertama-tama saya {{kebersihan}}, lalu minum segelas {{minuman}}. Kemudian memulai hari dengan semangat!",
+            placeholders = listOf(
+                TemplatePlaceholder("jam", "Jam Bangun", "7", listOf("6", "7", "8")),
+                TemplatePlaceholder("kebersihan", "Aktivitas Kamar Mandi", "세수와 양치질 (Cuci Muka & Sikat Gigi)", listOf("세수와 양치질 (Cuci Muka & Sikat Gigi)", "따뜻한 물 샤워 (Mandi Shower Air Hangat)", "머리 감기 (Keramas Shampo)")),
+                TemplatePlaceholder("minuman", "Minuman Pagi", "따뜻한 물 (Air Hangat)", listOf("따뜻한 물 (Air Hangat)", "시원한 물 (Air Dingin)", "커피 (Kopi)", "우유 (Susu)"))
+            )
+        ),
+        IntroTemplate(
+            id = "intro_level_5",
+            level = 2,
+            title = "Bersepeda & Transportasi Harian (자전거와 교통)",
+            description = "Menjelaskan cara bepergian harian dengan sepeda Ttareungi, bus, atau subway.",
+            templateKo = "저는 날씨가 좋은 날에 {{transportasi}}을 즐겨 탑니다. 특히 한강 공원에서 {{sepeda}}을 빌려 타는 것을 좋아합니다. 안전을 위해 항상 {{safety}}을 착용합니다.",
+            templateId = "Pada hari yang cerah saya suka mengendarai {{transportasi}}. Terutama saya suka menyewa {{sepeda}} di Taman Sungai Han. Demi keselamatan saya selalu memakai {{safety}}.",
+            placeholders = listOf(
+                TemplatePlaceholder("transportasi", "Moda Transportasi", "자전거 (Sepeda)", listOf("자전거 (Sepeda)", "지하철 (Subway MRT)", "시내버스 (Bus Kota)")),
+                TemplatePlaceholder("sepeda", "Pilihan Sepeda", "따릉이 자전거 (Sepeda Sewa Ttareungi)", listOf("따릉이 자전거 (Sepeda Sewa Ttareungi)", "로드 자전거 (Sepeda Balap)", "전기 자전거 (Sepeda Listrik)")),
+                TemplatePlaceholder("safety", "Alat Keselamatan", "안전 헬멧 (Helm Pengaman)", listOf("안전 헬멧 (Helm Pengaman)", "보호대 (Pelindung Lutut)"))
+            )
+        ),
+        IntroTemplate(
+            id = "intro_level_6",
+            level = 3,
+            title = "Ekspresi Emosi & Frustrasi (감정과 리액션)",
+            description = "Mengekspresikan rasa kesal, nyesek, atau syok secara luwes dengan penutup yang bijak.",
+            templateKo = "오늘 {{kendala}} 때문에 정말 {{emosi}}. 헐, 어이가 없었지만 그래도 {{pelampiasan}} 기분이 한결 풀렸습니다. 다행이에요!",
+            templateId = "Hari ini karena {{kendala}} rasanya sangat {{emosi}}. Astaga, sempat speechless tapi setelah {{pelampiasan}} suasana hati membaik. Syukurlah!",
+            placeholders = listOf(
+                TemplatePlaceholder("kendala", "Penyebab Masalah", "지하철 연착 (Keterlambatan Subway)", listOf("지하철 연착 (Keterlambatan Subway)", "비 오는 날 우산 분실 (Payung Hilang Pas Hujan)", "스마트폰 방전 (Baterai HP Habis)", "심한 교통체증 (Macet Parah)")),
+                TemplatePlaceholder("emosi", "Perasaan / Emosi", "답답하고 짜증났습니다 (Frustrasi dan Kesal)", listOf("답답하고 짜증났습니다 (Frustrasi dan Kesal)", "속상하고 당황스러웠습니다 (Sedih dan Panik)", "완전 열받았습니다 (Naik Darah Sekali)")),
+                TemplatePlaceholder("pelampiasan", "Cara Menenangkan Diri", "친구와 수다 떨고 (Mengobrol dengan Teman)", listOf("친구와 수다 떨고 (Mengobrol dengan Teman)", "따뜻한 차를 마시고 (Minum Teh Hangat)", "맛있는 떡볶이를 먹고 (Makan Tteokbokki Enak)"))
+            )
+        ),
+        IntroTemplate(
+            id = "intro_level_7",
+            level = 2,
+            title = "Tegur Sapa Sehari-hari (일상 인사와 안부)",
+            description = "Berbasa-basi hangat, menanyakan kabar makan, cuaca, dan salam saling mendoakan.",
+            templateKo = "안녕하세요! {{sapaan}}? 오늘 날씨가 {{cuaca}}네요. 오늘도 힘내시고 {{doa}}!",
+            templateId = "Halo! {{sapaan}}? Cuaca hari ini {{cuaca}} ya. Hari ini tetap semangat dan {{doa}}!",
+            placeholders = listOf(
+                TemplatePlaceholder("sapaan", "Kalimat Tegur Sapa", "식사하셨어요 (Sudah makan?)", listOf("식사하셨어요 (Sudah makan?)", "좋은 아침이에요 (Selamat pagi)", "오랜만이에요 (Lama tak jumpa)", "어디 가시는 길이에요 (Mau pergi ke mana?)")),
+                TemplatePlaceholder("cuaca", "Kondisi Cuaca", "참 화창하고 맑 (sangat cerah dan segar)", listOf("참 화창하고 맑 (sangat cerah dan segar)", "조금 쌀쌀하 (agak dingin)", "바람이 시원하 (anginnya sejuk)")),
+                TemplatePlaceholder("doa", "Ucapan Harapan / Pamit", "수고 많으셨습니다 (Terima kasih atas kerja kerasnya)", listOf("수고 많으셨습니다 (Terima kasih atas kerja kerasnya)", "조심해서 들어가세요 (Hati-hati di jalan pulang)", "내일 또 봬요 (Sampai jumpa lagi besok)"))
             )
         )
     )
@@ -535,6 +728,90 @@ class KoreanRepository(context: Context) {
             ),
             correctIndex = 1,
             explanation = "따뜻한 (hangat) + 카페라떼 한 잔 (1 gelas latte) + 치즈케이크 하나 (1 cheesecake) + 포장해 주세요 (tolong bungkus/takeaway)."
+        ),
+        ListeningQuiz(
+            id = "lq7",
+            question = "Dengarkan pengumuman toilet di stasiun MRT Seoul:",
+            spokenKorean = "고객 여러분, 화장실은 3번 출구 개찰구 밖 오른쪽에 위치해 있습니다.",
+            romanization = "gogaek yeoreobun, hwajangsil-eun sambeon chulgu gaechalgu bakk oreunjjoge wichihae isseumnida.",
+            options = listOf(
+                "Pintu keluar 3 di luar gerbang sebelah kanan",
+                "Di dalam gerbong kereta nomor 3",
+                "Lantai 2 dekat eskalator kiri",
+                "Di samping loket tiket pintu 1"
+            ),
+            correctIndex = 0,
+            explanation = "화장실 (toilet) + 3번 출구 (pintu keluar 3) + 개찰구 밖 (luar gerbang tiket) + 오른쪽 (sebelah kanan)."
+        ),
+        ListeningQuiz(
+            id = "lq8",
+            question = "Dengarkan instruksi keselamatan sewa sepeda Ttareungi:",
+            spokenKorean = "따릉이 대여소에서 잠금장치를 해제한 후 헬멧을 착용하고 자전거 도로를 이용하세요.",
+            romanization = "ttareung-i daeyeoso-eseo jamgeumjangchireul haejehan hu helmes-eul chak-yonghago jajeongeo dororeul iyonghaseyo.",
+            options = listOf(
+                "Boleh melewati jalan raya tol cepat",
+                "Gunakan helm dan kendarai di jalur khusus sepeda",
+                "Dilarang bersepeda setelah pukul 6 sore",
+                "Kembalikan sepeda dalam waktu 10 menit"
+            ),
+            correctIndex = 1,
+            explanation = "헬멧을 착용하고 (kenakan helm) + 자전거 도로를 이용하세요 (gunakan jalur khusus sepeda)."
+        ),
+        ListeningQuiz(
+            id = "lq9",
+            question = "Dengarkan pertanyaan kasir minimarket kepada pembeli:",
+            spokenKorean = "봉투 필요하세요? 백 원 추가됩니다.",
+            romanization = "bongtu piryohaseyo? baek won chugadoemnida.",
+            options = listOf(
+                "Apakah memiliki kartu langganan member?",
+                "Apakah memerlukan kantong belanja seharga 100 won?",
+                "Berapa nomor telepon untuk poin?",
+                "Apakah ingin membayar dengan uang pas?"
+            ),
+            correctIndex = 1,
+            explanation = "봉투 필요하세요? (apakah perlu kantong plastik?) + 백 원 추가됩니다 (tambah biaya 100 won)."
+        ),
+        ListeningQuiz(
+            id = "lq10",
+            question = "Dengarkan keluhan tamu guesthouse berikut:",
+            spokenKorean = "저기요, 샤워실에 따뜻한 물이 안 나와요. 보일러 좀 확인해 주세요.",
+            romanization = "jeogiyo, syawosir-e ttatteut-han mur-i an nawayo. bo-illeo jom hwaginhae juseyo.",
+            options = listOf(
+                "Kunci pintu kamar mandi tidak bisa dibuka",
+                "Air hangat shower tidak keluar, mohon cek mesin boiler pemanas",
+                "Lampu kamar mandi berkedip dan mati",
+                "Tisu toilet basah terkena air"
+            ),
+            correctIndex = 1,
+            explanation = "샤워실 (kamar mandi shower) + 따뜻한 물이 안 나와요 (air hangat tidak keluar) + 보일러 확인 (cek boiler)."
+        ),
+        ListeningQuiz(
+            id = "lq11",
+            question = "Dengarkan audio berikut. Emosi dan situasi apa yang sedang dirasakan pembicara?",
+            spokenKorean = "지하철을 바로 눈앞에서 놓쳐서 진짜 짜증나고 답답해 죽겠어!",
+            romanization = "jihacheor-eul baro nun-ap-eseo nochyeoseo jinjja jjajeungnago dapdaphae jukgesseo!",
+            options = listOf(
+                "Sangat kesal dan frustrasi karena ketinggalan subway tepat di depan mata",
+                "Sangat senang karena gerbong subway kosong dan sejuk",
+                "Bingung mencari nomor pintu keluar stasiun subway",
+                "Ingin membeli tiket terusan subway bulanan"
+            ),
+            correctIndex = 0,
+            explanation = "지하철을 놓치다 (ketinggalan kereta) + 진짜 짜증나다 (benar-benar kesal) + 답답해 죽겠어 (sangat frustrasi/nyesek setengah mati)."
+        ),
+        ListeningQuiz(
+            id = "lq12",
+            question = "Dengarkan tegur sapa dan salam pamit berikut. Apa maksud utama ucapan tersebut?",
+            spokenKorean = "오늘 발표 준비하느라 정말 수고 많으셨습니다. 조심해서 들어가시고 내일 봬요!",
+            romanization = "oneul balpyo junbihaneura jeongmal sugo maneusyeosseumnida. josimhaeseo deureogasigo naeil bwaeyo!",
+            options = listOf(
+                "Meminta rekan kerja membatalkan presentasi besok",
+                "Apresiasi kerja keras persiapan presentasi hari ini dan salam hati-hati pulang",
+                "Mengajak makan malam bersama di restoran daging",
+                "Mengeluhkan proyektor ruang rapat yang rusak"
+            ),
+            correctIndex = 1,
+            explanation = "수고 많으셨습니다 (terima kasih atas jerih payah/kerja keras) + 조심해서 들어가세요 (hati-hati pulang) + 내일 봬요 (sampai jumpa besok)."
         )
     )
 
@@ -612,6 +889,117 @@ class KoreanRepository(context: Context) {
                 ReadingQuestion("Jajanan apa yang dibeli dan dimakan bersama?", listOf("Kimchi dan Ramyun", "Tteokbokki dan Eomuk (어묵)", "Kimbap dan Kopi", "Es Krim"), 1),
                 ReadingQuestion("Bagaimana perasaan tokoh setelah jalan-jalan?", listOf("Bosan", "Sangat bahagia (행복하다)", "Lelah", "Sedih"), 1)
             )
+        ),
+        ReadingStory(
+            id = "story_3",
+            titleKo = "한강 공원에서 따릉이 자전거 타기",
+            titleId = "Bersepeda Ttareungi di Taman Sungai Han",
+            level = "Pemula 2",
+            paragraphs = listOf(
+                ReadingParagraph(
+                    sentenceKo = "화창한 토요일 오후에 친구와 함께 여의도 한강 공원에 갔습니다.",
+                    sentenceRo = "Hwachanghan toyoil ohue chinguwa hamkke yeouido hangang gong-wone gatseumnida.",
+                    sentenceId = "Pada Sabtu siang yang cerah, saya pergi ke Taman Sungai Han Yeouido bersama teman.",
+                    keyWords = listOf("토요일" to "Hari Sabtu", "한강" to "Sungai Han", "공원" to "Taman")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "우리는 스마트폰 앱으로 따릉이 자전거를 빌리고 헬멧을 착용했습니다.",
+                    sentenceRo = "Urineun seumateupon aebeuro ttareung-i jajeongeoreul billigo helmes-eul chak-yonghaetseumnida.",
+                    sentenceId = "Kami menyewa sepeda Ttareungi dengan aplikasi smartphone dan mengenakan helm.",
+                    keyWords = listOf("따릉이" to "Sepeda publik Seoul", "자전거" to "Sepeda", "헬멧" to "Helm")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "자전거 도로를 따라 시원한 강바람을 맞으며 기분 좋게 달렸습니다.",
+                    sentenceRo = "Jajeongeo dororeul ttara siwonhan gangbaram-eul majeumyeo gibun joke dallyeotseumnida.",
+                    sentenceId = "Kami bersepeda menyusuri jalur khusus sepeda sambil menikmati hembusan angin sungai yang sejuk.",
+                    keyWords = listOf("자전거 도로" to "Jalur sepeda", "강바람" to "Angin sungai", "달리다" to "Berlari/Bersepeda")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "운동 후 편의점에서 끓인 즉석 라면을 먹으니 정말 꿀맛이었습니다.",
+                    sentenceRo = "Undong hu pyeon-uijeom-eseo kkeurin jeukseok ramyeon-eul meogeuni jeongmal kkulmasieotseumnida.",
+                    sentenceId = "Setelah berolahraga, kami makan ramyun rebusan instan di minimarket yang rasanya sungguh nikmat luar biasa.",
+                    keyWords = listOf("편의점" to "Minimarket", "라면" to "Ramyun", "꿀맛" to "Sangat lezat bak madu")
+                )
+            ),
+            questions = listOf(
+                ReadingQuestion("Kendaraan apa yang disewa tokoh di Sungai Han?", listOf("Mobil sewa", "Sepeda Ttareungi (따릉이)", "Skuter listrik", "Perahu dayung"), 1),
+                ReadingQuestion("Perlengkapan apa yang dipakai demi keselamatan?", listOf("Kacamata hitam", "Helm pengaman (헬멧)", "Sarung tangan", "Jaket tebal"), 1),
+                ReadingQuestion("Makanan apa yang dinikmati di minimarket setelah bersepeda?", listOf("Kue beras", "Ramyun instan (라면)", "Pizza", "Roti"), 1)
+            )
+        ),
+        ReadingStory(
+            id = "story_4",
+            titleKo = "서울 게스트하우스의 아침과 생활 에티켓",
+            titleId = "Pagi Hari di Guesthouse Seoul & Etiket Rumah Tangga",
+            level = "Menengah 1",
+            paragraphs = listOf(
+                ReadingParagraph(
+                    sentenceKo = "게스트하우스에서는 여러 나라 사람들이 함께 생활합니다.",
+                    sentenceRo = "Geseuteuhauseu-eseoneun yeoreo nara saramdeuri hamkke saenghwalhamnida.",
+                    sentenceId = "Di guesthouse, orang-orang dari berbagai negara tinggal bersama.",
+                    keyWords = listOf("생활하다" to "Tinggal/Berkehidupan", "사람들" to "Orang-orang", "함께" to "Bersama")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "아침에 화장실과 샤워실을 이용할 때는 15분 이내로 배려하여 사용합니다.",
+                    sentenceRo = "Achime hwajangsilgwa syawosireul iyonghal ttaeneun sibobun inaero baeryeohayeo sayonghamnida.",
+                    sentenceId = "Saat menggunakan toilet dan shower di pagi hari, kita menggunakan dengan tenggang rasa di bawah 15 menit.",
+                    keyWords = listOf("화장실" to "Toilet", "샤워실" to "Kamar mandi shower", "배려" to "Tenggang rasa")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "사용 후에는 비누와 샴푸를 제자리에 두고 바닥 물기를 닦습니다.",
+                    sentenceRo = "Sayong hueneun binuwa syampureul jejari-e dugo badak mulgireul dakseumnida.",
+                    sentenceId = "Setelah dipakai, letakkan sabun dan shampo pada tempatnya serta seka genangan air lantai.",
+                    keyWords = listOf("비누" to "Sabun", "샴푸" to "Shampo", "물기" to "Genangan air")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "음식물 쓰레기와 플라스틱은 분리수거통에 바르게 버려야 합니다.",
+                    sentenceRo = "Eumsikmul sseuregigwa peullaseutigeun bunrisugeotong-e bareuge beoryeoya hamnida.",
+                    sentenceId = "Sampah sisa makanan dan plastik harus dibuang secara tertib ke tempat daur ulang.",
+                    keyWords = listOf("음식물 쓰레기" to "Sampah makanan", "분리수거" to "Pilah sampah", "버리다" to "Membuang")
+                )
+            ),
+            questions = listOf(
+                ReadingQuestion("Berapa lama batas waktu wajar mandi shower di pagi hari?", listOf("1 jam", "Maksimal 15 menit (15분 이내)", "30 menit", "Bebas kapan saja"), 1),
+                ReadingQuestion("Apa yang harus dirapikan setelah memakai kamar mandi?", listOf("Meninggalkan sabun di lantai", "Menaruh sabun/shampo di tempatnya dan menyeka air lantai", "Mematikan lampu saja", "Mengunci pintu"), 1),
+                ReadingQuestion("Bagaimana aturan pembuangan sampah di Korea?", listOf("Dibuang langsung ke jalan", "Dipisahkan sesuai jenisnya di tong 분리수거", "Dibakar di halaman", "Dikubur di tanah"), 1)
+            )
+        ),
+        ReadingStory(
+            id = "story_5",
+            titleKo = "비 오는 월요일의 짜증과 따뜻한 인사",
+            titleId = "Kekesalan di Hari Senin yang Hujan & Kehangatan Tegur Sapa",
+            level = "Menengah 2",
+            paragraphs = listOf(
+                ReadingParagraph(
+                    sentenceKo = "월요일 아침부터 밖에는 장대비가 쏟아졌고 지하철은 20분이나 연착되었습니다.",
+                    sentenceRo = "Woryoil achimbuteo bakk-eneun jangdaebiga ssodajyeotgo jihacheor-eun isipbun-ina yeonchakdoeeotseumnida.",
+                    sentenceId = "Sejak Senin pagi di luar hujan lebat mengguyur dan subway tertunda sampai 20 menit.",
+                    keyWords = listOf("월요일" to "Hari Senin", "장대비" to "Hujan lebat", "연착" to "Keterlambatan")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "옷도 젖고 지각할 것 같아서 '진짜 짜증나고 답답하다'는 생각이 들었습니다.",
+                    sentenceRo = "Otdo jeotgo jigak-hal geot gat-aseo 'jinjja jjajeungnago dapdaphada'neun saenggag-i deureotseumnida.",
+                    sentenceId = "Pakaian basah dan saya merasa akan terlambat sehingga terlintas pikiran 'benar-benar kesal dan nyesek'.",
+                    keyWords = listOf("젖다" to "Basah", "지각하다" to "Terlambat", "짜증나다" to "Merasa kesal", "답답하다" to "Frustrasi")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "하지만 회사 문을 열자 동료들이 '좋은 아침이에요! 비 많이 맞았죠? 수건 드릴게요'라며 반갑게 맞이해 주었습니다.",
+                    sentenceRo = "Hajiman hoesa mun-eul yeolja dongryodeuri 'joeun achimieyo! bi mani majatjyo? sugeon deurilgeyo'ramyeo bangapge majihae jueotseumnida.",
+                    sentenceId = "Namun begitu membuka pintu kantor, rekan-rekan menyapa hangat 'Selamat pagi! Kena hujan banyak ya? Saya ambilkan handuk ya'.",
+                    keyWords = listOf("동료" to "Rekan kerja", "좋은 아침" to "Selamat pagi", "수건" to "Handuk", "반갑다" to "Senang/Hangat")
+                ),
+                ReadingParagraph(
+                    sentenceKo = "따뜻한 차 한 잔과 함께 나눈 다정한 인사 한마디 덕분에 아침의 짜증이 눈 녹듯 사라졌습니다.",
+                    sentenceRo = "Ttatteut-han cha han jan-gwa hamkke nanun dajeonghan insa hanmadi deokbun-e achim-ui jjajeung-i nun nokdeut sarajyeotseumnida.",
+                    sentenceId = "Berkat secangkir teh hangat dan sepatah kata tegur sapa yang penuh kasih, rasa kesal di pagi hari lenyap seperti salju mencair.",
+                    keyWords = listOf("따뜻한 차" to "Teh hangat", "인사" to "Tegur sapa", "사라지다" to "Menghilang/Lenyap")
+                )
+            ),
+            questions = listOf(
+                ReadingQuestion("Mengapa tokoh merasa kesal (짜증나다) di hari Senin pagi?", listOf("Kalah main game", "Hujan lebat dan kereta subway tertunda 20 menit", "Dompetnya hilang", "Makanan paginya gosong"), 1),
+                ReadingQuestion("Bagaimana sambutan rekan kerja saat tokoh tiba di kantor?", listOf("Memarahi karena basah", "Menyapa '좋은 아침' dengan ramah dan menawarkan handuk", "Menyuruhnya pulang lagi", "Mengacuhkannya"), 1),
+                ReadingQuestion("Pelajaran apa yang dipetik dari cerita?", listOf("Jangan pernah keluar rumah", "Tegur sapa hangat dan perhatian tulus bisa melenyapkan rasa kesal", "Subway Korea selalu mogok", "Minum kopi lebih baik daripada teh"), 1)
+            )
         )
     )
 
@@ -641,6 +1029,60 @@ class KoreanRepository(context: Context) {
                 SubtitleLine(3200, 6500, "아이스 아메리카노 한 잔 부탁드려요.", "A-i-seu americano han jan butakdeuryeoyo.", "Tolong satu es americano ya."),
                 SubtitleLine(6700, 9500, "드시고 가시나요, 아니면 포장인가요?", "Deusigo gasinayo, animyeon pojang-ingayo?", "Minum di sini atau dibungkus take-away?"),
                 SubtitleLine(9700, 13000, "테이크아웃으로 해 주세요.", "Te-i-keu-a-us-euro hae juseyo.", "Tolong dibuat untuk take-away saja.")
+            )
+        ),
+        VideoImmersion(
+            id = "video_3",
+            title = "Mencari Toilet & Kode PIN di Kafe (화장실 비밀번호)",
+            sourceTitle = "Daily Cafe Survival Talk",
+            durationText = "01:05",
+            thumbnailColorHex = 0xFF2563EB,
+            lines = listOf(
+                SubtitleLine(0, 3000, "저기요, 죄송한데 화장실이 어디에 있어요?", "Jeogiyo, joesonghande hwajangsiri eodie isseoyo?", "Permisi, maaf di manakah letak toilet?"),
+                SubtitleLine(3200, 6500, "매장 밖으로 나가셔서 오른쪽 계단 옆에 있습니다.", "Maejang bakkeuro nagasyeoseo oreunjjok gyedan yeope isseumnida.", "Keluar toko ke kanan, ada tepat di samping tangga."),
+                SubtitleLine(6700, 9500, "문이 잠겨 있나요? 비밀번호가 있어요?", "Muni jamgyeo innayo? Bimilbeonhoga isseoyo?", "Apakah pintunya terkunci? Apakah ada nomor sandinya?"),
+                SubtitleLine(9700, 13500, "네, 영수증 맨 아래쪽에 네 자리 번호 2468입니다.", "Ne, yeongsujeung maen araejjoge ne jari beonho 2468-imnida.", "Ya, di paling bawah struk ada empat digit nomor 2468."),
+                SubtitleLine(13800, 16500, "휴지도 화장실 입구에서 챙겨 가세요!", "Hyujido hwajangsil ipgue-seo chaenggyeo gaseyo!", "Ambil juga tisunya di dekat pintu masuk toilet ya!")
+            )
+        ),
+        VideoImmersion(
+            id = "video_4",
+            title = "Menyewa Sepeda Ttareungi di Seoul (따릉이 자전거)",
+            sourceTitle = "Active Han River Scenario",
+            durationText = "01:20",
+            thumbnailColorHex = 0xFF059669,
+            lines = listOf(
+                SubtitleLine(0, 3000, "오늘 날씨 정말 맑다! 따릉이 자전거 탈래?", "Oneul nalssi jeongmal makda! Ttareung-i jajeongeo tallae?", "Hari ini cerah sekali! Mau naik sepeda Ttareungi?"),
+                SubtitleLine(3200, 6800, "응, 좋아! 따릉이 앱 켜서 안장 아래 QR코드 스캔할게.", "Eung, joa! Ttareung-i aep kyeoseo anjang arae QR kodeu seukaenhalge.", "Ya, ayo! Aku buka aplikasi Ttareungi lalu pindai kode QR di bawah sadel."),
+                SubtitleLine(7000, 10000, "잠금장치 풀렸다! 헬멧 꼭 착용하고 타자.", "Jamgeumjangchi pullyeotda! Helmet kkok chak-yonghago taja.", "Kuncinya sudah terbuka! Pastikan pakai helm ya."),
+                SubtitleLine(10200, 14000, "자전거 도로 따라서 여의도 한강 공원까지 가자!", "Jajeongeo doro ttara yeouido hangang gong-won-kkaji gaja!", "Ayo ikuti jalur sepeda menuju Taman Sungai Han Yeouido!"),
+                SubtitleLine(14200, 17500, "한 시간 타고 근처 대여소에 다시 반납하면 돼.", "Han sigan tago geuncheo daeyeoso-e dasi bannaphamyeon dwae.", "Setelah satu jam, kita kembalikan di stasiun sepeda terdekat.")
+            )
+        ),
+        VideoImmersion(
+            id = "video_5",
+            title = "Subway Terlambat & Frustrasi Hujan (지하철 연착과 짜증)",
+            sourceTitle = "Real Commuter Drama Scenario",
+            durationText = "01:10",
+            thumbnailColorHex = 0xFFDC2626,
+            lines = listOf(
+                SubtitleLine(0, 3200, "비도 오는데 지하철까지 20분이나 연착됐어. 진짜 짜증나!", "Bido oneunde jihacheol-kkaji isipbun-ina yeonchakdwaesseo. Jinjja jjajeungna!", "Sudah hujan begini, subway tertunda 20 menit lagi. Benar-benar kesal!"),
+                SubtitleLine(3400, 7000, "옷도 젖고 답답해 죽겠네. 팀장님께 먼저 연락드렸어?", "Otdo jeotgo dapdaphae jukgenne. Timjangnimkke meonjeo yeollakdeuryeosseo?", "Pakaian basah kuyup dan rasanya nyesek banget. Sudah kabari manajer tim duluan?"),
+                SubtitleLine(7200, 10500, "응, 방금 메시지 남겼는데 '빗길 조심해서 천천히 오세요'라고 하셨어.", "Eung, banggeum mesiji namgyeonneunde 'bitgil josimhaeseo cheoncheonhi oseyo'rago hasyeosseo.", "Ya, barusan aku kirim pesan dan beliau membalas 'Hati-hati di jalan yang licin karena hujan, jalan santai saja ya'."),
+                SubtitleLine(10800, 14200, "와, 다행이다! 따뜻한 커피 한 잔 마시며 마음 가라앉히자.", "Wa, dahaeng-ida! Ttatteut-han keopi han jan masimyeo maeum gara-anjhija.", "Wah syukurlah! Ayo minum segelas kopi hangat sambil menenangkan pikiran.")
+            )
+        ),
+        VideoImmersion(
+            id = "video_6",
+            title = "Tegur Sapa & Semangat Pagi di Kantor (직장 아침 인사와 격려)",
+            sourceTitle = "Office Daily Talk Scenario",
+            durationText = "01:00",
+            thumbnailColorHex = 0xFF7C3AED,
+            lines = listOf(
+                SubtitleLine(0, 3000, "좋은 아침입니다, 대리님! 주말 잘 보내셨어요?", "Joeun achim-imnida, daerinim! Jumal jal bonaesyeosseoyo?", "Selamat pagi, Asisten Manajer! Apakah akhir pekan Anda menyenangkan?"),
+                SubtitleLine(3200, 6500, "네, 푹 쉬었습니다. 밥은 먹고 출근했어요?", "Ne, puk swieotseumnida. Bap-eun meokgo chulgeunhaesseoyo?", "Ya, saya istirahat dengan nyaman. Sudah sarapan sebelum berangkat kerja?"),
+                SubtitleLine(6700, 10000, "네, 든든하게 먹었습니다! 오늘 미팅 발표도 화이팅입니다!", "Ne, deundeunhage meogeotseumnida! Oneul miting balpyodo hwaiting-imnida!", "Ya, sudah makan kenyang! Semangat juga untuk presentasi rapat hari ini!"),
+                SubtitleLine(10200, 13800, "고마워요! 오늘도 힘내서 같이 수고해 봐요.", "Gomawoyo! Oneuldo himnaeseo gachi sugohae bwayo.", "Terima kasih! Hari ini mari berjuang dan bekerja keras bersama-sama.")
             )
         )
     )

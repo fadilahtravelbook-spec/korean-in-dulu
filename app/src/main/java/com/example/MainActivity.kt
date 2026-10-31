@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.MainViewModel
+import com.example.ui.screens.HangulIntroScreen
 import com.example.ui.screens.HomeScreen
 import com.example.ui.screens.ListeningScreen
 import com.example.ui.screens.OnboardingScreen
@@ -182,6 +183,19 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
 
+                                "hangul_intro" -> {
+                                    HangulIntroScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onNavigateToWriting = { char ->
+                                            currentScreen = "writing"
+                                        },
+                                        onAddXp = { xp ->
+                                            viewModel.addXp(xp)
+                                        }
+                                    )
+                                }
+
                                 "writing" -> {
                                     WritingScreen(
                                         letters = viewModel.repository.hangulAlphabet,
@@ -189,6 +203,9 @@ class MainActivity : ComponentActivity() {
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
+                                        },
+                                        onNavigateToHangulIntro = {
+                                            currentScreen = "hangul_intro"
                                         }
                                     )
                                 }

@@ -57,6 +57,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.R
@@ -514,18 +515,62 @@ fun SpeakingScreen(
                     }
                 }
 
-                if (selectedOption?.isCorrect == true && currentRolePlayIndex < rolePlaySteps.size - 1) {
+                if (selectedOption?.isCorrect == true) {
                     Spacer(modifier = Modifier.height(14.dp))
-                    Button(
-                        onClick = {
-                            selectedOption = null
-                            currentRolePlayIndex++
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Lanjut ke Pertanyaan Hannie Berikutnya ➡️", color = Color.White, fontWeight = FontWeight.Bold)
+                    if (currentRolePlayIndex < rolePlaySteps.size - 1) {
+                        Button(
+                            onClick = {
+                                selectedOption = null
+                                currentRolePlayIndex++
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Lanjut ke Pertanyaan Hannie Berikutnya ➡️", color = Color.White, fontWeight = FontWeight.Bold)
+                        }
+                    } else {
+                        // All steps completed!
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = Color(0xFFD1FAE5),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(SaessakGreen)
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = "🎉 축하합니다! (Selamat!)",
+                                    fontSize = 17.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFF065F46)
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "Anda telah menuntaskan seluruh 8 skenario percakapan nyata bersama Hannie mulai dari kafe, toilet MRT, belanja, subway delay, hingga tegur sapa kantor!",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF14532D),
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = {
+                                        selectedOption = null
+                                        currentRolePlayIndex = 0
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = SaessakGreen),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White)
+                                    Spacer(modifier = Modifier.width(6.dp))
+                                    Text("Mulai Ulang Percakapan dari Awal 🔄", color = Color.White, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        }
                     }
                 }
 

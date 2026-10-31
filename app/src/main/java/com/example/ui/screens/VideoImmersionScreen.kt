@@ -40,6 +40,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -101,12 +102,23 @@ fun VideoImmersionScreen(
         )
 
         // Video Scenario Selector Tabs
-        TabRow(
+        ScrollableTabRow(
             selectedTabIndex = selectedVideoIndex,
             containerColor = Color.White,
-            contentColor = HaneulBlue
+            contentColor = HaneulBlue,
+            edgePadding = 16.dp,
+            divider = {}
         ) {
             videoLessons.forEachIndexed { idx, vid ->
+                val shortTitle = when (vid.id) {
+                    "video_1" -> "GS25 Minimarket"
+                    "video_2" -> "Kafe Hongdae"
+                    "video_3" -> "Toilet & PIN Kafe"
+                    "video_4" -> "Sepeda Ttareungi"
+                    "video_5" -> "Subway Hujan & Kesal"
+                    "video_6" -> "Tegur Sapa Kantor"
+                    else -> vid.title.substringBefore(" (").take(18)
+                }
                 Tab(
                     selected = selectedVideoIndex == idx,
                     onClick = {
@@ -114,7 +126,13 @@ fun VideoImmersionScreen(
                         activeLineIndex = 0
                         shadowingDone = false
                     },
-                    text = { Text(if (idx == 0) "Convenience Store" else "Cafe Order", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                    text = {
+                        Text(
+                            text = shortTitle,
+                            fontWeight = if (selectedVideoIndex == idx) FontWeight.Bold else FontWeight.Medium,
+                            fontSize = 12.sp
+                        )
+                    }
                 )
             }
         }

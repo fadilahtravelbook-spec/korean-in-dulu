@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.model.DailyChallengeItem
 import com.example.data.model.UserProfile
+import com.example.ui.components.DailyLifeHubDialog
 import com.example.ui.components.GrammarHubDialog
 import com.example.ui.components.HannieMascotCard
 import com.example.ui.components.TopStatBar
@@ -95,10 +96,18 @@ fun HomeScreen(
     val goalProgress = min(1f, learningMinutes.toFloat() / dailyGoal.toFloat())
 
     var showGrammarHub by remember { mutableStateOf(false) }
+    var showDailyLifeHub by remember { mutableStateOf(false) }
 
     if (showGrammarHub) {
         GrammarHubDialog(
             onDismiss = { showGrammarHub = false },
+            onSpeak = onSpeak
+        )
+    }
+
+    if (showDailyLifeHub) {
+        DailyLifeHubDialog(
+            onDismiss = { showDailyLifeHub = false },
             onSpeak = onSpeak
         )
     }
@@ -423,6 +432,79 @@ fun HomeScreen(
                 }
             }
 
+            // Featured Card: Pengenalan Huruf Hangul Flashcard
+            item {
+                Card(
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFBFDBFE))
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onNavigateToModule("hangul_intro") }
+                        .testTag("open_hangul_intro_card")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = HaneulContainer,
+                            modifier = Modifier.size(52.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("한", fontSize = 26.sp, fontWeight = FontWeight.Black, color = HaneulBlue)
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(14.dp))
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Pengenalan Huruf Hangul",
+                                    fontSize = 15.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = InkBlack
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = NunbitYellowContainer
+                                ) {
+                                    Text(
+                                        text = "40 Huruf",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFFCA8A04),
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                text = "Tombol flashcard interaktif untuk setiap vokal & konsonan lengkap dengan audio & tips",
+                                fontSize = 11.sp,
+                                color = TextSecondary,
+                                lineHeight = 15.sp
+                            )
+                        }
+
+                        Icon(
+                            Icons.Default.PlayCircle,
+                            contentDescription = "Buka Hangul Flashcard",
+                            tint = HaneulBlue,
+                            modifier = Modifier.size(26.dp)
+                        )
+                    }
+                }
+            }
+
             // Section Header: Modul Belajar
             item {
                 Row(
@@ -542,6 +624,75 @@ fun HomeScreen(
                             Icons.Default.PlayCircle,
                             contentDescription = null,
                             tint = HaneulBlue,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+            }
+
+            // Daily Life Guide Hub Card (Toilet, Bike, Convenience Store, Recycling)
+            item {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE2E8F0))
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { showDailyLifeHub = true }
+                        .testTag("open_daily_life_hub_card")
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = RoundedCornerShape(14.dp),
+                            color = Color(0xFFD1FAE5),
+                            modifier = Modifier.size(46.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("생", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = Color(0xFF065F46))
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = "Panduan Keseharian (일상생활)",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = InkBlack
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFE0F2FE)
+                                ) {
+                                    Text(
+                                        text = "6 Topik Nyata",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = HaneulBlue,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Rasa kesal & emosi, tegur sapa, toilet kafe, sepeda 따릉이 & etiket rumah",
+                                fontSize = 11.sp,
+                                color = TextSecondary,
+                                lineHeight = 15.sp
+                            )
+                        }
+                        Icon(
+                            Icons.Default.PlayCircle,
+                            contentDescription = null,
+                            tint = Color(0xFF059669),
                             modifier = Modifier.size(24.dp)
                         )
                     }

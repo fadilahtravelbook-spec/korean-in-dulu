@@ -410,7 +410,7 @@ fun VocabListView(
     onSpeak: (String) -> Unit,
     onToggleBookmark: (String) -> Unit
 ) {
-    val categories = listOf("Semua", "Salam", "Makanan & Minuman", "Kehidupan", "Angka", "Belanja", "Kustom")
+    val categories = listOf("Semua", "Emosi & Kesal", "Tegur Sapa", "Toilet & Mandi", "Sepeda & Transportasi", "Keseharian & Rumah", "Salam", "Makanan & Minuman", "Kehidupan", "Angka", "Kustom")
 
     val filteredList = vocabList.filter { card ->
         (selectedCategory == "Semua" || card.category.contains(selectedCategory, ignoreCase = true)) &&
@@ -469,47 +469,95 @@ fun VocabListView(
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.fillMaxSize()
-        ) {
-            items(filteredList) { card ->
-                Card(
+        if (filteredList.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.White),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
+                    color = Color.White,
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE2E8F0))
+                    ),
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Row(
+                    Column(
+                        modifier = Modifier.padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "🔍 Tidak ada kosakata ditemukan",
+                            fontSize = 15.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = InkBlack
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Tidak ada kata yang cocok dengan filter \"$selectedCategory\" atau kata kunci \"$searchQuery\".",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                onSearchChange("")
+                                onCategoryChange("Semua")
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Reset Pencarian & Kategori", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        }
+                    }
+                }
+            }
+        } else {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier.fillMaxSize()
+            ) {
+                items(filteredList) { card ->
+                    Card(
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(14.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(16.dp))
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(text = card.korean, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = InkBlack)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(text = "[${card.romanization}]", fontSize = 12.sp, color = TextSecondary)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text(text = card.korean, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = InkBlack)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = "[${card.romanization}]", fontSize = 12.sp, color = TextSecondary)
+                                }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = card.meaning, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = HaneulBlue)
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(text = "Contoh: ${card.exampleSentence}", fontSize = 11.sp, color = TextMuted)
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = card.meaning, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = HaneulBlue)
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(text = "Contoh: ${card.exampleSentence}", fontSize = 11.sp, color = TextMuted)
-                        }
 
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            IconButton(onClick = { onSpeak(card.korean) }) {
-                                Icon(Icons.Default.VolumeUp, contentDescription = "Dengarkan", tint = HaneulBlue)
-                            }
-                            IconButton(onClick = { onToggleBookmark(card.id) }) {
-                                Icon(
-                                    if (card.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
-                                    contentDescription = "Simpan Bookmark",
-                                    tint = if (card.isBookmarked) NunbitYellow else TextMuted
-                                )
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                IconButton(onClick = { onSpeak(card.korean) }) {
+                                    Icon(Icons.Default.VolumeUp, contentDescription = "Dengarkan", tint = HaneulBlue)
+                                }
+                                IconButton(onClick = { onToggleBookmark(card.id) }) {
+                                    Icon(
+                                        if (card.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                                        contentDescription = "Simpan Bookmark",
+                                        tint = if (card.isBookmarked) NunbitYellow else TextMuted
+                                    )
+                                }
                             }
                         }
                     }
@@ -524,10 +572,14 @@ fun VocabMatchingGameView(
     cards: List<VocabCard>,
     onSpeak: (String) -> Unit
 ) {
-    val samplePairs = remember(cards) { cards.take(5) }
-    var selectedKorean by remember { mutableStateOf<String?>(null) }
-    var selectedMeaning by remember { mutableStateOf<String?>(null) }
-    val matchedKeys = remember { mutableStateListOf<String>() }
+    var roundSeed by remember { mutableIntStateOf(0) }
+    val samplePairs = remember(cards, roundSeed) {
+        if (cards.size > 5) cards.shuffled().take(5) else cards
+    }
+    var selectedKorean by remember(roundSeed) { mutableStateOf<String?>(null) }
+    var selectedMeaning by remember(roundSeed) { mutableStateOf<String?>(null) }
+    val matchedKeys = remember(roundSeed) { mutableStateListOf<String>() }
+    val shuffledMeanings = remember(samplePairs, roundSeed) { samplePairs.map { it.meaning }.shuffled() }
 
     Column(
         modifier = Modifier
@@ -535,10 +587,30 @@ fun VocabMatchingGameView(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "Game Pasangan Kata (Matching Pairs)", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = HaneulBlue)
-        Text(text = "Pilih kata dalam Hangul lalu pilih artinya dalam bahasa Indonesia", fontSize = 12.sp, color = TextSecondary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column {
+                Text(text = "Game Pasangan Kata (Matching Pairs)", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = HaneulBlue)
+                Text(text = "Cocokkan Hangul dengan artinya (${matchedKeys.size}/${samplePairs.size})", fontSize = 12.sp, color = TextSecondary)
+            }
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = NunbitYellowContainer
+            ) {
+                Text(
+                    text = "Babak ${roundSeed + 1}",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 11.sp,
+                    color = InkBlack,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+        }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -586,8 +658,6 @@ fun VocabMatchingGameView(
                     }
                 }
             }
-
-            val shuffledMeanings = remember(samplePairs) { samplePairs.map { it.meaning }.shuffled() }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 shuffledMeanings.forEach { meaning ->
@@ -641,13 +711,30 @@ fun VocabMatchingGameView(
                 color = Color(0xFFD1FAE5),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text(
-                    text = "🎉 Luar Biasa! Semua pasangan kata berhasil dicocokkan!",
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF065F46),
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "🎉 Luar Biasa! Semua 5 pasangan kata berhasil dicocokkan!",
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF065F46),
+                        textAlign = TextAlign.Center,
+                        fontSize = 14.sp
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Button(
+                        onClick = {
+                            roundSeed++
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SaessakGreen),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = Color.White)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text("Babak Baru (Acak 5 Kata Lain) 🔄", color = Color.White, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }

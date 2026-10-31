@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Style
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -74,7 +75,8 @@ fun WritingScreen(
     letters: List<HangulLetter>,
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
-    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
+    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit,
+    onNavigateToHangulIntro: (() -> Unit)? = null
 ) {
     val categories = listOf("Vokal Dasar", "Konsonan Dasar", "Vokal Ganda", "Konsonan Ganda", "Aturan Batchim (받침)")
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
@@ -96,7 +98,28 @@ fun WritingScreen(
         AppSubHeader(
             title = "Menulis Hangul (한글 쓰기)",
             subtitle = "Latihan menulis dengan stroke order, trace mode & kanvas kotak",
-            onBack = onBack
+            onBack = onBack,
+            trailingAction = if (onNavigateToHangulIntro != null) {
+                {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = HaneulContainer,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onNavigateToHangulIntro() }
+                            .testTag("writing_to_hangul_intro_btn")
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Style, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Flashcard", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = HaneulBlue)
+                        }
+                    }
+                }
+            } else null
         )
 
         // Category Tabs
@@ -342,7 +365,55 @@ fun WritingScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Navigation Stepper Bar
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Button(
+                    onClick = {
+                        if (selectedLetterIndex > 0) {
+                            selectedLetterIndex--
+                            latestScore = null
+                            isDikteRevealed = false
+                        }
+                    },
+                    enabled = selectedLetterIndex > 0,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text("⬅️ Sebelumnya", color = if (selectedLetterIndex > 0) InkBlack else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+
+                Text(
+                    text = "${selectedLetterIndex + 1} / ${filteredLetters.size}",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary
+                )
+
+                Button(
+                    onClick = {
+                        if (selectedLetterIndex < filteredLetters.size - 1) {
+                            selectedLetterIndex++
+                            latestScore = null
+                            isDikteRevealed = false
+                        }
+                    },
+                    enabled = selectedLetterIndex < filteredLetters.size - 1,
+                    colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text("Berikutnya ➡️", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Stroke Guide Steps
             Card(

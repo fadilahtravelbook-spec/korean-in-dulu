@@ -386,7 +386,7 @@ fun ListeningScreen(
                                 colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
-                                Text("Lanjut ke Soal Berikutnya", color = Color.White, fontWeight = FontWeight.Bold)
+                                Text("Lanjut ke Soal Berikutnya (${currentQuizIndex + 1}/${quizzes.size}) ➡️", color = Color.White, fontWeight = FontWeight.Bold)
                             }
                         }
                     }
@@ -488,6 +488,48 @@ fun ListeningScreen(
                                         }
                                     }
                                 }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(14.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = {
+                                    if (currentQuizIndex > 0) {
+                                        currentQuizIndex--
+                                        dictationInput = ""
+                                        dictationChecked = false
+                                    }
+                                },
+                                enabled = currentQuizIndex > 0,
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("⬅️ Soal Sebelumnya", color = if (currentQuizIndex > 0) InkBlack else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                            }
+
+                            Text(
+                                text = "Soal ${currentQuizIndex + 1} / ${quizzes.size}",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextSecondary
+                            )
+
+                            Button(
+                                onClick = {
+                                    currentQuizIndex = (currentQuizIndex + 1) % quizzes.size
+                                    dictationInput = ""
+                                    dictationChecked = false
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Soal Berikutnya ➡️", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                             }
                         }
                     }

@@ -83,6 +83,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun addXp(amount: Int) {
+        viewModelScope.launch {
+            repository.addXp(amount)
+        }
+    }
+
     fun recordProgress(moduleId: String, lessonId: String, title: String, score: Int, durationMinutes: Int = 5) {
         viewModelScope.launch {
             repository.recordLessonProgress(moduleId, lessonId, title, score, durationMinutes)

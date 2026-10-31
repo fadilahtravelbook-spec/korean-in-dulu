@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -76,7 +77,8 @@ fun ReadingScreen(
     onSaveToVocab: (korean: String, meaning: String) -> Unit,
     onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
 ) {
-    val story = stories.firstOrNull() ?: return
+    var selectedStoryIndex by remember { mutableIntStateOf(0) }
+    val story = stories.getOrElse(selectedStoryIndex) { stories.firstOrNull() ?: return }
     var activeTab by remember { mutableIntStateOf(0) } // 0: Cerita Utama, 1: Tempel Teks Kustom, 2: Rekam Baca Aloud (WPM)
 
     var activeSentenceIndex by remember { mutableStateOf<Int?>(null) }
@@ -111,9 +113,47 @@ fun ReadingScreen(
             containerColor = Color.White,
             contentColor = HaneulBlue
         ) {
-            Tab(selected = activeTab == 0, onClick = { activeTab = 0 }, text = { Text("Cerita Seoul", fontWeight = FontWeight.Bold, fontSize = 12.sp) })
+            Tab(selected = activeTab == 0, onClick = { activeTab = 0 }, text = { Text("5 Cerita Nyata", fontWeight = FontWeight.Bold, fontSize = 12.sp) })
             Tab(selected = activeTab == 1, onClick = { activeTab = 1 }, text = { Text("Paste Teks", fontWeight = FontWeight.Bold, fontSize = 12.sp) })
             Tab(selected = activeTab == 2, onClick = { activeTab = 2 }, text = { Text("Reading Aloud", fontWeight = FontWeight.Bold, fontSize = 12.sp) })
+        }
+
+        if (activeTab == 0 && stories.size > 1) {
+            ScrollableTabRow(
+                selectedTabIndex = selectedStoryIndex,
+                containerColor = Color.White,
+                contentColor = HaneulBlue,
+                edgePadding = 16.dp,
+                divider = {}
+            ) {
+                stories.forEachIndexed { idx, st ->
+                    val shortName = when (st.id) {
+                        "story_1" -> "1. Hari 1 di Seoul"
+                        "story_2" -> "2. Myeongdong"
+                        "story_3" -> "3. Sepeda Han River"
+                        "story_4" -> "4. Aturan Mandi Rumah"
+                        "story_5" -> "5. Hujan Senin & Salam"
+                        else -> st.titleId.take(16)
+                    }
+                    Tab(
+                        selected = selectedStoryIndex == idx,
+                        onClick = {
+                            selectedStoryIndex = idx
+                            activeSentenceIndex = null
+                            showQuiz = false
+                            quizAnswers = emptyMap()
+                            quizSubmitted = false
+                        },
+                        text = {
+                            Text(
+                                text = shortName,
+                                fontWeight = if (selectedStoryIndex == idx) FontWeight.Bold else FontWeight.Medium,
+                                fontSize = 12.sp
+                            )
+                        }
+                    )
+                }
+            }
         }
 
         Column(
@@ -357,6 +397,70 @@ fun ReadingScreen(
                                         enabled = quizAnswers.size == story.questions.size
                                     ) {
                                         Text("Kirim Jawaban", color = Color.White, fontWeight = FontWeight.Bold)
+                                    }
+                                } else {
+                                    val correctCount = story.questions.indices.count { idx ->
+                                        quizAnswers[idx] == story.questions[idx].correctIndex
+                                    }
+                                    val score = (correctCount * 100) / story.questions.size
+
+                                    Surface(
+                                        shape = RoundedCornerShape(14.dp),
+                                        color = if (score >= 70) Color(0xFFD1FAE5) else Color(0xFFFEF3C7),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(14.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                text = if (score >= 70) "🎉 Hebat Sekali! Skor: $score%" else "📚 Terus Berlatih! Skor: $score%",
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 15.sp,
+                                                color = if (score >= 70) Color(0xFF065F46) else Color(0xFF92400E)
+                                            )
+                                            Text(
+                                                text = "$correctCount dari ${story.questions.size} soal dijawab dengan benar",
+                                                fontSize = 12.sp,
+                                                color = InkBlack
+                                            )
+                                        }
+                                    }
+
+                                    Spacer(modifier = Modifier.height(10.dp))
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    ) {
+                                        Button(
+                                            onClick = {
+                                                quizAnswers = emptyMap()
+                                                quizSubmitted = false
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                                            shape = RoundedCornerShape(12.dp),
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Ulangi Kuis 🔄", color = InkBlack, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        }
+
+                                        if (selectedStoryIndex < stories.size - 1) {
+                                            Button(
+                                                onClick = {
+                                                    selectedStoryIndex++
+                                                    activeSentenceIndex = null
+                                                    showQuiz = false
+                                                    quizAnswers = emptyMap()
+                                                    quizSubmitted = false
+                                                },
+                                                colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                                                shape = RoundedCornerShape(12.dp),
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text("Cerita Lanjut ➡️", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                        }
                                     }
                                 }
                             }
