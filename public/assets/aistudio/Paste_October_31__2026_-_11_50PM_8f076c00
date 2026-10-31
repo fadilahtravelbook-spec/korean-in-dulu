@@ -1,0 +1,1133 @@
+# 📘 PENJELASAN TEKNIS DESKRIPTIF LENGKAP
+
+## APLIKASI "KOREAN IN DULU"
+
+**Tanpa kodingan — hanya alur, teknis, dan penjelasan detail**
+
+---
+
+# 🎯 BAGIAN 1: GAMBARAN UMUM TEKNIS
+
+## 1.1 Cara Kerja Aplikasi Secara Keseluruhan
+
+Aplikasi ini adalah **aplikasi Android native** yang dibangun dengan **Kotlin** dan **Jetpack Compose**. Artinya, seluruh tampilan dibuat dengan Compose (bukan XML), dan logika berjalan di Kotlin.
+
+Aplikasi terdiri dari **beberapa modul terpisah** yang saling terhubung. Setiap modul punya tanggung jawab sendiri:
+
+- **Modul tampilan (feature)** — mengurus layar yang dilihat pengguna
+- **Modul inti (core)** — menyimpan logika bisnis, database, dan konfigurasi desain
+
+Modul-modul ini **tidak saling bergantung langsung**, tetapi berkomunikasi lewat **lapisan domain** (use case). Tujuannya agar perubahan di satu fitur tidak merusak fitur lain.
+
+## 1.2 Alur Data Secara Umum
+
+Setiap kali pengguna berinteraksi (menekan tombol, menulis, merekam suara), data mengalir dengan pola berikut:
+
+1. **UI (Compose)** menangkap aksi pengguna.
+2. **ViewModel** menerima aksi dan memprosesnya.
+3. **ViewModel** memanggil **UseCase** (logika bisnis).
+4. **UseCase** memanggil **Repository**.
+5. **Repository** mengambil/menyimpan data dari **sumber** (Room untuk lokal, Firebase untuk cloud, file untuk audio).
+6. Hasil kembali ke **ViewModel** dalam bentuk **StateFlow**.
+7. **UI** otomatis memperbarui tampilan karena mengamati StateFlow.
+
+Pola ini memastikan **UI tidak pernah mengakses database langsung**. Semua lewat lapisan yang jelas.
+
+## 1.3 Strategi Penyimpanan Data
+
+Aplikasi menggunakan **tiga lapis penyimpanan**:
+
+- **Room (lokal)** — untuk data yang harus cepat diakses dan tetap ada saat offline: kosakata, progres, riwayat latihan, template perkenalan.
+- **DataStore (preferensi)** — untuk pengaturan sederhana: nama pengguna, target harian, tema, kecepatan TTS.
+- **Firebase (cloud)** — untuk sinkronisasi lintas perangkat: profil, video yang diunggah, progres yang ingin dibagi.
+
+**Aturan penting:** Room selalu menjadi **sumber kebenaran utama (source of truth)**. Firebase hanya menyinkronkan, tidak menjadi acuan utama. Ini membuat aplikasi tetap berfungsi meski internet mati.
+
+## 1.4 Strategi Offline
+
+Aplikasi dirancang **offline-first**:
+
+- Saat pertama kali dibuka, aplikasi mengunduh materi (kosakata, soal, audio) dan menyimpannya di Room atau folder lokal.
+- Saat offline, semua fitur yang tidak butuh cloud tetap berjalan: menulis, kosakata SRS, listening, membaca.
+- Saat kembali online, progres disinkronkan ke Firebase.
+- Video yang diunggah saat offline **diantrekan** dan dikirim otomatis saat online.
+
+---
+
+# 🧱 BAGIAN 2: ARSITEKTUR TEKNIS
+
+## 2.1 Pembagian Modul
+
+Aplikasi dibagi menjadi dua kelompok besar:
+
+**Kelompok `core` (inti):**
+
+- **core-common** — berisi fungsi bantu, konstanta, ekstensi Kotlin yang dipakai di semua modul.
+- **core-domain** — berisi model data murni (tanpa Android) dan use case (logika bisnis). Contoh: "hitung skor pengucapan", "jadwalkan kartu SRS berikutnya".
+- **core-data** — berisi implementasi database (Room), akses Firebase, dan repository. Modul ini yang benar-benar bicara dengan penyimpanan.
+- **core-designsystem** — berisi warna, tipografi, tema, dan komponen UI reusable (tombol, kartu, header). Semua fitur memakai komponen dari sini agar tampilan konsisten.
+
+**Kelompok `feature` (fitur):**
+
+- **feature-onboarding** — layar perkenalan dan placement test
+- **feature-home** — dashboard
+- **feature-writing** — latihan menulis Hangul
+- **feature-speaking** — latihan bicara dan penilaian pengucapan
+- **feature-listening** — latihan mendengar
+- **feature-vocabulary** — kosakata dan SRS
+- **feature-reading** — membaca dan membaca aloud
+- **feature-video** — upload dan pemutaran video
+- **feature-profile** — profil dan pengaturan
+
+Setiap fitur **hanya bergantung** pada `core-domain`, `core-data`, `core-designsystem`, dan `core-common`. Fitur **tidak bergantung** pada fitur lain. Kalau suatu saat ingin menghapus fitur video, tidak akan merusak fitur lain.
+
+## 2.2 Pola MVVM di Setiap Fitur
+
+Setiap layar memiliki tiga lapisan:
+
+1. **Screen (Compose)** — hanya menggambar UI. Tidak berisi logika.
+2. **ViewModel** — menyimpan state layar (`StateFlow`), memproses aksi, memanggil use case. Tidak tahu ada Compose.
+3. **UseCase** — logika bisnis murni. Tidak tahu ada Android.
+
+Contoh alur di layar Writing:
+
+- **Screen** menampilkan canvas dan tombol "Cek".
+- Saat user menekan "Cek", Screen memanggil `ViewModel.onCheckClicked(strokes)`.
+- **ViewModel** memanggil `ValidateWritingUseCase.execute(strokes, target)`.
+- **UseCase** memanggil ML Kit Digital Ink untuk mengenali coretan, lalu membandingkan dengan target.
+- Hasil kembali ke ViewModel → StateFlow diperbarui → Screen menampilkan skor.
+
+## 2.3 Navigasi
+
+Navigasi antar layar menggunakan **Navigation Compose**. Setiap tujuan (destination) memiliki route unik, misalnya `"home"`, `"writing/level/1"`, `"vocab/review"`. Navigasi tidak menyimpan state sendiri; state disimpan di ViewModel agar tetap ada saat rotasi layar.
+
+## 2.4 Dependency Injection
+
+Aplikasi menggunakan **Hilt** untuk menyuntikkan dependensi (ViewModel, Repository, Database). Tujuannya agar setiap komponen tidak perlu membuat objeknya sendiri, dan mudah diganti saat testing.
+
+---
+
+# 🎬 BAGIAN 3: ALUR DETAIL PER FITUR
+
+---
+
+## 3.1 ALUR ONBOARDING
+
+### Splash Screen
+
+**Tujuan teknis:** Menentukan tujuan navigasi pertama.
+
+**Alur:**
+
+1. Saat aplikasi dibuka, Splash tampil minimal 1,5 detik (untuk branding).
+2. Di background, aplikasi memeriksa dua hal sekaligus:
+   - Apakah pengguna sudah menyelesaikan onboarding? (dicek dari DataStore)
+   - Apakah pengguna sudah login? (dicek dari Firebase Auth)
+3. Berdasarkan hasil:
+   - Belum onboarding → lanjut ke Welcome Slider.
+   - Sudah onboarding tapi belum login → lanjut ke Login Screen (opsional).
+   - Sudah onboarding dan login → langsung ke Home.
+
+**Teknis:**
+
+- Splash menggunakan `SplashScreen API` Android 12+, dengan fallback animasi manual untuk versi lama.
+- Pemeriksaan status dilakukan dengan coroutine yang menunggu hasil dari DataStore dan Firebase Auth.
+- Hasil navigasi diputuskan **setelah** kedua pengecekan selesai, bukan berdasarkan waktu delay.
+
+### Welcome Slider
+
+**Tujuan teknis:** Memperkenalkan tiga nilai utama aplikasi.
+
+**Alur:**
+
+1. Tiga halaman ditampilkan dalam `HorizontalPager` (bisa digeser).
+2. Setiap halaman memiliki ilustrasi maskot, judul, dan deskripsi.
+3. Indikator titik di bawah menunjukkan halaman aktif.
+4. Tombol "Lanjut" memindahkan ke halaman berikutnya, tombol "Mulai" muncul di halaman terakhir.
+5. Tombol "Lewati" di kanan atas langsung menuju Input Profil.
+
+**Teknis:**
+
+- Setiap halaman adalah composable terpisah.
+- `rememberPagerState` menyimpan posisi halaman.
+- Saat "Mulai" atau "Lewati" ditekan, tulis flag `onboardingCompleted = true` ke DataStore.
+- Maskot disimpan sebagai aset gambar (Lottie atau PNG).
+
+### Input Profil Awal
+
+**Tujuan teknis:** Mengumpulkan nama, level awal, dan target harian.
+
+**Alur:**
+
+1. Layar menampilkan tiga field: nama (wajib), level (radio), dan target harian (slider).
+2. Validasi berjalan real-time:
+   - Nama minimal 2 karakter, maksimal 30, tidak boleh kosong.
+   - Selama nama belum valid, tombol "Lanjut" disabled.
+3. Setelah nama valid, tombol aktif.
+4. Saat "Lanjut" ditekan, data disimpan ke DataStore, lalu lanjut ke Placement Test.
+
+**Teknis:**
+
+- Validasi dilakukan di ViewModel dengan `StateFlow<ProfileFormState>`.
+- Setiap perubahan field memicu validasi ulang.
+- Penyimpanan ke DataStore bersifat asynchronous (di coroutine).
+- Level dan target disimpan sebagai tipe data yang mudah dibaca ulang (Int untuk target menit, enum untuk level).
+
+### Placement Test
+
+**Tujuan teknis:** Menentukan level awal (1, 2, atau 3) berdasarkan 10 soal.
+
+**Alur:**
+
+1. Aplikasi memuat 10 soal dari aset JSON.
+2. Setiap soal ditampilkan satu per satu dengan progress bar di atas.
+3. Pengguna memilih satu opsi, lalu menekan "Lanjut".
+4. Skor dihitung di akhir (jumlah benar).
+5. Level ditentukan dari skor:
+   - 0–3 benar → Level 1 (Pemula)
+   - 4–7 benar → Level 2 (Menengah)
+   - 8–10 benar → Level 3 (Mahir)
+
+**Teknis:**
+
+- Soal disimpan sebagai aset JSON di folder `assets/placement_test.json`.
+- Daftar soal dimuat ke ViewModel saat layar pertama dibuka.
+- Jawaban disimpan di memori (bukan database) karena bersifat sementara.
+- Skor dan level disimpan ke DataStore setelah selesai.
+- Tidak ada interaksi jaringan — semuanya lokal.
+
+### Hasil Placement Test
+
+**Tujuan teknis:** Menampilkan level dan menyambut pengguna.
+
+**Alur:**
+
+1. Layar menampilkan nama, level, dan deskripsi singkat level.
+2. Rekomendasi pelajaran pertama ditampilkan (dari aturan sederhana berdasarkan level).
+3. Tombol "Mulai Belajar" mengarah ke Home.
+
+**Teknis:**
+
+- Hanya membaca DataStore dan menampilkan.
+- Tidak ada logika tambahan.
+
+---
+
+## 3.2 ALUR HOME / DASHBOARD
+
+### Home Screen
+
+**Tujuan teknis:** Menjadi pusat navigasi dan ringkasan progres.
+
+**Alur:**
+
+1. Saat dibuka, Home memuat data dari Room:
+   - Nama pengguna (dari DataStore atau Room).
+   - Streak dan XP (dari Room).
+   - Progres harian (dari Room, dihitung dari pelajaran yang selesai hari ini).
+   - Progres setiap modul (dari Room).
+2. Data ditampilkan dengan **skeleton screen** selama loading (bukan spinner, agar terasa lebih mulus).
+3. Grid modul menampilkan status setiap modul:
+   - **Locked** jika level pengguna belum mencapai syarat.
+   - **Unlocked** jika bisa diakses.
+   - **Completed** jika semua pelajaran modul sudah selesai.
+4. Pull-to-refresh memuat ulang data dari Room.
+5. Tombol "Lanjut Belajar" mencari pelajaran terakhir yang belum selesai, lalu navigasi ke layar tersebut.
+
+**Teknis:**
+
+- `HomeViewModel` mengamati **beberapa Flow** dari Room secara bersamaan menggunakan `combine`.
+- Skeleton screen ditampilkan saat StateFlow masih `Loading`.
+- Pull-to-refresh memicu `ViewModel.refresh()` yang memanggil ulang query.
+- Tombol "Lanjut Belajar" membaca `lastAccessedLessonId` dari DataStore.
+
+### Statistik Screen
+
+**Tujuan teknis:** Menampilkan riwayat dan progres jangka panjang.
+
+**Alur:**
+
+1. Tab harian/mingguan/bulanan mengubah rentang waktu query.
+2. Data diambil dari Room dengan query agregat (sum waktu belajar, count pelajaran, rata-rata skor).
+3. Chart ditampilkan dengan library Compose (misalnya Vico).
+4. List aktivitas terakhir diambil dari tabel riwayat.
+
+**Teknis:**
+
+- Setiap tab memicu query berbeda dengan filter tanggal.
+- Data agregat dihitung di database, bukan di memori (untuk performa).
+- Chart menggunakan library atau Compose Canvas kustom.
+
+---
+
+## 3.3 ALUR MENULIS (WRITING)
+
+### Menu Menulis
+
+**Tujuan teknis:** Menampilkan daftar huruf Hangul.
+
+**Alur:**
+
+1. Layar memuat daftar huruf dari aset JSON (`hangul.json`), lalu menggabungkannya dengan status dari Room (sudah dikuasai atau belum).
+2. Tab (Vokal, Konsonan, Batchim, Suku Kata) memfilter daftar.
+3. Grid menampilkan setiap huruf dengan status centang.
+4. Progress keseluruhan ditampilkan di atas.
+
+**Teknis:**
+
+- Data aset JSON dimuat sekali di awal.
+- Status dari Room diamati lewat StateFlow.
+- Filter tab diterapkan di ViewModel, bukan di UI.
+
+### Detail Huruf + Animasi Stroke
+
+**Tujuan teknis:** Mengajarkan urutan goresan melalui animasi.
+
+**Alur:**
+
+1. Layar menerima ID huruf dari navigasi.
+2. Memuat data stroke dari aset (`stroke_data/{huruf}.json`), berisi daftar path goresan.
+3. Animasi menggambar path satu per satu menggunakan `PathMeasure` dan `Animatable`.
+4. Tombol "Putar Ulang" memulai ulang animasi dari awal.
+5. Tombol "Latihan" lanjut ke Trace Mode.
+
+**Teknis:**
+
+- Setiap path adalah `Path` di Compose.
+- `PathMeasure` menghitung panjang path dan mengekstrak potongan untuk animasi.
+- Setiap path dianimasikan dengan `animateFloatAsState` atau `Animatable`.
+- Saat satu path selesai, animasi path berikutnya dimulai.
+
+### Trace Mode
+
+**Tujuan teknis:** Latihan menebalkan huruf dengan panduan.
+
+**Alur:**
+
+1. Layar menampilkan canvas dengan huruf panduan abu-abu.
+2. Pengguna menggambar di canvas. Setiap goresan disimpan sebagai objek.
+3. Tombol "Hapus" menghapus goresan terakhir. Tombol "Ulangi" menghapus semua.
+4. Tombol "Cek" mengirim semua goresan ke ML Kit Digital Ink untuk validasi.
+5. Hasil validasi: benar atau salah. Jika salah, pengguna bisa mengulang.
+
+**Teknis:**
+
+- Canvas menggunakan Compose Canvas.
+- Goresan disimpan sebagai list of points dengan tipe `Ink.Stroke` (dari ML Kit).
+- Setiap goresan dicatat dari `MotionEvent` yang diterjemahkan ke pointer input Compose.
+- ML Kit `DigitalInkRecognizer` menerima list `Ink.Stroke`, mengembalikan teks yang dikenali.
+- Validasi: teks hasil recognition dibandingkan dengan huruf target. Jika sama, benar.
+- **Fallback:** jika ML Kit tidak mendukung bahasa Korea di device tertentu, fallback membandingkan jumlah goresan dan posisi kasar.
+
+### Hasil Menulis
+
+**Tujuan teknis:** Menampilkan skor dan feedback.
+
+**Alur:**
+
+1. Skor dihitung dari hasil validasi (misalnya 3 goresan benar dari 4 = 75%).
+2. Skor disimpan ke Room (`WritingAttempt`).
+3. Progres pelajaran diperbarui.
+4. Maskot Hannie ditampilkan dengan pose sesuai skor.
+5. Tombol "Huruf Berikutnya" pindah ke huruf selanjutnya.
+
+**Teknis:**
+
+- `WritingAttempt` disimpan di Room dengan timestamp.
+- `LessonProgress` diperbarui jika skor memenuhi batas minimal (misalnya 70%).
+- XP ditambahkan sesuai aturan (misalnya 10 XP per huruf selesai).
+
+### Dikte Tulisan (Fase Lanjutan)
+
+**Tujuan teknis:** Dengar kata, lalu tulis.
+
+**Alur:**
+
+1. TTS memutar kata target.
+2. Pengguna menulis di canvas kosong.
+3. Setelah "Cek", recognition membandingkan dengan target.
+4. Skor dihitung menggunakan kemiripan karakter (Sorensen-Dice atau Levenshtein).
+
+**Teknis:**
+
+- TTS dari TextToSpeech Android dengan `Locale.KOREAN`.
+- Recognition dari ML Kit.
+- Kemiripan dihitung di UseCase.
+
+---
+
+## 3.4 ALUR KOSAKATA (VOCABULARY)
+
+### Menu Kosakata
+
+**Tujuan teknis:** Pusat belajar kosakata dan SRS.
+
+**Alur:**
+
+1. Aplikasi menghitung jumlah kartu yang **jatuh tempo** hari ini (dari Room, `nextReview <= now`).
+2. Jika ada, tampilkan kartu "Hari ini: 5 kartu untuk diulang".
+3. Grid paket kosakata menampilkan progres tiap paket.
+4. Search bar di atas memfilter kosakata secara real-time.
+
+**Teknis:**
+
+- Query Room untuk count kartu due.
+- Pencarian menggunakan **Room FTS (Full Text Search)** dengan `MATCH` query.
+- Debounce 300ms saat pengguna mengetik agar tidak query di setiap karakter.
+
+### Flashcard Review (SRS)
+
+**Tujuan teknis:** Mengulang kartu yang jatuh tempo dengan algoritma SM-2.
+
+**Alur:**
+
+1. ViewModel mengambil semua kartu yang due hari ini.
+2. Satu kartu ditampilkan dengan animasi flip: depan = kata Korea, belakang = romanisasi + arti + contoh.
+3. Setelah flip, pengguna memilih rating: Lupa, Sulit, Oke, atau Mudah.
+4. Rating memicu perhitungan SM-2 untuk menentukan kapan kartu berikutnya muncul.
+5. Kartu berikutnya ditampilkan hingga habis.
+
+**Cara kerja SM-2 (dijelaskan deskriptif):**
+
+- Setiap kartu memiliki tiga nilai internal: `easeFactor` (faktor kemudahan, mulai 2.5), `interval` (jarak hari ke review berikutnya), dan `repetitions` (berapa kali sudah diulang).
+- Saat pengguna memberi rating:
+  - **Rating rendah (< 3):** repetitions di-reset ke 0, interval = 1 hari. Kartu akan muncul lagi besok.
+  - **Rating 3 atau lebih:** repetitions naik, interval diperbarui. Jika repetitions = 1, interval = 1 hari. Jika = 2, interval = 6 hari. Jika lebih, interval = interval sebelumnya × easeFactor.
+  - `easeFactor` diperbarui dengan rumus SM-2 agar kartu sulit menjadi lebih sering muncul, kartu mudah menjadi lebih jarang.
+- `nextReview` disimpan di Room sebagai timestamp.
+
+**Teknis:**
+
+- Kartu due diambil dengan query `WHERE nextReview <= :now ORDER BY nextReview LIMIT 20`.
+- Update kartu dilakukan dalam transaksi Room.
+- Flip animation menggunakan `graphicsLayer` dengan `rotationY`.
+- Audio diputar dengan TTS atau file audio yang tersimpan.
+
+### Hasil Review
+
+**Tujuan teknis:** Ringkasan sesi.
+
+**Alur:**
+
+1. Setelah semua kartu selesai, tampilkan jumlah benar/sulit, XP yang didapat.
+2. XP ditambahkan ke Room.
+3. Streak harian diperbarui jika ini sesi pertama hari itu.
+
+**Teknis:**
+
+- XP dihitung dari jumlah kartu × multiplier rating.
+- Update `UserProfile.xp` dan `UserProfile.streak`.
+
+### Quiz Pilihan Ganda
+
+**Tujuan teknis:** Uji hafalan secara acak.
+
+**Alur:**
+
+1. Aplikasi memilih satu kartu secara acak dari paket.
+2. Tiga opsi salah diambil dari kartu lain dalam paket yang sama.
+3. Opsi diacak, lalu ditampilkan.
+4. Saat pengguna memilih, feedback muncul langsung (benar/salah).
+5. Lanjut ke soal berikutnya.
+
+**Teknis:**
+
+- Distraktor diambil dari Room dengan query `WHERE id != :correctId ORDER BY RANDOM() LIMIT 3`.
+- Skor dihitung dan disimpan di Room di akhir sesi.
+
+### Pencarian Kosakata
+
+**Tujuan teknis:** Cari kata Korea atau Indonesia dengan cepat.
+
+**Alur:**
+
+1. Pengguna mengetik di search bar.
+2. Setelah 300ms tanpa mengetik lagi, query dijalankan.
+3. Hasil ditampilkan dalam list.
+4. Tap hasil → detail kata + tombol "Simpan ke SRS".
+
+**Teknis:**
+
+- Room FTS menangani pencarian teks Korea dan Indonesia.
+- Hasil pencarian di-cache untuk mempercepat query berulang.
+- Tap hasil menambah `VocabCard` baru ke SRS dengan status "baru".
+
+### Paket Kosakata Detail
+
+**Tujuan teknis:** Lihat semua kata dalam satu paket.
+
+**Alur:**
+
+1. Layar menerima ID paket dari navigasi.
+2. Daftar kata dimuat dari Room dengan filter paket.
+3. Setiap kata menampilkan status: belum dipelajari, sedang belajar, atau dikuasai.
+4. Tombol "Mulai Belajar Paket Ini" mengarah ke Flashcard Review.
+
+**Teknis:**
+
+- Status dihitung dari `repetitions` (0 = belum, 1–3 = sedang, >3 = dikuasai).
+
+---
+
+## 3.5 ALUR MENDENGAR (LISTENING)
+
+### Menu Mendengar
+
+**Tujuan teknis:** Daftar latihan listening per level.
+
+**Alur:**
+
+1. Layar menampilkan level 1, 2, 3.
+2. Level 2 dan 3 **locked** jika level sebelumnya belum selesai.
+3. Progres tiap level ditampilkan.
+
+**Teknis:**
+
+- Data soal dari aset JSON.
+- Status locked dihitung dari persentase soal yang sudah selesai di level sebelumnya.
+
+### Latihan Listening
+
+**Tujuan teknis:** Dengar audio, jawab pertanyaan.
+
+**Alur:**
+
+1. Soal ditampilkan dengan tombol play audio.
+2. Audio diputar otomatis saat soal muncul.
+3. Pengguna bisa mengulang audio, mengubah kecepatan (0.5x–1x), atau melihat transkrip.
+4. Pengguna memilih jawaban.
+5. Feedback langsung (benar/salah), lalu lanjut soal berikutnya.
+
+**Teknis:**
+
+- Audio disimpan sebagai aset atau file lokal di folder `assets/audio/listening/`.
+- Pemutaran menggunakan **ExoPlayer** (Media3) dengan kontrol kecepatan.
+- Kecepatan diubah dengan `PlaybackParameters`.
+- Transkrip disimpan sebagai aset JSON dan ditampilkan opsional.
+- Setiap jawaban dicatat untuk skor.
+
+### Hasil Listening
+
+**Tujuan teknis:** Ringkasan skor.
+
+**Alur:**
+
+1. Skor ditampilkan sebagai "{benar}/{total}".
+2. Maskot Hannie tampil sesuai hasil.
+3. Data disimpan ke Room.
+4. Tombol "Ulangi" atau "Lanjut Level".
+
+**Teknis:**
+
+- Skor dan timestamp disimpan sebagai entri baru di `LessonProgress`.
+- XP ditambahkan.
+
+### Dikte Listening
+
+**Tujuan teknis:** Dengar lalu tulis apa yang didengar.
+
+**Alur:**
+
+1. Audio diputar.
+2. Pengguna mengetik apa yang didengar di TextField.
+3. Setelah "Cek", teks dibandingkan dengan referensi.
+4. Feedback per kata: benar (hijau), salah (merah), dan skor akurasi.
+
+**Teknis:**
+
+- Perbandingan menggunakan algoritma Levenshtein (jarak edit) atau perbandingan per kata.
+- Setiap kata dibandingkan dengan kata di posisi yang sama setelah split.
+
+---
+
+## 3.6 ALUR BERBICARA (SPEAKING) — FASE 2
+
+### Template Perkenalan
+
+**Tujuan teknis:** Latihan memperkenalkan diri secara terstruktur.
+
+**Alur:**
+
+1. Layar menerima ID template dari navigasi.
+2. Template dimuat dari Room (`IntroTemplate`), berisi teks dengan placeholder `{{nama}}`, `{{asal}}`, `{{hobi}}`, dan aturan validasi per field.
+3. Layar menampilkan form dinamis: setiap placeholder menjadi field input.
+4. Validasi berjalan real-time sesuai aturan di JSON template (panjang minimal, maksimal, wajib diisi).
+5. Setelah form valid, tombol "Buat Kalimat" aktif.
+6. Saat ditekan, kalimat Korea lengkap terbentuk dari template dengan placeholder diganti nilai pengguna.
+7. Kalimat ditampilkan di preview.
+
+**Teknis:**
+
+- Template disimpan di Room sejak instalasi pertama (seed data dari aset JSON).
+- Placeholder diganti dengan `replace()` di Kotlin.
+- Validasi dikemas sebagai map aturan per field (minLength, maxLength, required).
+- TTS memutar kalimat hasil (dari TextToSpeech Android).
+
+### Rekam & Nilai Speaking
+
+**Tujuan teknis:** Rekam suara pengguna dan nilai akurasinya.
+
+**Alur:**
+
+1. Layar menampilkan teks referensi (kalimat target).
+2. Tombol rekam besar di tengah. Saat ditekan, `MediaRecorder` mulai merekam.
+3. Waveform animation berjalan selama rekaman.
+4. Saat ditekan lagi, rekaman berhenti dan file audio disimpan sementara.
+5. Setelah rekaman selesai, pengguna bisa:
+   - Mendengarkan rekamannya.
+   - Mendengarkan audio native.
+   - Menekan "Nilai" untuk menghitung skor.
+6. Setelah "Nilai", audio ditranskripsi oleh SpeechRecognizer atau Vosk (offline).
+7. Transkripsi dibandingkan dengan teks referensi menggunakan Levenshtein atau Sorensen-Dice.
+8. Skor ditampilkan: akurasi (%) + highlight per kata (benar/salah).
+9. Data disimpan ke Room sebagai `SpeakingAttempt`.
+
+**Teknis:**
+
+- `MediaRecorder` merekam audio sebagai file `.m4a` atau `.wav` di cache.
+- `SpeechRecognizer` Android dengan `EXTRA_LANGUAGE = "ko-KR"`.
+- **Fallback offline:** Vosk (library open-source) dengan model bahasa Korea yang diunduh saat pertama kali.
+- Perbandingan:
+  - **Levenshtein:** menghitung jumlah edit minimum dari transkripsi ke referensi. Skor = 1 - (jarak / panjang referensi).
+  - **Sorensen-Dice:** membandingkan bigram karakter. Skor = 2 × (intersect / total).
+- File audio asli disimpan di Room dengan path ke folder cache. Setelah 30 hari, file dibersihkan otomatis.
+- **Privasi:** audio tidak pernah diunggah ke server tanpa izin pengguna.
+
+### Role-Play Dialog
+
+**Tujuan teknis:** Simulasi percakapan dengan Hannie.
+
+**Alur:**
+
+1. Skenario percakapan dimuat dari aset JSON: urutan pertanyaan dan kemungkinan jawaban.
+2. Hannie menampilkan bubble chat dengan pertanyaan (misalnya "이름이 뭐예요?").
+3. Pengguna menjawab dengan:
+   - **Pilihan:** tap salah satu opsi jawaban.
+   - **Suara:** rekam suara, ditranskripsi, lalu dicocokkan dengan kemungkinan jawaban.
+4. Jawaban valid → Hannie merespons dengan bubble berikutnya.
+5. Jawaban tidak valid → Hannie menampilkan hint, pengguna bisa mengulang.
+6. Di akhir skenario, skor dihitung dari akurasi jawaban.
+
+**Teknis:**
+
+- Skenario disimpan sebagai JSON dengan struktur percabangan (opsional: linear atau branching).
+- Jawaban suara menggunakan STT yang sama dengan fitur speaking sebelumnya.
+- Pencocokan dengan kemungkinan jawaban menggunakan similarity threshold (misalnya 0,75).
+
+### Record & Compare
+
+**Tujuan teknis:** Bandingkan suara pengguna dengan native.
+
+**Alur:**
+
+1. Kalimat target ditampilkan.
+2. Tombol "Contoh Native" memutar audio penutur asli.
+3. Tombol "Rekam Kamu" merekam suara pengguna.
+4. Tombol "Bandingkan" memutar keduanya berurutan (native → pengguna).
+
+**Teknis:**
+
+- Audio native dari aset lokal.
+- Rekaman dari `MediaRecorder`.
+- Playback berurutan menggunakan ExoPlayer dengan listener untuk memulai audio berikutnya otomatis.
+
+### Shadowing
+
+**Tujuan teknis:** Latihan meniru intonasi dan timing.
+
+**Alur:**
+
+1. Kalimat target ditampilkan.
+2. Audio native diputar (bisa di-loop).
+3. Pengguna merekam suara **bersamaan** dengan audio native (menggunakan speaker atau headphone).
+4. Setelah selesai, audio native dan rekaman pengguna dianalisis untuk:
+   - Timing match (apakah kata muncul di waktu yang sama).
+   - Akurasi kata.
+
+**Teknis:**
+
+- Rekaman berjalan sambil memutar audio native.
+- Ekstraksi timestamp per kata dari STT transkripsi rekaman pengguna, dibandingkan dengan timestamp native (dari data subtitle atau STT yang sama).
+- Skor = kombinasi timing dan akurasi.
+
+---
+
+## 3.7 ALUR MEMBACA (READING) — FASE 2
+
+### Impor Teks
+
+**Tujuan teknis:** Impor teks dari berbagai sumber.
+
+**Alur:**
+
+1. Layar menawarkan tiga tab: Paste Teks, PDF, Foto.
+2. **Paste Teks:** TextField besar untuk tempel teks.
+3. **PDF:** File picker membuka PDF, lalu `PdfRenderer` mengekstrak teks dari setiap halaman.
+4. **Foto:** Camera atau galeri membuka foto, lalu ML Kit Text Recognition (dengan `languageHints = ["ko"]`) mengekstrak teks.
+5. Setelah teks diekstrak, pengguna memberi judul dan memilih level.
+6. Teks disimpan di Room sebagai `ReadingMaterial`.
+
+**Teknis:**
+
+- File picker menggunakan `ActivityResultContracts.GetContent`.
+- `PdfRenderer` mengekstrak teks per halaman (hanya bekerja untuk PDF dengan teks, bukan PDF hasil scan).
+- Untuk PDF hasil scan, fallback ke ML Kit OCR per halaman.
+- ML Kit Text Recognition untuk teks Korea: konfigurasi `TextRecognizerOptions` dengan `KoreanTextRecognizerOptions`.
+- Teks disimpan sebagai string di Room, dipecah per kalimat saat ditampilkan.
+
+### Baca Teks
+
+**Tujuan teknis:** Membaca teks dengan bantuan TTS.
+
+**Alur:**
+
+1. Teks dipecah per kalimat.
+2. Setiap kalimat ditampilkan sebagai satu blok yang bisa di-tap.
+3. Tombol "TTS Baca Semua" memulai TTS membaca dari awal.
+4. Kalimat yang sedang dibaca disorot (highlight kuning).
+5. Setelah selesai satu kalimat, TTS lanjut ke kalimat berikutnya.
+6. Pengguna bisa tap kalimat tertentu untuk mulai membaca dari situ.
+7. Tap kalimat → popup:
+   - Terjemahan (jika ada, dari kamus lokal).
+   - Tombol "Simpan kata" → masuk SRS.
+
+**Teknis:**
+
+- TTS menggunakan `TextToSpeech` dengan `Locale.KOREAN`.
+- `UtteranceProgressListener` memantau kapan satu utterance selesai dan memulai yang berikutnya.
+- Highlight: StateFlow menyimpan index kalimat aktif.
+- Terjemahan: query ke kamus lokal di Room (`VocabCardFtsDao`).
+- Simpan kata: tambah entri baru di `VocabCard`.
+
+### Rekam Baca (Reading Aloud)
+
+**Tujuan teknis:** Latihan membaca keras dengan penilaian.
+
+**Alur:**
+
+1. Layar menampilkan teks (bisa per paragraf).
+2. Tombol "Mulai Baca" memulai perekaman.
+3. Pengguna membaca teks dengan keras.
+4. Saat selesai, tombol "Selesai" menghentikan rekaman.
+5. Audio ditranskripsi oleh STT.
+6. Transkripsi dibandingkan dengan teks asli.
+7. Teks di-highlight per kata:
+   - Hijau: benar.
+   - Merah: salah atau terlewat.
+8. Skor ditampilkan:
+   - Akurasi (%): dari perbandingan kata.
+   - Kecepatan: jumlah kata per menit.
+   - Jumlah jeda (> 2 detik).
+9. Data disimpan ke Room sebagai `SpeakingAttempt` atau entri khusus `ReadingAttempt`.
+
+**Teknis:**
+
+- MediaRecorder merekam audio.
+- STT (SpeechRecognizer atau Vosk) menghasilkan transkripsi + timestamp per kata.
+- **Alignment:** membandingkan transkripsi dengan referensi menggunakan dynamic time warping atau Levenshtein alignment.
+- **WPM (Words Per Minute):** jumlah kata di referensi ÷ (durasi rekaman dalam menit).
+- **Jeda:** cek jarak antara timestamp kata berurutan. Jika > 2 detik, hitung sebagai jeda.
+
+### Pemahaman Bacaan
+
+**Tujuan teknis:** Uji pemahaman setelah membaca.
+
+**Alur:**
+
+1. Setelah membaca, 3–5 pertanyaan muncul.
+2. Setiap pertanyaan pilihan ganda atau isian.
+3. Feedback langsung setelah menjawab.
+4. Skor akhir disimpan.
+
+**Teknis:**
+
+- Soal dari aset JSON yang terkait dengan material (misalnya `reading_materials/{id}_quiz.json`).
+- Jika tidak ada quiz, hanya skor reading aloud yang disimpan.
+
+---
+
+## 3.8 ALUR VIDEO (UPLOAD SENDIRI) — FASE 3
+
+### Menu Video
+
+**Tujuan teknis:** Daftar video yang sudah diunggah.
+
+**Alur:**
+
+1. Layar memuat daftar video dari Room (`VideoContent`).
+2. Setiap kartu menampilkan thumbnail, judul, durasi, dan status (upload selesai atau sedang berjalan).
+3. Tombol "+ Upload Video" mengarah ke layar upload.
+4. Tap video → buka player.
+
+**Teknis:**
+
+- Query Room untuk list video.
+- Thumbnail: dibuat dari frame pertama video menggunakan `MediaMetadataRetriever`, disimpan sebagai file lokal.
+- Video yang sedang di-upload muncul di list dengan status "uploading" dan progress.
+
+### Upload Video
+
+**Tujuan teknis:** Unggah video ke cloud di background.
+
+**Alur:**
+
+1. Pengguna memilih video dari galeri (file picker).
+2. Form muncul: judul, level, tag (opsional), toggle "Transkripsi Otomatis".
+3. Saat "Upload" ditekan:
+   - Video disimpan ke Room sebagai entri baru dengan status "pending".
+   - WorkManager dijadwalkan untuk mengunggah file.
+   - Notifikasi muncul dengan progress bar.
+4. Upload berjalan di background meski aplikasi ditutup.
+5. Jika upload berhasil:
+   - URL video disimpan di Room.
+   - Status berubah jadi "uploaded".
+   - Jika toggle "Transkripsi Otomatis" aktif, WorkManager berikutnya dijadwalkan untuk transkripsi.
+6. Jika upload gagal (koneksi putus):
+   - WorkManager otomatis retry dengan backoff.
+   - Notifikasi menampilkan status gagal dengan tombol retry.
+
+**Teknis:**
+
+- File picker `ActivityResultContracts.GetContent` dengan `"video/*"`.
+- Upload menggunakan Firebase Storage SDK dengan `putFile()` di dalam `CoroutineWorker`.
+- Progress dari Firebase Storage Task di-report ke WorkManager dan notifikasi.
+- **Batasan ukuran:** 500 MB (sesuai Storage Rules).
+- **Validasi tipe:** `video/.*` di Storage Rules.
+- **Path storage:** `/user_videos/{uid}/{timestamp}_{filename}`.
+- Video berukuran besar bisa memakan waktu lama. Notifikasi menggunakan `setForeground()` agar tidak dimatikan sistem.
+- **Idempotensi:** jika upload terputus, Firebase Storage melanjutkan dari byte terakhir (resumable upload).
+
+### Transkripsi Otomatis
+
+**Tujuan teknis:** Ubah audio video menjadi subtitle berwaktu.
+
+**Alur:**
+
+1. Setelah upload selesai, WorkManager menjadwalkan transkripsi (jika toggle aktif).
+2. Worker mengekstrak audio dari video (menggunakan `MediaExtractor`).
+3. Audio dikonversi ke format yang didukung model (WAV mono 16kHz).
+4. Audio dijalankan melalui model Whisper (menggunakan `whisper.cpp`) atau Vosk.
+5. Hasil: file subtitle berformat SRT atau VTT dengan timestamp per kalimat.
+6. File subtitle disimpan lokal dan juga diunggah ke Firebase Storage.
+7. Room diperbarui dengan URL subtitle.
+
+**Teknis:**
+
+- `whisper.cpp` adalah versi C++ dari model Whisper yang berjalan on-device.
+- Model tersedia dalam berbagai ukuran (tiny, base, small, medium, large). Untuk aplikasi mobile, gunakan **tiny** atau **base** agar tidak lambat.
+- Model diunduh saat pertama kali dibutuhkan (sekitar 40–200 MB tergantung ukuran).
+- Proses transkripsi bisa memakan waktu 1–3 menit untuk video 10 menit, tergantung perangkat.
+- Berjalan di background dengan WorkManager + notifikasi progress.
+- File SRT di-parse menjadi `List<SubtitleEntry>` dengan timestamp mulai, akhir, dan teks.
+
+### Player Video + Subtitle
+
+**Tujuan teknis:** Putar video dengan subtitle interaktif.
+
+**Alur:**
+
+1. Layar memuat video dari URL Firebase Storage.
+2. ExoPlayer memulai pemutaran.
+3. Subtitle dimuat dan diparsing menjadi list entri.
+4. Saat video berjalan, aplikasi membandingkan `player.currentPosition` dengan timestamp subtitle untuk menentukan subtitle aktif.
+5. Subtitle ditampilkan overlay di atas video (dua bahasa jika ada).
+6. Panel subtitle di bawah menampilkan list kalimat. Kalimat aktif di-highlight.
+7. Tap kalimat → seek ke timestamp kalimat + loop satu kalimat (jika diaktifkan).
+8. Tombol:
+   - **Dikte:** buka layar dikte dengan kalimat aktif sebagai target.
+   - **Shadowing:** buka layar shadowing.
+   - **Simpan kata:** tap kata di subtitle untuk menyimpan ke SRS.
+
+**Teknis:**
+
+- Video player menggunakan **ExoPlayer** (Media3) dengan `PlayerView` dalam `AndroidView` (Compose).
+- Subtitle parsing: SRT atau VTT diparse dengan parser sederhana (split per blok, ekstrak timestamp dan teks).
+- Sinkronisasi: launcher coroutine memantau `player.currentPosition` setiap 100ms.
+- Seek + loop: setelah mencapai akhir timestamp kalimat, otomatis seek kembali ke awal kalimat.
+- Kata yang di-tap: deteksi dari posisi tap di text dengan `TextLayoutResult.getOffsetForPosition`.
+- Terjemahan kata: query kamus lokal.
+
+### Dikte dari Video
+
+**Tujuan teknis:** Latihan dikte dari kalimat di video.
+
+**Alur:**
+
+1. Kalimat aktif diambil sebagai referensi.
+2. Video pause di akhir kalimat.
+3. Pengguna mengetik atau menulis apa yang didengar.
+4. Setelah "Cek", teks dibandingkan dengan referensi (Levenshtein).
+
+**Teknis:**
+
+- Menggunakan STT atau handwriting recognition (tergantung input).
+- Skor dihitung dengan similarity matching.
+
+---
+
+## 3.9 ALUR GAMIFIKASI
+
+### Streak
+
+**Tujuan teknis:** Menghitung hari berturut-turut belajar.
+
+**Alur:**
+
+1. Setiap kali pengguna menyelesaikan **satu pelajaran**, aplikasi mencatat aktivitas di Room.
+2. WorkManager dijadwalkan setiap hari (misalnya jam 23:59) untuk mengecek apakah pengguna belajar hari itu.
+3. Jika ya, streak bertambah 1. Jika tidak, streak reset ke 0.
+4. Streak ditampilkan di Home.
+
+**Teknis:**
+
+- Tabel `ActivityLog` menyimpan timestamp setiap pelajaran selesai.
+- Query daily check: apakah ada entri hari ini?
+- **Penting:** perhitungan streak harus berdasarkan **zona waktu pengguna**, bukan UTC. Simpan timestamp lokal.
+
+### XP
+
+**Tujuan teknis:** Memberi reward pada setiap aktivitas.
+
+**Alur:**
+
+1. Setiap pelajaran selesai → XP ditambahkan.
+2. Jumlah XP tergantung jenis aktivitas (misalnya menulis 10 XP, speaking 20 XP).
+3. XP diakumulasi di `UserProfile`.
+
+**Teknis:**
+
+- XP disimpan sebagai integer di Room.
+- Tidak ada batasan maksimal.
+
+### Badge & Achievement
+
+**Tujuan teknis:** Memberi pencapaian pada milestone tertentu.
+
+**Alur:**
+
+1. Setelah setiap event (pelajaran selesai, review SRS, speaking), aplikasi memeriksa apakah ada badge yang baru terbuka.
+2. Jika ya, dialog muncul + animasi + badge masuk ke profil.
+
+**Teknis:**
+
+- Setiap badge didefinisikan sebagai fungsi cek: `(UserStats) -> Boolean`.
+- Contoh: `{ stats -> stats.totalLessons >= 1 }` untuk badge "First Steps".
+- Saat event terjadi, semua badge yang belum terbuka diperiksa.
+- Badge yang baru terbuka disimpan di Room.
+
+### Daily Challenge
+
+**Tujuan teknis:** Tantangan harian yang berbeda setiap hari.
+
+**Alur:**
+
+1. Setiap hari pukul 00:00, WorkManager menghasilkan 5 soal campuran dari berbagai modul (menulis, kosakata, listening).
+2. Soal disimpan di Room untuk hari itu.
+3. Di Home, kartu "Tantangan Hari Ini" muncul.
+4. Setelah diselesaikan, XP bonus + badge khusus.
+
+**Teknis:**
+
+- WorkManager daily dijadwalkan saat aplikasi pertama dibuka.
+- Random seed berdasarkan tanggal agar soal tetap sama meski aplikasi dibuka ulang.
+- Soal diambil dari bank soal di Room.
+
+---
+
+## 3.10 ALUR PROFIL & PENGATURAN
+
+### Profil
+
+**Tujuan teknis:** Lihat & edit profil pengguna.
+
+**Alur:**
+
+1. Layar menampilkan avatar, nama, email, dan statistik.
+2. Menu list untuk navigasi ke pengaturan.
+3. Logout menampilkan dialog konfirmasi.
+
+**Teknis:**
+
+- Data dari Firebase Auth (email) + Room (nama, statistik).
+- Logout menghapus token auth dari Firebase.
+
+### Edit Profil
+
+**Alur:**
+
+1. Avatar picker membuka galeri.
+2. Setelah dipilih, gambar di-resize ke ukuran kecil (misalnya 256×256) sebelum diunggah.
+3. Upload avatar ke Firebase Storage.
+4. Nama diubah di Room dan Firestore.
+
+**Teknis:**
+
+- Resize menggunakan `BitmapFactory` dengan `inSampleSize`.
+- Upload via Firebase Storage `putFile()`.
+- URL avatar disimpan di Firestore.
+
+### Pengaturan Notifikasi
+
+**Alur:**
+
+1. Toggle "Pengingat Harian" menyalakan/mematikan WorkManager notifikasi.
+2. Time picker menentukan jam notifikasi.
+3. Saat diaktifkan, WorkManager dijadwalkan setiap hari di jam tersebut.
+
+**Teknis:**
+
+- WorkManager `PeriodicWorkRequest` dengan initial delay sesuai jam.
+- Notifikasi via `NotificationManager` dengan channel khusus.
+- Izin `POST_NOTIFICATIONS` (Android 13+) diminta saat toggle dinyalakan.
+
+### Pengaturan TTS
+
+**Alur:**
+
+1. Slider kecepatan (0.5x–2x) menyimpan nilai ke DataStore.
+2. Tombol "Tes Suara" memutar sample menggunakan kecepatan yang dipilih.
+3. Toggle romanisasi menentukan apakah romanisasi ditampilkan di kartu kosakata.
+
+**Teknis:**
+
+- DataStore menyimpan `ttsSpeed` (Float) dan `showRomanization` (Boolean).
+- Semua pemutaran TTS di aplikasi membaca nilai ini terlebih dahulu.
+
+---
+
+# 🛡️ BAGIAN 4: KEAMANAN & PRIVASI
+
+## 4.1 Autentikasi
+
+Firebase Authentication dengan dua metode: Google Sign-In dan Email/Password. Untuk mode tamu, pengguna bisa lewati login (data hanya lokal, tidak disinkronkan).
+
+## 4.2 Firebase Security Rules
+
+**Firestore Rules:**
+
+- Setiap dokumen pengguna disimpan di `/users/{uid}`.
+- Hanya pemilik UID yang bisa membaca/menulis.
+- Dokumen publik (misalnya daftar soal) dibaca semua, ditulis hanya admin.
+
+**Storage Rules:**
+
+- Video disimpan di `/user_videos/{uid}/`.
+- Hanya pemilik yang bisa baca/tulis.
+- Batasi ukuran maksimal 500 MB dan tipe konten `video/.*`.
+
+## 4.3 Privasi Rekaman Suara
+
+- Rekaman suara disimpan **lokal saja**, tidak pernah diunggah otomatis.
+- Pengguna bisa menghapus rekaman dari pengaturan.
+- File audio dihapus otomatis setelah 30 hari jika tidak dipakai.
+- Saat logout, seluruh folder audio pengguna dihapus.
+
+## 4.4 Permission
+
+Aplikasi hanya meminta izin yang benar-benar dibutuhkan:
+
+- `RECORD_AUDIO` — untuk speaking dan reading aloud.
+- `POST_NOTIFICATIONS` — untuk pengingat (Android 13+).
+- `INTERNET` — untuk Firebase.
+
+Izin diminta **saat fitur pertama kali dipakai**, bukan saat aplikasi dibuka.
+
+---
+
+# 📊 BAGIAN 5: ANALITIK & PEMANTAUAN
+
+## 5.1 Event yang Dilacak
+
+Aplikasi mencatat event ke Firebase Analytics untuk memahami perilaku pengguna:
+
+- `lesson_started` — kapan pelajaran dimulai
+- `lesson_completed` — kapan pelajaran selesai
+- `writing_attempt` — setiap latihan menulis
+- `speaking_attempt` — setiap rekaman speaking
+- `vocab_review` — setiap sesi SRS
+- `video_uploaded` — setiap video selesai diunggah
+- `video_played` — setiap kali video diputar
+- `streak_increased` — setiap kali streak bertambah
+- `badge_unlocked` — setiap kali badge terbuka
+
+## 5.2 Crash Reporting
+
+Firebase Crashlytics mencatat crash dan error yang tidak tertangani, dengan stack trace dan informasi device.
+
+## 5.3 Performance Monitoring
+
+Firebase Performance memantau:
+
+- Waktu load layar.
+- Waktu query database.
+- Waktu upload video.
+- Waktu transkripsi.
+
+---
+
+# 🔄 BAGIAN 6: SINKRONISASI & OFFLINE
+
+## 6.1 Prinsip
+
+Room adalah **sumber kebenaran** di perangkat. Firebase adalah **salinan** untuk sinkronisasi lintas perangkat dan backup.
+
+## 6.2 Alur Sinkronisasi
+
+1. Setiap perubahan data lokal dicatat dengan `updatedAt` (timestamp).
+2. Saat online, aplikasi mengirim perubahan ke Firestore.
+3. Firestore mengirim perubahan dari perangkat lain ke aplikasi.
+4. **Konflik resolution:** timestamp terbaru menang.
+5. Jika ada data yang dihapus di server, aplikasi juga menghapusnya.
+
+## 6.3 Offline Behavior
+
+- Semua fitur inti (menulis, kosakata, listening) tetap berjalan offline.
+- Video yang di-upload saat offline masuk antrean WorkManager.
+- Progres disimpan lokal dan disinkronkan saat online.
+- Banner tipis di atas menandakan mode offline.
+
+---
+
+# ✅ BAGIAN 7: RINGKASAN TEKNIS PER FITUR
+
+| Fitur | Penyimpanan | API Utama | Offline |
+|---|---|---|---|
+| Onboarding | DataStore | — | Ya |
+| Home | Room | — | Ya |
+| Writing | Room + aset | ML Kit Digital Ink | Ya |
+| Vocabulary | Room | — | Ya |
+| Listening | Room + aset | ExoPlayer | Ya |
+| Speaking | Room + file lokal | SpeechRecognizer/Vosk, MediaRecorder | Ya (Vosk) |
+| Reading | Room | TTS, ML Kit OCR, PdfRenderer | Ya |
+| Video | Room + Firebase | ExoPlayer, Whisper, WorkManager | Upload: antre |
+| Profile | DataStore + Firebase | Firebase Auth | Sebagian |
+| Gamifikasi | Room | WorkManager | Ya |
+
+---
+
+# 🎯 BAGIAN 8: URUTAN KERJA TEKNIS
+
+Berikut urutan teknis yang paling efisien untuk dikerjakan:
+
+1. **Fondasi project** — setup modular, Hilt, Compose, Navigation.
+2. **Design system** — warna, tipografi, tema, komponen reusable.
+3. **Data layer** — Room database, entity, DAO, repository.
+4. **Onboarding** — splash, welcome, input profil, placement test.
+5. **Home** — dashboard dengan data dummy dulu, lalu data dari Room.
+6. **Vocabulary** — SRS inti, karena paling sederhana dan memberi nilai langsung.
+7. **Writing** — canvas, animasi stroke, recognition.
+8. **Listening** — quiz audio dengan ExoPlayer.
+9. **Speaking** — record, playback, transkripsi, scoring.
+10. **Reading** — impor teks, TTS baca, rekam baca.
+11. **Gamifikasi** — streak, XP, badge.
+12. **Offline & sync** — WorkManager, Firebase sync.
+13. **Video** — upload, player, subtitle, transkripsi.
+14. **Analitik & polish** — Firebase Analytics, Crashlytics, performance tuning.
+
+Setiap langkah bisa dikerjakan malam ini tanpa harus menunggu langkah sebelumnya selesai 100%, asalkan dependensi sudah disiapkan.
+
+---
+
+## 💎 PENUTUP
+
+Dokumen ini menjelaskan **apa yang terjadi di balik layar** untuk setiap fitur: data mengalir ke mana, siapa yang memproses, kapan disimpan, dan bagaimana aplikasi merespons. Tidak ada kodingan, hanya alur teknis. Gunakan dokumen ini sebagai **peta** saat Anda mulai mengerjakan setiap modul — Anda tinggal mengikuti alur yang dijelaskan, dan implementasi kodingan mengikuti alur tersebut.

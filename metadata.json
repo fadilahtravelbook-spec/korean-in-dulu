@@ -1,0 +1,6 @@
+{
+  "name": "Korean In Dulu",
+  "description": "Belajar Korea, dari nol sampai bisa. Aplikasi edukasi bahasa Korea interaktif karya Bangdillah210 dengan modul Hangul, Menulis, Berbicara, Mendengar, Kosakata SRS, Membaca, dan maskot Hannie.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
