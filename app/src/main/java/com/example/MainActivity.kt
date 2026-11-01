@@ -30,6 +30,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -87,10 +88,37 @@ class MainActivity : ComponentActivity() {
                 val learningMinutes by viewModel.totalLearningMinutes.collectAsState()
                 val dailyChallenges by viewModel.dailyChallenges.collectAsState()
 
-                // Current Screen route state
-                var currentScreen by remember { mutableStateOf("home") }
+                // Navigation backstack state (preserves full multi-step navigation flow)
+                val screenStack = remember { mutableStateListOf("home") }
+                val currentScreen = screenStack.lastOrNull() ?: "home"
                 var initialWritingLetter by remember { mutableStateOf<String?>(null) }
                 var selectedDetailCharacter by remember { mutableStateOf("ㅏ") }
+
+                val navigateTo: (String) -> Unit = { screen ->
+                    viewModel.stopSpeaking()
+                    if (screen in listOf("home", "writing", "vocab", "profile")) {
+                        // Tapping a primary bottom navigation tab resets stack to clean state
+                        screenStack.clear()
+                        screenStack.add("home")
+                        if (screen != "home") {
+                            screenStack.add(screen)
+                        }
+                    } else {
+                        if (screenStack.lastOrNull() != screen) {
+                            screenStack.add(screen)
+                        }
+                    }
+                }
+
+                val navigateBack: () -> Unit = {
+                    viewModel.stopSpeaking()
+                    if (screenStack.size > 1) {
+                        screenStack.removeAt(screenStack.lastIndex)
+                    } else {
+                        screenStack.clear()
+                        screenStack.add("home")
+                    }
+                }
 
                 // Check if user profile is ready or onboarding is needed
                 val currentProfile = profile
@@ -108,7 +136,8 @@ class MainActivity : ComponentActivity() {
                         placementQuestions = viewModel.repository.placementTestQuestions,
                         onComplete = { name, level, goalMinutes ->
                             viewModel.completeOnboarding(name, level, goalMinutes)
-                            currentScreen = "home"
+                            screenStack.clear()
+                            screenStack.add("home")
                         }
                     )
                 } else {
@@ -125,10 +154,7 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     NavigationBarItem(
                                         selected = currentScreen == "home",
-                                        onClick = {
-                                            viewModel.stopSpeaking()
-                                            currentScreen = "home"
-                                        },
+                                        onClick = { navigateTo("home") },
                                         icon = { Icon(Icons.Default.Home, contentDescription = "Beranda") },
                                         label = { Text("Beranda", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -141,10 +167,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "writing",
-                                        onClick = {
-                                            viewModel.stopSpeaking()
-                                            currentScreen = "writing"
-                                        },
+                                        onClick = { navigateTo("writing") },
                                         icon = { Icon(Icons.Default.Keyboard, contentDescription = "Ketik") },
                                         label = { Text("Ketik", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -157,10 +180,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "vocab",
-                                        onClick = {
-                                            viewModel.stopSpeaking()
-                                            currentScreen = "vocab"
-                                        },
+                                        onClick = { navigateTo("vocab") },
                                         icon = { Icon(Icons.Default.Book, contentDescription = "Kosakata") },
                                         label = { Text("Kosakata", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -173,10 +193,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "profile",
-                                        onClick = {
-                                            viewModel.stopSpeaking()
-                                            currentScreen = "profile"
-                                        },
+                                        onClick = { navigateTo("profile") },
                                         icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
                                         label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -196,19 +213,7 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            val navigateBack: () -> Unit = {
-                                viewModel.stopSpeaking()
-                                currentScreen = when (currentScreen) {
-                                    "hangul_letter_detail" -> "hangul_intro"
-                                    "role_play" -> "speaking"
-                                    "add_custom_vocab", "vocab_matching_game" -> "vocab"
-                                    "custom_reader", "wpm_reading" -> "reading"
-                                    "korean_documents", "word_practice", "keyboard_challenge", "batchim_guide", "syllable_combine" -> "writing"
-                                    else -> "home"
-                                }
-                            }
-
-                            BackHandler(enabled = currentScreen != "home") {
+                            BackHandler(enabled = screenStack.size > 1 || currentScreen != "home") {
                                 navigateBack()
                             }
 
@@ -221,10 +226,10 @@ class MainActivity : ComponentActivity() {
                                         unlockedBadgeCount = unlockedBadges.size,
                                         dailyChallenges = dailyChallenges,
                                         onNavigateToModule = { moduleId ->
-                                            currentScreen = moduleId
+                                            navigateTo(moduleId)
                                         },
                                         onNavigateToProfile = {
-                                            currentScreen = "profile"
+                                            navigateTo("profile")
                                         },
                                         onSpeak = { text ->
                                             viewModel.speak(text)
@@ -238,14 +243,14 @@ class MainActivity : ComponentActivity() {
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onNavigateToWriting = { char ->
                                             initialWritingLetter = char
-                                            currentScreen = "writing"
+                                            navigateTo("writing")
                                         },
                                         onAddXp = { xp ->
                                             viewModel.addXp(xp)
                                         },
                                         onNavigateToDetail = { char ->
                                             selectedDetailCharacter = char
-                                            currentScreen = "hangul_letter_detail"
+                                            navigateTo("hangul_letter_detail")
                                         }
                                     )
                                 }
@@ -265,22 +270,22 @@ class MainActivity : ComponentActivity() {
                                             viewModel.recordProgress(mod, lesson, title, score)
                                         },
                                         onNavigateToHangulIntro = {
-                                            currentScreen = "hangul_intro"
+                                            navigateTo("hangul_intro")
                                         },
                                         onNavigateToDocuments = {
-                                            currentScreen = "korean_documents"
+                                            navigateTo("korean_documents")
                                         },
                                         onNavigateToWordPractice = {
-                                            currentScreen = "word_practice"
+                                            navigateTo("word_practice")
                                         },
                                         onNavigateToKeyboardChallenge = {
-                                            currentScreen = "keyboard_challenge"
+                                            navigateTo("keyboard_challenge")
                                         },
                                         onNavigateToSyllableCombine = {
-                                            currentScreen = "syllable_combine"
+                                            navigateTo("syllable_combine")
                                         },
                                         onNavigateToBatchim = {
-                                            currentScreen = "batchim_guide"
+                                            navigateTo("batchim_guide")
                                         }
                                     )
                                 }
@@ -289,14 +294,14 @@ class MainActivity : ComponentActivity() {
                                     SpeakingScreen(
                                         templates = viewModel.repository.introTemplates,
                                         rolePlaySteps = viewModel.repository.rolePlaySteps,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onSpeakWithSpeed = { text, speed -> viewModel.speak(text, speed) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
                                         },
                                         onNavigateToRolePlay = {
-                                            currentScreen = "role_play"
+                                            navigateTo("role_play")
                                         }
                                     )
                                 }
@@ -304,7 +309,7 @@ class MainActivity : ComponentActivity() {
                                 "listening" -> {
                                     ListeningScreen(
                                         quizzes = viewModel.repository.listeningQuizzes,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
@@ -315,7 +320,7 @@ class MainActivity : ComponentActivity() {
                                 "vocab" -> {
                                     VocabularyScreen(
                                         vocabList = vocabList,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onSubmitSrs = { card, rating ->
                                             viewModel.submitSrsReview(card, rating)
@@ -330,10 +335,10 @@ class MainActivity : ComponentActivity() {
                                             viewModel.addXp(xp)
                                         },
                                         onNavigateToAddVocab = {
-                                            currentScreen = "add_custom_vocab"
+                                            navigateTo("add_custom_vocab")
                                         },
                                         onNavigateToGame = {
-                                            currentScreen = "vocab_matching_game"
+                                            navigateTo("vocab_matching_game")
                                         }
                                     )
                                 }
@@ -341,7 +346,7 @@ class MainActivity : ComponentActivity() {
                                 "reading" -> {
                                     ReadingScreen(
                                         stories = viewModel.repository.readingStories,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onSaveToVocab = { ko, idMeaning ->
                                             viewModel.addCustomVocabCard(ko, idMeaning)
@@ -350,10 +355,10 @@ class MainActivity : ComponentActivity() {
                                             viewModel.recordProgress(mod, lesson, title, score)
                                         },
                                         onNavigateToCustomReader = {
-                                            currentScreen = "custom_reader"
+                                            navigateTo("custom_reader")
                                         },
                                         onNavigateToWpmReading = {
-                                            currentScreen = "wpm_reading"
+                                            navigateTo("wpm_reading")
                                         }
                                     )
                                 }
@@ -361,7 +366,7 @@ class MainActivity : ComponentActivity() {
                                 "video" -> {
                                     VideoImmersionScreen(
                                         videoLessons = viewModel.repository.videoLessons,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onSaveToVocab = { ko, idMeaning ->
                                             viewModel.addCustomVocabCard(ko, idMeaning, "Video")
@@ -379,7 +384,7 @@ class MainActivity : ComponentActivity() {
                                         learningMinutes = learningMinutes,
                                         unlockedBadges = unlockedBadges,
                                         masterBadges = viewModel.repository.masterBadges,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeakTest = { text, spd ->
                                             viewModel.speak(text, spd)
                                         },
@@ -477,7 +482,7 @@ class MainActivity : ComponentActivity() {
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onNavigateToWriting = { char ->
                                             initialWritingLetter = char
-                                            currentScreen = "writing"
+                                            navigateTo("writing")
                                         }
                                     )
                                 }
@@ -500,7 +505,7 @@ class MainActivity : ComponentActivity() {
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onAddCustomVocab = { ko, meaning, category ->
                                             viewModel.addCustomVocabCard(ko, meaning, category)
-                                            currentScreen = "vocab"
+                                            navigateBack()
                                         },
                                         onAddXp = { xp -> viewModel.addXp(xp) }
                                     )
@@ -543,13 +548,14 @@ class MainActivity : ComponentActivity() {
                                         level = profile?.level ?: 1,
                                         completedLessons = completedCount,
                                         onBack = navigateBack,
-                                        onNavigateToProfile = { currentScreen = "profile" },
-                                        onUseStreakFreeze = { /* freeze logic */ }
+                                        onNavigateToProfile = { navigateTo("profile") },
+                                        onUseStreakFreeze = { viewModel.addXp(15) }
                                     )
                                 }
 
                                 else -> {
-                                    currentScreen = "home"
+                                    screenStack.clear()
+                                    screenStack.add("home")
                                 }
                             }
                         }

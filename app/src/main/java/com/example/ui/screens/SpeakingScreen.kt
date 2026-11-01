@@ -123,7 +123,7 @@ fun SpeakingScreen(
         }
     }
 
-    if (templates.isEmpty() || rolePlaySteps.isEmpty()) {
+    if (templates.isEmpty() && rolePlaySteps.isEmpty()) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -145,7 +145,17 @@ fun SpeakingScreen(
 
     // Template intro state
     var selectedTemplateIndex by remember { mutableIntStateOf(0) }
-    val currentTemplate = templates.getOrElse(selectedTemplateIndex) { templates.first() }
+    val currentTemplate = templates.getOrElse(selectedTemplateIndex) {
+        templates.firstOrNull() ?: IntroTemplate(
+            id = "default",
+            level = 1,
+            title = "Perkenalan Singkat",
+            description = "Latihan perkenalan dasar",
+            templateKo = "안녕하세요.",
+            templateId = "Halo.",
+            placeholders = emptyList()
+        )
+    }
 
     val formValues = remember(currentTemplate.id) {
         mutableStateMapOf<String, String>().apply {
@@ -157,7 +167,15 @@ fun SpeakingScreen(
 
     // Role-play state
     var currentRolePlayIndex by remember { mutableIntStateOf(0) }
-    val currentRolePlayStep = rolePlaySteps.getOrElse(currentRolePlayIndex) { rolePlaySteps.first() }
+    val currentRolePlayStep = rolePlaySteps.getOrElse(currentRolePlayIndex) {
+        rolePlaySteps.firstOrNull() ?: RolePlayStep(
+            id = 0,
+            hannieDialogueKo = "안녕하세요!",
+            hannieDialogueId = "Halo!",
+            userOptions = emptyList(),
+            hint = "Pilih salam pembuka"
+        )
+    }
     var selectedOption by remember(currentRolePlayIndex) { mutableStateOf<RolePlayOption?>(null) }
 
     // Recording & Assessment State

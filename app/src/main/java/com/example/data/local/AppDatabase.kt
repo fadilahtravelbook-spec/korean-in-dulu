@@ -45,6 +45,9 @@ interface UserDao {
     @Query("UPDATE user_profile SET lastAccessedLessonId = :lessonId WHERE id = 'default_user'")
     suspend fun updateLastAccessedLesson(lessonId: String)
 
+    @Query("UPDATE user_profile SET level = :newLevel WHERE id = 'default_user'")
+    suspend fun updateLevel(newLevel: Int)
+
     @Query("UPDATE user_profile SET onboarded = 1, name = :name, level = :level, dailyGoalMinutes = :goalMinutes WHERE id = 'default_user'")
     suspend fun completeOnboarding(name: String, level: Int, goalMinutes: Int = 15)
 }

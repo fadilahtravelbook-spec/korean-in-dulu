@@ -410,7 +410,9 @@ fun RolePlayScreen(
                                                 onResult = { text ->
                                                     recognizedText = text
                                                     isListening = false
-                                                    assessmentResult = SpeechRecognitionHelper.evaluatePronunciation(opt.textKo, text)
+                                                    val eval = SpeechRecognitionHelper.evaluatePronunciation(opt.textKo, text)
+                                                    assessmentResult = eval
+                                                    onRecordProgress("speaking", "roleplay_${currentRolePlayIndex}", "Role-Play Step ${currentRolePlayIndex + 1}", eval.accuracy)
                                                 },
                                                 onError = { isListening = false }
                                             )
@@ -454,7 +456,9 @@ fun RolePlayScreen(
                             onClick = {
                                 isListening = false
                                 recognizedText = opt.textKo
-                                assessmentResult = SpeechRecognitionHelper.evaluatePronunciation(opt.textKo, opt.textKo)
+                                val eval = SpeechRecognitionHelper.evaluatePronunciation(opt.textKo, opt.textKo)
+                                assessmentResult = eval
+                                onRecordProgress("speaking", "roleplay_${currentRolePlayIndex}", "Role-Play Step ${currentRolePlayIndex + 1}", eval.accuracy)
                             },
                             shape = RoundedCornerShape(10.dp),
                             modifier = Modifier.testTag("simulate_roleplay_speech_btn")

@@ -348,6 +348,46 @@ fun VocabMatchingGameScreen(
                         }
                     }
                 }
+            } else if (activeRoundCards.isEmpty()) {
+                Card(
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color.White),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Belum Ada Kosakata",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp,
+                            color = InkBlack
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Kategori \"$selectedCategory\" belum memiliki kata yang cukup untuk dicocokkan. Silakan pilih kategori lain atau tampilkan Semua.",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center
+                        )
+                        Spacer(modifier = Modifier.height(14.dp))
+                        Button(
+                            onClick = {
+                                selectedCategory = "Semua"
+                                roundSeed++
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                            shape = RoundedCornerShape(10.dp)
+                        ) {
+                            Text("Tampilkan Semua Kosakata", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
             } else {
                 // Game Board: 2 Columns (Hangul on left, Meaning on right)
                 Text(

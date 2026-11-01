@@ -109,4 +109,22 @@ class ExampleRobolectricTest {
     assert(repo.rolePlaySteps.size >= 12)
     assert(repo.listeningQuizzes.size >= 15)
   }
+
+  @Test
+  fun `level recalculation increases user level with xp thresholds`() = kotlinx.coroutines.runBlocking {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val repo = com.example.data.repository.KoreanRepository(context)
+    repo.ensureInitialized()
+
+    val db = com.example.data.local.AppDatabase.getDatabase(context)
+    val initialProfile = db.userDao().getUserProfileOnce()
+    assert(initialProfile != null)
+
+    val previousXp = initialProfile!!.xp
+    repo.addXp(250)
+    val updatedProfile = db.userDao().getUserProfileOnce()
+    assert(updatedProfile != null)
+    assertEquals(previousXp + 250, updatedProfile!!.xp)
+    assertEquals(if (updatedProfile.xp >= 300) 2 else 1, updatedProfile.level)
+  }
 }

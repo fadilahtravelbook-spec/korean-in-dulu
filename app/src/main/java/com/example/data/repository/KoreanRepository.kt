@@ -46,6 +46,10 @@ class KoreanRepository(context: Context) {
         }
     }
 
+    suspend fun ensureInitialized() {
+        seedInitialDataIfNeeded()
+    }
+
     val userProfile: Flow<UserProfile?> = userDao.getUserProfile()
     val allVocab: Flow<List<VocabCard>> = vocabDao.getAllVocab()
     val bookmarkedVocab: Flow<List<VocabCard>> = vocabDao.getBookmarkedCards()
@@ -81,6 +85,20 @@ class KoreanRepository(context: Context) {
 
     suspend fun addXp(amount: Int) {
         userDao.addXp(amount)
+        val profile = userDao.getUserProfileOnce()
+        if (profile != null) {
+            val newLevel = when {
+                profile.xp >= 600 -> 3
+                profile.xp >= 300 -> 2
+                else -> 1
+            }
+            if (newLevel > profile.level) {
+                userDao.updateLevel(newLevel)
+                if (newLevel >= 2) {
+                    unlockBadge("badge_level_up", "Naik Pangkat!", "Mencapai Level $newLevel dalam penguasaan bahasa Korea", "🌟")
+                }
+            }
+        }
         checkBadges()
     }
 
@@ -171,7 +189,7 @@ class KoreanRepository(context: Context) {
 
         // Check module specific badges
         when (moduleId) {
-            "writing" -> unlockBadge("badge_hangul_writer", "Juru Tulis Hangul", "Menulis huruf Hangul dengan akurasi tinggi", "✍️")
+            "writing", "keyboard_typing" -> unlockBadge("badge_hangul_writer", "Juru Tulis Hangul", "Menulis huruf Hangul dengan akurasi tinggi", "✍️")
             "speaking" -> unlockBadge("badge_native_speaker", "Lidah Seoul", "Menyelesaikan latihan rekaman speaking perkenalan", "🗣️")
             "listening" -> unlockBadge("badge_sharp_ear", "Telinga Tajam", "Berhasil menjawab quiz pemahaman listening", "🎧")
             "reading" -> unlockBadge("badge_bookworm", "Pembaca Handal", "Membaca teks cerita Korea dan menjawab quiz", "📚")
@@ -236,11 +254,16 @@ class KoreanRepository(context: Context) {
         val profile = userDao.getUserProfileOnce() ?: return
         val lastDate = profile.lastActiveDate
         if (lastDate != todayDateStr) {
+            if (lastDate.isBlank()) {
+                userDao.updateStreakAndDate(1, todayDateStr)
+                return
+            }
             val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             try {
                 val lastDateTime = dateFormat.parse(lastDate)?.time ?: 0L
                 val todayDateTime = dateFormat.parse(todayDateStr)?.time ?: 0L
-                val diffDays = (todayDateTime - lastDateTime) / (24 * 60 * 60 * 1000)
+                // Half-day buffer (12 hours) prevents daylight saving / timezone drift from truncating day difference
+                val diffDays = (todayDateTime - lastDateTime + (12 * 60 * 60 * 1000L)) / (24 * 60 * 60 * 1000L)
                 val newStreak = when (diffDays) {
                     1L -> profile.streak + 1
                     0L -> profile.streak
@@ -279,6 +302,30 @@ class KoreanRepository(context: Context) {
             )
         }
     }
+
+    // 20 Kosakata Dasar Fondasional (Salam, Kebutuhan Pokok, Angka Dasar)
+    val initialCards: List<VocabCard> = listOf(
+        VocabCard("v1", "안녕하세요", "annyeonghaseyo", "Halo / Selamat pagi/siang/malam", "안녕하세요! 만나서 반갑습니다.", "Halo! Senang bertemu dengan Anda.", "Salam"),
+        VocabCard("v2", "감사합니다", "gamsahamnida", "Terima kasih (formal)", "도와주셔서 감사합니다.", "Terima kasih sudah membantu.", "Salam"),
+        VocabCard("v3", "죄송합니다", "joesonghamnida", "Maaf / Mohon maaf (formal)", "늦어서 죄송합니다.", "Mohon maaf saya terlambat.", "Salam"),
+        VocabCard("v4", "물", "mul", "Air", "물 좀 주세요.", "Tolong beri saya air.", "Makanan & Minuman"),
+        VocabCard("v5", "밥", "bap", "Nasi / Makanan", "밥 먹었어요?", "Sudah makan nasi?", "Makanan & Minuman"),
+        VocabCard("v6", "맛있어요", "mas-isseoyo", "Enak / Lezat", "이 김치찌개는 정말 맛있어요!", "Kimchi jjigae ini sangat lezat!", "Makanan & Minuman"),
+        VocabCard("v7", "선생님", "seonsaengnim", "Guru / Pengajar", "선생님, 질문이 있습니다.", "Guru, saya punya pertanyaan.", "Kehidupan"),
+        VocabCard("v8", "친구", "chingu", "Teman / Sahabat", "우리는 좋은 친구입니다.", "Kita adalah teman baik.", "Kehidupan"),
+        VocabCard("v9", "한국어", "hangugeo", "Bahasa Korea", "저는 한국어를 열심히 공부해요.", "Saya belajar bahasa Korea dengan giat.", "Kehidupan"),
+        VocabCard("v10", "사랑해요", "saranghaeyo", "Saya mencintaimu / menyayangimu", "엄마, 아빠 사랑해요.", "Ibu, ayah, aku mencintai kalian.", "Salam"),
+        VocabCard("v11", "하나, 둘, 셋", "hana, dul, set", "Satu, dua, tiga (Angka Asli Korea)", "하나, 둘, 셋, 김치!", "Satu, dua, tiga, kimchi!", "Angka"),
+        VocabCard("v12", "일, 이, 삼", "il, i, sam", "Satu, dua, tiga (Angka Sino-Korea)", "일, 이, 삼, 사, 오!", "Satu, dua, tiga, empat, lima!", "Angka"),
+        VocabCard("v13", "얼마예요?", "eolmayeyo?", "Berapa harganya?", "이거 얼마예요?", "Ini berapa harganya?", "Belanja"),
+        VocabCard("v14", "저기요", "jeogiyo", "Permisi (memanggil pelayan)", "저기요, 주문할게요.", "Permisi, saya mau pesan.", "Kehidupan"),
+        VocabCard("v15", "어디예요?", "eodiyeyo?", "Di mana letaknya?", "화장실이 어디예요?", "Toilet di mana letaknya?", "Arah & Tempat"),
+        VocabCard("v16", "지하철", "jihacheol", "Kereta bawah tanah / MRT", "지하철을 타고 가요.", "Pergi naik kereta bawah tanah.", "Arah & Tempat"),
+        VocabCard("v17", "괜찮아요", "gwaenchanayo", "Tidak apa-apa / Baik-baik saja", "괜찮아요, 걱정하지 마세요.", "Tidak apa-apa, jangan khawatir.", "Salam"),
+        VocabCard("v18", "커피", "keopi", "Kopi", "따뜻한 커피 한 잔 주세요.", "Tolong beri saya secangkir kopi hangat.", "Makanan & Minuman"),
+        VocabCard("v19", "지금", "jigeum", "Sekarang / Saat ini", "지금 몇 시예요?", "Sekarang jam berapa?", "Waktu"),
+        VocabCard("v20", "오늘", "oneul", "Hari ini", "오늘 날씨가 정말 좋아요.", "Hari ini cuacanya sangat bagus.", "Waktu")
+    )
 
     // Koleksi Kosakata Ekstra: Restoran, Belanja, Kesehatan, Kerja, K-Culture, dan Arah
     val extraVocabCards: List<VocabCard> = listOf(
@@ -395,31 +442,6 @@ class KoreanRepository(context: Context) {
             val todayStr = dateFormat.format(Date())
             activityLogDao.insertLog(ActivityLog(activityType = "writing", durationMinutes = 10, xpEarned = 40, dateString = todayStr))
             activityLogDao.insertLog(ActivityLog(activityType = "vocab", durationMinutes = 5, xpEarned = 30, dateString = todayStr))
-
-            // Seed rich vocabulary cards
-            val initialCards = listOf(
-                VocabCard("v1", "안녕하세요", "annyeonghaseyo", "Halo / Selamat pagi/siang/malam", "안녕하세요! 만나서 반갑습니다.", "Halo! Senang bertemu dengan Anda.", "Salam"),
-                VocabCard("v2", "감사합니다", "gamsahamnida", "Terima kasih (formal)", "도와주셔서 감사합니다.", "Terima kasih sudah membantu.", "Salam"),
-                VocabCard("v3", "죄송합니다", "joesonghamnida", "Maaf / Mohon maaf (formal)", "늦어서 죄송합니다.", "Mohon maaf saya terlambat.", "Salam"),
-                VocabCard("v4", "물", "mul", "Air", "물 좀 주세요.", "Tolong beri saya air.", "Makanan & Minuman"),
-                VocabCard("v5", "밥", "bap", "Nasi / Makanan", "밥 먹었어요?", "Sudah makan nasi?", "Makanan & Minuman"),
-                VocabCard("v6", "맛있어요", "mas-isseoyo", "Enak / Lezat", "이 김치찌개는 정말 맛있어요!", "Kimchi jjigae ini sangat lezat!", "Makanan & Minuman"),
-                VocabCard("v7", "선생님", "seonsaengnim", "Guru / Pengajar", "선생님, 질문이 있습니다.", "Guru, saya punya pertanyaan.", "Kehidupan"),
-                VocabCard("v8", "친구", "chingu", "Teman / Sahabat", "우리는 좋은 친구입니다.", "Kita adalah teman baik.", "Kehidupan"),
-                VocabCard("v9", "한국어", "hangugeo", "Bahasa Korea", "저는 한국어를 열심히 공부해요.", "Saya belajar bahasa Korea dengan giat.", "Kehidupan"),
-                VocabCard("v10", "사랑해요", "saranghaeyo", "Saya mencintaimu / menyayangimu", "엄마, 아빠 사랑해요.", "Ibu, ayah, aku mencintai kalian.", "Salam"),
-                VocabCard("v11", "하나, 둘, 셋", "hana, dul, set", "Satu, dua, tiga (Angka Asli Korea)", "하나, 둘, 셋, 김치!", "Satu, dua, tiga, kimchi!", "Angka"),
-                VocabCard("v12", "일, 이, 삼", "il, i, sam", "Satu, dua, tiga (Angka Sino-Korea)", "일, 이, 삼, 사, 오!", "Satu, dua, tiga, empat, lima!", "Angka"),
-                VocabCard("v13", "얼마예요?", "eolmayeyo?", "Berapa harganya?", "이거 얼마예요?", "Ini berapa harganya?", "Belanja"),
-                VocabCard("v14", "저기요", "jeogiyo", "Permisi (memanggil pelayan)", "저기요, 주문할게요.", "Permisi, saya mau pesan.", "Kehidupan"),
-                VocabCard("v15", "어디예요?", "eodiyeyo?", "Di mana letaknya?", "화장실이 어디예요?", "Toilet di mana letaknya?", "Arah & Tempat"),
-                VocabCard("v16", "지하철", "jihacheol", "Kereta bawah tanah / MRT", "지하철을 타고 가요.", "Pergi naik kereta bawah tanah.", "Arah & Tempat"),
-                VocabCard("v17", "괜찮아요", "gwaenchanayo", "Tidak apa-apa / Baik-baik saja", "괜찮아요, 걱정하지 마세요.", "Tidak apa-apa, jangan khawatir.", "Salam"),
-                VocabCard("v18", "커피", "keopi", "Kopi", "따뜻한 커피 한 잔 주세요.", "Tolong beri saya secangkir kopi hangat.", "Makanan & Minuman"),
-                VocabCard("v19", "지금", "jigeum", "Sekarang / Saat ini", "지금 몇 시예요?", "Sekarang jam berapa?", "Waktu"),
-                VocabCard("v20", "오늘", "oneul", "Hari ini", "오늘 날씨가 정말 좋아요.", "Hari ini cuacanya sangat bagus.", "Waktu")
-            )
-
             // Kosakata Keseharian: Toilet, Kamar Mandi, Sepeda, dan Transportasi
             val dailyLifeCards = listOf(
                 VocabCard("v21", "화장실", "hwajangsil", "Toilet / Kamar Mandi", "화장실이 어디예요?", "Di mana letak toilet?", "Toilet & Mandi"),
@@ -616,8 +638,11 @@ class KoreanRepository(context: Context) {
                 VocabCard("num_c12", "층", "cheung", "Satuan Lantai Gedung", "우리 사무실은 삼층에 있어요.", "Kantor kami berada di lantai tiga.", "Angka")
             )
 
-            vocabDao.insertAll(dailyLifeCards + numberCards + extraVocabCards)
+            vocabDao.insertAll(initialCards + dailyLifeCards + numberCards + extraVocabCards)
         }
+
+        // Guarantee foundational starter cards are present even for existing database instances
+        vocabDao.insertAll(initialCards)
     }
 
     // Master list of all defineable badges

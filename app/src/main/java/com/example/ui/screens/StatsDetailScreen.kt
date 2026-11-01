@@ -77,8 +77,11 @@ fun StatsDetailScreen(
     onUseStreakFreeze: () -> Unit
 ) {
     var isFreezeEquipped by remember { mutableStateOf(true) }
-    val xpForNextLevel = level * 100
-    val currentLevelProgress = (xp % 100).toFloat() / 100f
+    val (targetTitle, xpNeeded, currentLevelProgress) = when {
+        level <= 1 -> Triple("Menuju Level 2 (초급)", (300 - xp).coerceAtLeast(0), (xp.toFloat() / 300f).coerceIn(0f, 1f))
+        level == 2 -> Triple("Menuju Level 3 (중급)", (600 - xp).coerceAtLeast(0), ((xp - 300).toFloat() / 300f).coerceIn(0f, 1f))
+        else -> Triple("Level 3: Menengah (중급) - Maksimal", 0, 1f)
+    }
 
     val daysOfWeek = listOf("Sen", "Sel", "Rab", "Kam", "Jum", "Sab", "Min")
     val currentDayIndex = 5 // e.g. Saturday
@@ -312,7 +315,7 @@ fun StatsDetailScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Menuju Level ${level + 1}",
+                            text = targetTitle,
                             fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = InkBlack
@@ -340,7 +343,7 @@ fun StatsDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Kumpulkan ${(100 - (xp % 100))} XP lagi untuk naik ke Level ${level + 1} dan membuka lencana prestasi baru!",
+                        text = if (level >= 3) "Selamat! Anda telah mencapai level kemahiran tertinggi saat ini." else "Kumpulkan $xpNeeded XP lagi untuk naik ke level berikutnya dan membuka lencana prestasi baru!",
                         fontSize = 11.sp,
                         color = TextSecondary
                     )

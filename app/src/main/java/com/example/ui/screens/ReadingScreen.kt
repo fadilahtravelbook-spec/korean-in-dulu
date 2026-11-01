@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -91,8 +92,26 @@ fun ReadingScreen(
     onNavigateToCustomReader: (() -> Unit)? = null,
     onNavigateToWpmReading: (() -> Unit)? = null
 ) {
+    if (stories.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC))
+        ) {
+            AppSubHeader(
+                title = "Membaca (읽기 연습)",
+                subtitle = "Karaoke highlight reader, kamus kata & tes reading aloud",
+                onBack = onBack
+            )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Belum ada bacaan cerita yang tersedia.", color = TextSecondary)
+            }
+        }
+        return
+    }
+
     var selectedStoryIndex by remember { mutableIntStateOf(0) }
-    val story = stories.getOrElse(selectedStoryIndex) { stories.firstOrNull() ?: return }
+    val story = stories.getOrElse(selectedStoryIndex) { stories.first() }
     var activeTab by remember { mutableIntStateOf(0) } // 0: Cerita Utama, 1: Tempel Teks Kustom, 2: Rekam Baca Aloud (WPM)
 
     var activeSentenceIndex by remember { mutableStateOf<Int?>(null) }
@@ -335,7 +354,10 @@ fun ReadingScreen(
 
                                         if (p.keyWords.isNotEmpty()) {
                                             Spacer(modifier = Modifier.height(6.dp))
-                                            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                                            FlowRow(
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                verticalArrangement = Arrangement.spacedBy(6.dp)
+                                            ) {
                                                 p.keyWords.forEach { kw ->
                                                     Surface(
                                                         shape = RoundedCornerShape(8.dp),

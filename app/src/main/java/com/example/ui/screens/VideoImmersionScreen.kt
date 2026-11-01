@@ -217,38 +217,47 @@ fun VideoImmersionScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         // Active Subtitle Overlay on Video
-                        val line = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.first()
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = Color.Black.copy(alpha = 0.75f),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    onSpeak(line.korean, playbackRate)
-                                }
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
+                        val line = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.firstOrNull()
+                        if (line != null) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.Black.copy(alpha = 0.75f),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onSpeak(line.korean, playbackRate)
+                                    }
                             ) {
-                                if (subtitleDisplayMode != 2) {
-                                    Text(
-                                        text = line.korean,
-                                        color = NunbitYellow,
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        textAlign = TextAlign.Center
-                                    )
-                                }
-                                if (subtitleDisplayMode != 1) {
-                                    Text(
-                                        text = line.indonesian,
-                                        color = Color.White,
-                                        fontSize = 11.sp,
-                                        textAlign = TextAlign.Center
-                                    )
+                                Column(
+                                    modifier = Modifier.padding(10.dp),
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    if (subtitleDisplayMode != 2) {
+                                        Text(
+                                            text = line.korean,
+                                            color = NunbitYellow,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                    if (subtitleDisplayMode != 1) {
+                                        Text(
+                                            text = line.indonesian,
+                                            color = Color.White,
+                                            fontSize = 11.sp,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
                                 }
                             }
+                        } else {
+                            Text(
+                                text = "Belum ada subtitle pada video ini.",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center
+                            )
                         }
                     }
                 }
@@ -310,16 +319,24 @@ fun VideoImmersionScreen(
 
                 Button(
                     onClick = {
-                        val curLine = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.first()
-                        onSpeak(curLine.korean, playbackRate)
+                        val curLine = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.firstOrNull()
+                        if (curLine != null) {
+                            onSpeak(curLine.korean, playbackRate)
+                        }
                     },
+                    enabled = currentVideo.lines.isNotEmpty(),
                     colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
                     shape = RoundedCornerShape(12.dp),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null, tint = Color.White)
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Putar Kalimat (${activeLineIndex + 1}/${currentVideo.lines.size})", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text(
+                        text = if (currentVideo.lines.isNotEmpty()) "Putar Kalimat (${activeLineIndex + 1}/${currentVideo.lines.size})" else "Tidak Ada Dialog",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
+                    )
                 }
 
                 IconButton(
