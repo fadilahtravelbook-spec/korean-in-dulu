@@ -161,6 +161,7 @@ fun VocabularyScreen(
     }
 
     Scaffold(
+        contentWindowInsets = androidx.compose.foundation.layout.WindowInsets(0.dp),
         floatingActionButton = {
             if (selectedTab == 1 && onAddCustomVocab != null) {
                 FloatingActionButton(
@@ -264,7 +265,8 @@ fun SrsFlashcardReviewView(
         return
     }
 
-    val currentCard = cards[currentIndex % cards.size]
+    val safeIndex = (currentIndex % cards.size + cards.size) % cards.size
+    val currentCard = cards[safeIndex]
 
     // 3D Card Flip Animation
     val rotation by animateFloatAsState(
@@ -301,7 +303,7 @@ fun SrsFlashcardReviewView(
                 }
             }
             Text(
-                text = "Kartu ${(currentIndex % cards.size) + 1} dari ${cards.size}",
+                text = "Kartu ${safeIndex + 1} dari ${cards.size}",
                 fontSize = 12.sp,
                 color = TextSecondary,
                 fontWeight = FontWeight.SemiBold

@@ -398,7 +398,7 @@ fun GrammarHubDialog(
                         var correctCount by remember { mutableIntStateOf(0) }
                         var isFinished by remember { mutableStateOf(false) }
 
-                        val currentQ = grammarQuizzes[quizIndex]
+                        val currentQ = grammarQuizzes.getOrElse(quizIndex) { grammarQuizzes.first() }
 
                         Column(
                             modifier = Modifier

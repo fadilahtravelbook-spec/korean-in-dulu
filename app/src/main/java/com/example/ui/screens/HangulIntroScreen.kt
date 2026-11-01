@@ -266,9 +266,9 @@ fun HangulIntroScreen(
     }
 
     // Modal dialog
-    if (detailDialogLetter != null) {
+    detailDialogLetter?.let { letter ->
         HangulDetailModal(
-            item = detailDialogLetter!!,
+            item = letter,
             onDismiss = { detailDialogLetter = null },
             onSpeak = onSpeak,
             onPracticeWrite = { char ->
@@ -598,9 +598,9 @@ fun HangulSyllableBuilderView(
         code.toChar().toString()
     }
 
-    val chosungChar = CHOSUNG_INITIALS[selectedChosungIndex]
-    val jungsungChar = JUNGSUNG_MEDIALS[selectedJungsungIndex]
-    val jongsungLabel = JONGSUNG_FINALS[selectedJongsungIndex]
+    val chosungChar = CHOSUNG_INITIALS.getOrElse(selectedChosungIndex) { CHOSUNG_INITIALS.first() }
+    val jungsungChar = JUNGSUNG_MEDIALS.getOrElse(selectedJungsungIndex) { JUNGSUNG_MEDIALS.first() }
+    val jongsungLabel = JONGSUNG_FINALS.getOrElse(selectedJongsungIndex) { JONGSUNG_FINALS.first() }
     val hasBatchim = selectedJongsungIndex > 0
 
     val scrollState = rememberScrollState()

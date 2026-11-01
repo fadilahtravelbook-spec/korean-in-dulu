@@ -359,7 +359,9 @@ fun ProfileScreen(
                         value = currentSpeed,
                         onValueChange = {
                             currentSpeed = it
-                            onUpdateTtsSpeed(it)
+                        },
+                        onValueChangeFinished = {
+                            onUpdateTtsSpeed(currentSpeed)
                         },
                         valueRange = 0.6f..1.4f,
                         steps = 7,

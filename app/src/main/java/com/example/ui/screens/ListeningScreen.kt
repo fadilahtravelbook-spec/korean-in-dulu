@@ -80,8 +80,8 @@ fun ListeningScreen(
     var hasAnswered by remember { mutableStateOf(false) }
 
     // Dictation state
-    var dictationInput by remember { mutableStateOf("") }
-    var dictationChecked by remember { mutableStateOf(false) }
+    var dictationInput by remember(currentQuizIndex) { mutableStateOf("") }
+    var dictationChecked by remember(currentQuizIndex) { mutableStateOf(false) }
 
     Column(
         modifier = Modifier

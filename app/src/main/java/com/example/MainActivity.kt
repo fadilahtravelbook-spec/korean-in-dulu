@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -31,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
@@ -73,10 +75,18 @@ class MainActivity : ComponentActivity() {
                 // Current Screen route state
                 var currentScreen by remember { mutableStateOf("home") }
 
-                // Check if user has completed onboarding
-                val showOnboarding = profile != null && !profile!!.onboarded
-
-                if (showOnboarding) {
+                // Check if user profile is ready or onboarding is needed
+                val currentProfile = profile
+                if (currentProfile == null) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.White),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = HaneulBlue)
+                    }
+                } else if (!currentProfile.onboarded) {
                     OnboardingScreen(
                         placementQuestions = viewModel.repository.placementTestQuestions,
                         onComplete = { name, level ->
@@ -94,9 +104,7 @@ class MainActivity : ComponentActivity() {
                                 NavigationBar(
                                     containerColor = Color.White,
                                     tonalElevation = 6.dp,
-                                    modifier = Modifier
-                                        .windowInsetsPadding(WindowInsets.navigationBars)
-                                        .testTag("main_bottom_nav_bar")
+                                    modifier = Modifier.testTag("main_bottom_nav_bar")
                                 ) {
                                     NavigationBarItem(
                                         selected = currentScreen == "home",

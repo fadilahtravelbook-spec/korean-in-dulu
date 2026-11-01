@@ -302,7 +302,7 @@ fun BatchimGuideView(
             0 -> {
                 // 7 Bunyi Pokok View
                 var selectedRepIndex by remember { mutableIntStateOf(0) }
-                val currentRep = repBatchims[selectedRepIndex]
+                val currentRep = repBatchims.getOrElse(selectedRepIndex) { repBatchims.first() }
 
                 Card(
                     shape = RoundedCornerShape(16.dp),
@@ -570,7 +570,7 @@ fun BatchimGuideView(
                 var quizFinished by remember { mutableStateOf(false) }
                 var scoreCount by remember { mutableIntStateOf(0) }
 
-                val currentQuiz = quizItems[currentQuizIndex]
+                val currentQuiz = quizItems.getOrElse(currentQuizIndex) { quizItems.first() }
 
                 Card(
                     shape = RoundedCornerShape(18.dp),
@@ -747,7 +747,7 @@ fun BatchimGuideView(
                                                 selectedAnswer = null
                                             } else {
                                                 quizFinished = true
-                                                val finalScore = (scoreCount * 100) / quizItems.size
+                                                val finalScore = (scoreCount * 100) / maxOf(1, quizItems.size)
                                                 onRecordProgress("writing", "batchim_quiz", "Kuis Pemahaman Batchim", finalScore)
                                             }
                                         },
@@ -786,7 +786,7 @@ fun BatchimGuideView(
                                     color = InkBlack
                                 )
                                 Text(
-                                    text = "Benar $scoreCount dari ${quizItems.size} soal (${(scoreCount * 100) / quizItems.size}%)",
+                                    text = "Benar $scoreCount dari ${quizItems.size} soal (${(scoreCount * 100) / maxOf(1, quizItems.size)}%)",
                                     fontSize = 13.sp,
                                     color = TextSecondary
                                 )

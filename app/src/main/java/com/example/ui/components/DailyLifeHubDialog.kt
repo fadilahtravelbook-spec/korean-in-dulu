@@ -212,7 +212,7 @@ fun DailyLifeHubDialog(
     onSpeak: (String) -> Unit
 ) {
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
-    val currentCategory = dailyLifeCategories[selectedCategoryIndex]
+    val currentCategory = dailyLifeCategories.getOrElse(selectedCategoryIndex) { dailyLifeCategories.first() }
 
     Dialog(
         onDismissRequest = onDismiss,

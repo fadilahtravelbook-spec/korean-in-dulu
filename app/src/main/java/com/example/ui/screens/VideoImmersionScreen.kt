@@ -81,7 +81,8 @@ fun VideoImmersionScreen(
     var selectedVideoIndex by remember { mutableIntStateOf(0) }
     val currentVideo = videoLessons.getOrElse(selectedVideoIndex) { videoLessons.first() }
 
-    var activeLineIndex by remember { mutableIntStateOf(0) }
+    var activeLineIndex by remember(selectedVideoIndex) { mutableIntStateOf(0) }
+    val safeLineIndex = activeLineIndex.coerceIn(0, maxOf(0, currentVideo.lines.size - 1))
     var playbackRate by remember { mutableStateOf(0.9f) }
     var isShadowingMode by remember { mutableStateOf(false) }
     var shadowingDone by remember { mutableStateOf(false) }
@@ -185,7 +186,7 @@ fun VideoImmersionScreen(
                         Spacer(modifier = Modifier.height(14.dp))
 
                         // Active Subtitle Overlay on Video
-                        val line = currentVideo.lines[activeLineIndex]
+                        val line = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.first()
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = Color.Black.copy(alpha = 0.75f),
@@ -237,7 +238,7 @@ fun VideoImmersionScreen(
 
                 Button(
                     onClick = {
-                        val curLine = currentVideo.lines[activeLineIndex]
+                        val curLine = currentVideo.lines.getOrNull(safeLineIndex) ?: currentVideo.lines.first()
                         onSpeak(curLine.korean, playbackRate)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),

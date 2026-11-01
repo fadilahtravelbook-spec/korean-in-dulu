@@ -386,7 +386,7 @@ fun ReadingScreen(
                                             val correctCount = story.questions.indices.count { idx ->
                                                 quizAnswers[idx] == story.questions[idx].correctIndex
                                             }
-                                            val score = (correctCount * 100) / story.questions.size
+                                            val score = (correctCount * 100) / maxOf(1, story.questions.size)
                                             onRecordProgress("reading", story.id, "Membaca: ${story.titleId}", score)
                                         },
                                         modifier = Modifier
@@ -402,7 +402,7 @@ fun ReadingScreen(
                                     val correctCount = story.questions.indices.count { idx ->
                                         quizAnswers[idx] == story.questions[idx].correctIndex
                                     }
-                                    val score = (correctCount * 100) / story.questions.size
+                                    val score = (correctCount * 100) / maxOf(1, story.questions.size)
 
                                     Surface(
                                         shape = RoundedCornerShape(14.dp),

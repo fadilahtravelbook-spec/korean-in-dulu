@@ -47,6 +47,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -101,6 +102,8 @@ fun HangulWritingCanvas(
     // Brush Options: Width & Color
     var selectedBrushWidth by remember { mutableFloatStateOf(16f) }
     var selectedInkColor by remember { mutableStateOf(Color(0xFF0F172A)) }
+    val currentInkColor by rememberUpdatedState(selectedInkColor)
+    val currentBrushWidth by rememberUpdatedState(selectedBrushWidth)
 
     // Grid mode: 0 = Full Won-goji (Diagonal + Quad), 1 = Cross (Salib), 2 = Polos (Kosong)
     var gridStyle by remember { mutableIntStateOf(0) }
@@ -251,8 +254,8 @@ fun HangulWritingCanvas(
                                     strokes.add(
                                         DrawnStroke(
                                             points = currentPoints,
-                                            color = selectedInkColor,
-                                            strokeWidth = selectedBrushWidth
+                                            color = currentInkColor,
+                                            strokeWidth = currentBrushWidth
                                         )
                                     )
                                     currentPoints = emptyList()
@@ -400,8 +403,9 @@ fun HangulWritingCanvas(
                         strokes.clear()
                         evaluatedScore = null
                         coroutineScope.launch {
-                            val w = if (canvasPixelSize.width > 0) canvasPixelSize.width.toFloat() else 750f
-                            val h = if (canvasPixelSize.height > 0) canvasPixelSize.height.toFloat() else 750f
+                            try {
+                                val w = if (canvasPixelSize.width > 0) canvasPixelSize.width.toFloat() else 750f
+                                val h = if (canvasPixelSize.height > 0) canvasPixelSize.height.toFloat() else 750f
                             val midX = w / 2f
                             val midY = h / 2f
 
@@ -559,10 +563,12 @@ fun HangulWritingCanvas(
                                     animLine(midX, midY - (h * 0.2f), midX, midY + (h * 0.2f), 14)
                                 }
                             }
+                        } finally {
                             isDemonstrating = false
                         }
                     }
-                },
+                }
+            },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEFF6FF)),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !isDemonstrating,

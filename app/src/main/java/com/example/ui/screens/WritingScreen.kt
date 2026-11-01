@@ -311,8 +311,9 @@ fun LetterWritingPracticeView(
     val currentCategory = categories[selectedCategoryIndex]
     val filteredLetters = letters.filter { it.category == currentCategory }
 
-    var selectedLetterIndex by remember { mutableIntStateOf(0) }
-    val currentLetter = filteredLetters.getOrElse(selectedLetterIndex) { filteredLetters.firstOrNull() ?: letters.first() }
+    var selectedLetterIndex by remember(selectedCategoryIndex) { mutableIntStateOf(0) }
+    val safeLetterIndex = selectedLetterIndex.coerceIn(0, maxOf(0, filteredLetters.size - 1))
+    val currentLetter = filteredLetters.getOrElse(safeLetterIndex) { filteredLetters.firstOrNull() ?: letters.first() }
 
     var isTraceMode by remember { mutableStateOf(true) }
     var latestScore by remember { mutableStateOf<Int?>(null) }
@@ -323,6 +324,12 @@ fun LetterWritingPracticeView(
     var isLoopingEnabled by remember { mutableStateOf(false) }
     var autoPlayJob by remember { mutableStateOf<Job?>(null) }
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(selectedCategoryIndex) {
+        autoPlayJob?.cancel()
+        isAutoPlaying = false
+        onStopSpeak()
+    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -687,7 +694,8 @@ fun LetterWritingPracticeView(
                     if (selectedLetterIndex > 0) {
                         selectedLetterIndex--
                         latestScore = null
-                        onSpeak(filteredLetters[selectedLetterIndex].soundSample, ttsSpeed)
+                        val prevLetter = filteredLetters.getOrElse(selectedLetterIndex) { currentLetter }
+                        onSpeak(prevLetter.soundSample, ttsSpeed)
                     }
                 },
                 enabled = selectedLetterIndex > 0,
@@ -699,7 +707,7 @@ fun LetterWritingPracticeView(
             }
 
             Text(
-                text = "${selectedLetterIndex + 1} / ${filteredLetters.size}",
+                text = "${(selectedLetterIndex + 1).coerceAtMost(filteredLetters.size)} / ${filteredLetters.size}",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextSecondary
@@ -710,7 +718,8 @@ fun LetterWritingPracticeView(
                     if (selectedLetterIndex < filteredLetters.size - 1) {
                         selectedLetterIndex++
                         latestScore = null
-                        onSpeak(filteredLetters[selectedLetterIndex].soundSample, ttsSpeed)
+                        val nextLetter = filteredLetters.getOrElse(selectedLetterIndex) { currentLetter }
+                        onSpeak(nextLetter.soundSample, ttsSpeed)
                     }
                 },
                 enabled = selectedLetterIndex < filteredLetters.size - 1,
@@ -1084,8 +1093,8 @@ fun WordWritingPracticeView(
     )
 
     var selectedWordIndex by remember { mutableIntStateOf(0) }
-    val currentWord = wordList[selectedWordIndex]
-    var selectedSyllableIndex by remember { mutableIntStateOf(0) }
+    val currentWord = wordList.getOrElse(selectedWordIndex) { wordList.first() }
+    var selectedSyllableIndex by remember(selectedWordIndex) { mutableIntStateOf(0) }
     val currentSyllable = currentWord.syllables.getOrElse(selectedSyllableIndex) { currentWord.syllables.first() }
 
     Column(
@@ -1355,10 +1364,12 @@ fun BlindDictationQuizView(
 
             Button(
                 onClick = {
-                    quizIndex = (quizIndex + 1) % basicLetters.size
-                    isRevealed = false
-                    quizScore = null
-                    onSpeak(basicLetters[quizIndex].soundSample, ttsSpeed)
+                    if (basicLetters.isNotEmpty()) {
+                        quizIndex = (quizIndex + 1) % basicLetters.size
+                        isRevealed = false
+                        quizScore = null
+                        onSpeak(basicLetters.getOrElse(quizIndex) { basicLetters.first() }.soundSample, ttsSpeed)
+                    }
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
                 shape = RoundedCornerShape(12.dp)

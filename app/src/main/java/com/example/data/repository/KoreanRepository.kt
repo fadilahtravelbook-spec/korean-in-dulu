@@ -177,7 +177,7 @@ class KoreanRepository(context: Context) {
             newInterval = when (newReps) {
                 1 -> 1
                 2 -> 6
-                else -> (card.interval * newEaseFactor).roundToInt()
+                else -> maxOf(1, (card.interval * newEaseFactor).roundToInt())
             }
         }
 

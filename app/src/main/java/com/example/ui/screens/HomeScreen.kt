@@ -101,7 +101,7 @@ fun HomeScreen(
     val xp = userProfile?.xp ?: 100
     val level = userProfile?.level ?: 1
     val name = userProfile?.name ?: "Sahabat Korea"
-    val dailyGoal = if ((userProfile?.dailyGoalMinutes ?: 15) > 0) userProfile!!.dailyGoalMinutes else 15
+    val dailyGoal = userProfile?.dailyGoalMinutes?.takeIf { it > 0 } ?: 15
     val goalProgress = (learningMinutes.toFloat() / dailyGoal.toFloat()).coerceIn(0f, 1f)
 
     var showGrammarHub by remember { mutableStateOf(false) }
@@ -772,6 +772,8 @@ fun HomeScreen(
                                         onClick = { onNavigateToModule(modules[i + 1].id) },
                                         modifier = Modifier.weight(1f)
                                     )
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }

@@ -238,8 +238,15 @@ fun OnboardingScreen(
 
                 1 -> {
                     // Stage 1: Placement Test (10 Questions)
-                    val q = placementQuestions[currentQuestionIndex]
-                    val progress = (currentQuestionIndex + 1) / placementQuestions.size.toFloat()
+                    val q = placementQuestions.getOrElse(currentQuestionIndex) {
+                        placementQuestions.firstOrNull() ?: PlacementQuestion(
+                            id = 0,
+                            question = "Pilih arti kata ini:",
+                            options = listOf("A", "B", "C", "D"),
+                            correctIndex = 0
+                        )
+                    }
+                    val progress = (currentQuestionIndex + 1) / maxOf(1, placementQuestions.size).toFloat()
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
@@ -508,7 +515,7 @@ fun OnboardingScreen(
                                             )
                                             if (!isCorrect) {
                                                 Text(
-                                                    text = "Kunci Jawaban: ${question.options[question.correctIndex]}",
+                                                    text = "Kunci Jawaban: ${question.options.getOrElse(question.correctIndex) { "" }}",
                                                     fontSize = 12.sp,
                                                     color = Color(0xFF166534),
                                                     fontWeight = FontWeight.Bold
