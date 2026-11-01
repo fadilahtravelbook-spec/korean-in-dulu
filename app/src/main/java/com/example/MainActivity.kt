@@ -108,7 +108,10 @@ class MainActivity : ComponentActivity() {
                                 ) {
                                     NavigationBarItem(
                                         selected = currentScreen == "home",
-                                        onClick = { currentScreen = "home" },
+                                        onClick = {
+                                            viewModel.stopSpeaking()
+                                            currentScreen = "home"
+                                        },
                                         icon = { Icon(Icons.Default.Home, contentDescription = "Beranda") },
                                         label = { Text("Beranda", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -121,7 +124,10 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "writing",
-                                        onClick = { currentScreen = "writing" },
+                                        onClick = {
+                                            viewModel.stopSpeaking()
+                                            currentScreen = "writing"
+                                        },
                                         icon = { Icon(Icons.Default.Edit, contentDescription = "Menulis") },
                                         label = { Text("Menulis", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -134,7 +140,10 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "vocab",
-                                        onClick = { currentScreen = "vocab" },
+                                        onClick = {
+                                            viewModel.stopSpeaking()
+                                            currentScreen = "vocab"
+                                        },
                                         icon = { Icon(Icons.Default.Book, contentDescription = "Kosakata") },
                                         label = { Text("Kosakata", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -147,7 +156,10 @@ class MainActivity : ComponentActivity() {
                                     )
                                     NavigationBarItem(
                                         selected = currentScreen == "profile",
-                                        onClick = { currentScreen = "profile" },
+                                        onClick = {
+                                            viewModel.stopSpeaking()
+                                            currentScreen = "profile"
+                                        },
                                         icon = { Icon(Icons.Default.Person, contentDescription = "Profil") },
                                         label = { Text("Profil", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
@@ -168,6 +180,7 @@ class MainActivity : ComponentActivity() {
                                 .padding(innerPadding)
                         ) {
                             BackHandler(enabled = currentScreen != "home") {
+                                viewModel.stopSpeaking()
                                 currentScreen = "home"
                             }
 
@@ -226,6 +239,7 @@ class MainActivity : ComponentActivity() {
                                         rolePlaySteps = viewModel.repository.rolePlaySteps,
                                         onBack = { currentScreen = "home" },
                                         onSpeak = { text -> viewModel.speak(text) },
+                                        onSpeakWithSpeed = { text, speed -> viewModel.speak(text, speed) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
                                         }
@@ -256,6 +270,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onAddCustomVocab = { ko, meaning, category ->
                                             viewModel.addCustomVocabCard(ko, meaning, category)
+                                        },
+                                        onAddXp = { xp ->
+                                            viewModel.addXp(xp)
                                         }
                                     )
                                 }

@@ -99,6 +99,11 @@ fun HangulWritingCanvas(
     var scoreFeedback by remember(targetCharacter) { mutableStateOf("") }
     var isDemonstrating by remember { mutableStateOf(false) }
 
+    androidx.compose.runtime.LaunchedEffect(targetCharacter) {
+        isDemonstrating = false
+        currentPoints = emptyList()
+    }
+
     // Brush Options: Width & Color
     var selectedBrushWidth by remember { mutableFloatStateOf(16f) }
     var selectedInkColor by remember { mutableStateOf(Color(0xFF0F172A)) }
@@ -662,6 +667,13 @@ fun HangulWritingCanvas(
                     val drawnHeight = maxY - minY
                     val cWidth = if (canvasPixelSize.width > 0) canvasPixelSize.width.toFloat() else 750f
                     val cHeight = if (canvasPixelSize.height > 0) canvasPixelSize.height.toFloat() else 750f
+
+                    if (drawnWidth < (cWidth * 0.05f) && drawnHeight < (cHeight * 0.05f)) {
+                        evaluatedScore = 20
+                        scoreFeedback = "Coretan masih terlalu kecil atau hanya titik. Gambarlah huruf secara proporsional mengikuti kotak panduan!"
+                        onEvaluateScore(20)
+                        return@Button
+                    }
 
                     // Checks:
                     val spanScore = when {

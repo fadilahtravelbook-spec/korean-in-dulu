@@ -136,6 +136,9 @@ class KoreanRepository(context: Context) {
         // Award XP
         addXp(score * 2)
 
+        // Update daily streak
+        checkAndUpdateDailyStreak(dateStr)
+
         // Increment matching daily challenges
         val updatedChallenges = _dailyChallenges.value.map { ch ->
             if (ch.moduleId == moduleId && !ch.isCompleted) {
@@ -211,6 +214,30 @@ class KoreanRepository(context: Context) {
         // Check SRS master badge
         if (newReps >= 3) {
             unlockBadge("badge_srs_master", "Master Memori SM-2", "Menguasai kosakata hingga interval panjang", "🧠")
+        }
+    }
+
+    private suspend fun checkAndUpdateDailyStreak(todayDateStr: String) {
+        val profile = userDao.getUserProfileOnce() ?: return
+        val lastDate = profile.lastActiveDate
+        if (lastDate != todayDateStr) {
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            try {
+                val lastDateTime = dateFormat.parse(lastDate)?.time ?: 0L
+                val todayDateTime = dateFormat.parse(todayDateStr)?.time ?: 0L
+                val diffDays = (todayDateTime - lastDateTime) / (24 * 60 * 60 * 1000)
+                val newStreak = when (diffDays) {
+                    1L -> profile.streak + 1
+                    0L -> profile.streak
+                    else -> 1
+                }
+                userDao.updateStreakAndDate(newStreak, todayDateStr)
+                if (newStreak >= 3) {
+                    unlockBadge("badge_streak_3", "Semangat Membara", "Mencapai 3 hari streak belajar berturut-turut", "🔥")
+                }
+            } catch (_: Exception) {
+                userDao.updateStreakAndDate(profile.streak, todayDateStr)
+            }
         }
     }
 

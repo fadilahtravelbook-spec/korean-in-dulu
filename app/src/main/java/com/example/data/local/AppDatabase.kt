@@ -33,6 +33,9 @@ interface UserDao {
     @Query("UPDATE user_profile SET streak = :newStreak WHERE id = 'default_user'")
     suspend fun updateStreak(newStreak: Int)
 
+    @Query("UPDATE user_profile SET streak = :newStreak, lastActiveDate = :dateStr WHERE id = 'default_user'")
+    suspend fun updateStreakAndDate(newStreak: Int, dateStr: String)
+
     @Query("UPDATE user_profile SET showRomanization = :show WHERE id = 'default_user'")
     suspend fun toggleRomanization(show: Boolean)
 

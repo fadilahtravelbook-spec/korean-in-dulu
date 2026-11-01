@@ -14,8 +14,11 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
         if (status == TextToSpeech.SUCCESS) {
             val result = tts?.setLanguage(Locale.KOREAN)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                // Fallback to default locale if Korean voice data not downloaded
-                tts?.setLanguage(Locale.getDefault())
+                // Secondary fallback
+                val fallbackUs = tts?.setLanguage(Locale.US)
+                if (fallbackUs == TextToSpeech.LANG_MISSING_DATA || fallbackUs == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    tts?.setLanguage(Locale.getDefault())
+                }
                 Log.w("TtsManager", "Korean language voice data not present; fallback configured.")
             }
             isInitialized = true
@@ -24,11 +27,13 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
                 pendingSpeech = null
             }
         } else {
+            isInitialized = false
             Log.e("TtsManager", "Failed to initialize TTS engine. Status: $status")
         }
     }
 
     fun speak(text: String, speed: Float = 0.95f) {
+        if (text.isBlank()) return
         if (!isInitialized) {
             pendingSpeech = text to speed
             return
@@ -42,6 +47,7 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
     }
 
     fun stop() {
+        pendingSpeech = null
         try {
             tts?.stop()
         } catch (e: Exception) {
@@ -50,6 +56,7 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
     }
 
     fun shutdown() {
+        pendingSpeech = null
         try {
             tts?.stop()
             tts?.shutdown()

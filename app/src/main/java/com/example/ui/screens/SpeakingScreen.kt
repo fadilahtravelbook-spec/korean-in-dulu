@@ -46,6 +46,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -90,12 +91,26 @@ import com.example.ui.theme.TextSecondary
 import com.example.util.SpeechAssessment
 import com.example.util.SpeechRecognitionHelper
 
+fun getPronunciationGuide(templateId: String): String {
+    return when (templateId) {
+        "intro_level_1" -> "💡 Tips Posisi Mulut: Pada kata '안녕하세요', bunyikan '하' dengan hembusan napas halus. Pada '반갑습니다', bibir tertutup rapat saat mengucap suku kata '갑' [갑], lalu luncurkan '씀니다' dengan suara dengung hidung lembut."
+        "intro_level_2" -> "💡 Tips Posisi Mulut: Pada kata '열심히' (dengan giat), huruf ㅎ melemah menyatu halus menjadi [열시미]. Intonasi penutup '~잘 부탁드립니다' diucapkan dengan nada turun penuh hormat."
+        "intro_level_3" -> "💡 Tips Posisi Mulut: Pada kata '취미는' (chwi-mi-neun), bulatkan bibir saat mengucap '취' (chwi). Pada kata '여행' (travel), jangan menekan konsonan H terlalu keras."
+        "intro_level_4" -> "💡 Tips Posisi Mulut: Bedakan vokal datar 'ㅡ' pada '일어납니다' (tarik kedua ujung bibir ke samping seperti tersenyum) dengan vokal bulat 'ㅗ' dan 'ㅜ'."
+        "intro_level_5" -> "💡 Tips Posisi Mulut: Pada kata '따릉이', huruf ganda ㄸ adalah konsonan tegang (tense). Tahan sejenak di pangkal gigi lalu lepaskan tajam tanpa letupan napas tebal."
+        "intro_level_6" -> "💡 Tips Posisi Mulut: Ungkapan '진짜 답답하네요' gunakan intonasi turun dengan penekanan pada '답답' untuk menunjukkan empati atas rasa sesak/frustrasi yang sopan."
+        "intro_level_7" -> "💡 Tips Posisi Mulut: Sapaan '식사하셨어요?' memiliki intonasi naik lembut di suku kata '요?' sebagai tanda pertanyaan ramah yang akrab."
+        else -> "💡 Tips Posisi Mulut: Tarik napas dalam, jaga ujung lidah rileks di belakang gigi seri bawah untuk vokal terbuka, dan turunkan nada kalimat di akhir pernyataan."
+    }
+}
+
 @Composable
 fun SpeakingScreen(
     templates: List<IntroTemplate>,
     rolePlaySteps: List<RolePlayStep>,
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
+    onSpeakWithSpeed: ((String, Float) -> Unit)? = null,
     onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
 ) {
     val context = LocalContext.current
@@ -154,6 +169,11 @@ fun SpeakingScreen(
 
         if (!hasAudioPermission) {
             errorMessage = "Silakan izinkan akses mikrofon untuk mulai berbicara."
+            return
+        }
+
+        if (!speechHelper.isAvailable()) {
+            errorMessage = "Layanan pengenal suara tidak tersedia pada sistem/emulator ini. Anda dapat menggunakan tombol 'Tes Evaluasi Cepat' di bawah."
             return
         }
 
@@ -292,6 +312,20 @@ fun SpeakingScreen(
                                 OutlinedTextField(
                                     value = formValues[ph.key] ?: "",
                                     onValueChange = { formValues[ph.key] = it },
+                                    textStyle = androidx.compose.ui.text.TextStyle(
+                                        color = InkBlack,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium
+                                    ),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = InkBlack,
+                                        unfocusedTextColor = InkBlack,
+                                        focusedBorderColor = HaneulBlue,
+                                        unfocusedBorderColor = Color(0xFFCBD5E1),
+                                        cursorColor = HaneulBlue,
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White
+                                    ),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .testTag("speaking_field_${ph.key}"),
@@ -345,6 +379,23 @@ fun SpeakingScreen(
                             }
                         }
 
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        // Pronunciation & Mouth Shape Guide Card
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = Color(0xFFF1F5F9),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = getPronunciationGuide(currentTemplate.id),
+                                fontSize = 11.sp,
+                                color = InkBlack,
+                                lineHeight = 16.sp,
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+
                         Spacer(modifier = Modifier.height(12.dp))
 
                         // Audio sample play row
@@ -362,8 +413,16 @@ fun SpeakingScreen(
 
                             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                 AudioSpeakerButton(
-                                    onClick = { onSpeak(generatedKoreanSentence) },
-                                    label = "Normal"
+                                    onClick = {
+                                        onSpeakWithSpeed?.invoke(generatedKoreanSentence, 0.75f) ?: onSpeak(generatedKoreanSentence)
+                                    },
+                                    label = "Santai 0.75x"
+                                )
+                                AudioSpeakerButton(
+                                    onClick = {
+                                        onSpeakWithSpeed?.invoke(generatedKoreanSentence, 1.0f) ?: onSpeak(generatedKoreanSentence)
+                                    },
+                                    label = "Normal 1.0x"
                                 )
                             }
                         }

@@ -70,6 +70,18 @@ import com.example.ui.theme.SarangRed
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 
+fun getVideoCultureNote(videoId: String): String {
+    return when (videoId) {
+        "video_1" -> "💡 Wawasan Budaya: Minimarket di Korea (GS25, CU, 7-Eleven) bukan sekadar toko kelontong, melainkan 'community hub' 24 jam. Warga lokal sering membeli paket pouch kopi es + cangkir es batu atau masak ramyeon sendiri di meja bar."
+        "video_2" -> "💡 Wawasan Budaya: Di kafe Korea, barista akan menyerahkan '진동벨' (buzzer getar). Saat buzzer berkedip dan bergetar, Anda mengambil nampan kopi sendiri di konter pick-up. Jangan lupa kembalikan nampan ke meja 'Return' sebelum pulang!"
+        "video_3" -> "💡 Rahasia Toilet Kafe Korea: Hampir semua kafe di area ramai seperti Hongdae, Gangnam, dan Myeongdong mengunci pintu toiletnya dengan password keypad digital. Nomor sandi rahasia ini selalu tertera di bagian bawah struk bon belanja Anda!"
+        "video_4" -> "💡 Etiket Sepeda Ttareungi: Seoul memiliki jalur sepeda tepi sungai terpanjang di Asia. Wajib mengenakan helm dan bunyikan bel 따릉-따릉 (ttareung-ttareung) dengan sopan saat memberi sinyal menyalip."
+        "video_5" -> "💡 Etiket MRT Korea Saat Hujan: Setiap pintu stasiun subway menyediakan dispenser kantong plastik payung basah (우산 비닐) agar gerbong kereta tetap bersih, higienis, dan tidak licin."
+        "video_6" -> "💡 Etiket Kantor Korea: Membungkuk 15-30 derajat saat berpapasan dengan rekan kerja atau atasan sambil mengucap '좋은 아침입니다' (Selamat pagi formal) atau '수고 많으셨습니다' (Terima kasih atas kerja kerasnya)."
+        else -> "💡 Immersion Tip: Ucapkan subtitle bersamaan dengan audio (metode Shadowing) untuk melatih kelancaran intonasi dan kecepatan berbicara penutur asli Korea."
+    }
+}
+
 @Composable
 fun VideoImmersionScreen(
     videoLessons: List<VideoImmersion>,
@@ -87,6 +99,7 @@ fun VideoImmersionScreen(
     var isShadowingMode by remember { mutableStateOf(false) }
     var shadowingDone by remember { mutableStateOf(false) }
     var savedLineId by remember { mutableStateOf<String?>(null) }
+    var subtitleDisplayMode by remember { mutableIntStateOf(0) } // 0: Keduanya, 1: Hangul Saja, 2: Indo Saja
 
     Column(
         modifier = Modifier
@@ -200,20 +213,61 @@ fun VideoImmersionScreen(
                                 modifier = Modifier.padding(10.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                Text(
-                                    text = line.korean,
-                                    color = NunbitYellow,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    textAlign = TextAlign.Center
-                                )
-                                Text(
-                                    text = line.indonesian,
-                                    color = Color.White,
-                                    fontSize = 11.sp,
-                                    textAlign = TextAlign.Center
-                                )
+                                if (subtitleDisplayMode != 2) {
+                                    Text(
+                                        text = line.korean,
+                                        color = NunbitYellow,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
+                                if (subtitleDisplayMode != 1) {
+                                    Text(
+                                        text = line.indonesian,
+                                        color = Color.White,
+                                        fontSize = 11.sp,
+                                        textAlign = TextAlign.Center
+                                    )
+                                }
                             }
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            // Subtitle Filter Mode Row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Mode Subtitle:",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary
+                )
+
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    listOf("Keduanya", "Hangul Saja", "Indo Saja").forEachIndexed { idx, label ->
+                        val isSel = subtitleDisplayMode == idx
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = if (isSel) HaneulBlue else Color(0xFFF1F5F9),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .clickable { subtitleDisplayMode = idx }
+                        ) {
+                            Text(
+                                text = label,
+                                fontSize = 11.sp,
+                                fontWeight = if (isSel) FontWeight.Bold else FontWeight.Normal,
+                                color = if (isSel) Color.White else InkBlack,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            )
                         }
                     }
                 }
@@ -258,6 +312,26 @@ fun VideoImmersionScreen(
                 ) {
                     Icon(Icons.Default.FastForward, contentDescription = "Kalimat Berikutnya", tint = HaneulBlue)
                 }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Cultural Note Card
+            Surface(
+                shape = RoundedCornerShape(14.dp),
+                color = Color(0xFFEFF6FF),
+                border = CardDefaults.outlinedCardBorder().copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFBFDBFE))
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = getVideoCultureNote(currentVideo.id),
+                    fontSize = 12.sp,
+                    color = HaneulBlue,
+                    lineHeight = 17.sp,
+                    modifier = Modifier.padding(12.dp)
+                )
             }
 
             Spacer(modifier = Modifier.height(14.dp))

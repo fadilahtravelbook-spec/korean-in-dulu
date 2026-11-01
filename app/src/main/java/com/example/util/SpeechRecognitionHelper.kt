@@ -40,8 +40,19 @@ class SpeechRecognitionHelper(private val context: Context) {
     ) {
         stopListening()
 
+        if (!isAvailable()) {
+            onError("Pengenal suara tidak tersedia pada perangkat/emulator ini. Anda dapat menggunakan tombol Simulasi Evaluasi untuk mencoba latihan berbicara.")
+            return
+        }
+
         try {
-            speechRecognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            if (recognizer == null) {
+                onError("Gagal menginisialisasi modul perekam suara. Silakan coba kembali.")
+                return
+            }
+            speechRecognizer = recognizer
+
             val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
                 putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageCode)

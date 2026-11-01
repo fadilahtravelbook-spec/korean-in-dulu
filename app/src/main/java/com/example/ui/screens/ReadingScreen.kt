@@ -38,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.ScrollableTabRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -68,6 +69,17 @@ import com.example.ui.theme.SaessakGreen
 import com.example.ui.theme.SarangRed
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
+
+fun getCulturalInsight(storyId: String): String {
+    return when (storyId) {
+        "story_1" -> "💡 Wawasan Budaya: 'T-Money' adalah kartu transportasi serbaguna di Korea. Selain untuk Subway dan Bus, kartu ini bisa digunakan untuk bayar di minimarket (GS25, CU, 7-Eleven), taksi, dan vending machine!"
+        "story_2" -> "💡 Wawasan Budaya: Kawasan Myeongdong terkenal dengan street food seperti tteokbokki, hotteok, dan eomuk. Di Korea, kuah eomuk (fishcake) disajikan gratis dan boleh diseruput sepuasnya sambil berdiri santai di samping gerobak!"
+        "story_3" -> "💡 Wawasan Budaya: Menyewa sepeda 따릉이 (Ttareungi) di Taman Sungai Han adalah kegiatan favorit warga Seoul. Di sana ada tradisi populer 'Hangang Ramyeon', yaitu memasak mie instan menggunakan mesin masak cepat di tepi sungai."
+        "story_4" -> "💡 Wawasan Budaya: Kamar mandi rumah di Korea umumnya bertipe basah (wet bathroom) tanpa pembatas kering, sehingga sandal karet khusus kamar mandi selalu dipakai dan tidak boleh dibawa keluar ke lantai kayu kamar."
+        "story_5" -> "💡 Wawasan Budaya: Orang Korea memiliki tradisi hangat menanyakan '식사하셨어요?' (Sudah makan?) sebagai sapaan penuh kepedulian seperti 'Apa kabar?', bukan sekadar basa-basi lapar."
+        else -> "💡 Wawasan Budaya: Membaca teks Korea secara nyaring (Reading Aloud) melatih kelenturan lidah terbiasa dengan ritme vokal dan aturan penyambungan bunyi (연음) alami."
+    }
+}
 
 @Composable
 fun ReadingScreen(
@@ -204,6 +216,26 @@ fun ReadingScreen(
                                 label = "Baca Penuh"
                             )
                         }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Cultural Insight Box
+                    Surface(
+                        shape = RoundedCornerShape(14.dp),
+                        color = Color(0xFFEFF6FF),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFBFDBFE))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = getCulturalInsight(story.id),
+                            fontSize = 12.sp,
+                            color = HaneulBlue,
+                            lineHeight = 17.sp,
+                            modifier = Modifier.padding(12.dp)
+                        )
                     }
 
                     Spacer(modifier = Modifier.height(14.dp))
@@ -485,6 +517,16 @@ fun ReadingScreen(
                             OutlinedTextField(
                                 value = customText,
                                 onValueChange = { customText = it },
+                                textStyle = androidx.compose.ui.text.TextStyle(color = InkBlack, fontSize = 14.sp),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedTextColor = InkBlack,
+                                    unfocusedTextColor = InkBlack,
+                                    focusedBorderColor = HaneulBlue,
+                                    unfocusedBorderColor = Color(0xFFCBD5E1),
+                                    cursorColor = HaneulBlue,
+                                    focusedContainerColor = Color.White,
+                                    unfocusedContainerColor = Color.White
+                                ),
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(140.dp),

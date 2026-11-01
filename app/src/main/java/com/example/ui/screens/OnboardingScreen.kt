@@ -33,6 +33,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -550,8 +551,13 @@ fun OnboardingScreen(
                                     onValueChange = {
                                         if (it.length <= 30) userName = it
                                     },
-                                    label = { Text("Nama Pengguna (2–30 karakter)") },
+                                    label = { Text("Nama Pengguna (2–30 karakter)", color = TextSecondary) },
                                     singleLine = true,
+                                    textStyle = androidx.compose.ui.text.TextStyle(
+                                        color = InkBlack,
+                                        fontSize = 15.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    ),
                                     isError = userName.trim().isNotEmpty() && userName.trim().length < 2,
                                     supportingText = {
                                         if (userName.trim().isNotEmpty() && userName.trim().length < 2) {
@@ -560,6 +566,17 @@ fun OnboardingScreen(
                                             Text("${userName.trim().length}/30 karakter", color = TextSecondary, fontSize = 11.sp)
                                         }
                                     },
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedTextColor = InkBlack,
+                                        unfocusedTextColor = InkBlack,
+                                        focusedBorderColor = HaneulBlue,
+                                        unfocusedBorderColor = Color(0xFFCBD5E1),
+                                        focusedLabelColor = HaneulBlue,
+                                        unfocusedLabelColor = TextSecondary,
+                                        cursorColor = HaneulBlue,
+                                        focusedContainerColor = Color.White,
+                                        unfocusedContainerColor = Color.White
+                                    ),
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .testTag("user_name_input"),

@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
@@ -663,61 +664,97 @@ fun HomeScreen(
                             .clickable { onNavigateToModule("hangul_intro") }
                             .testTag("open_hangul_intro_card")
                     ) {
-                        Row(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(16.dp),
-                                color = HaneulContainer,
-                                modifier = Modifier.size(52.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("한", fontSize = 26.sp, fontWeight = FontWeight.Black, color = HaneulBlue)
-                                }
-                            }
-
-                            Spacer(modifier = Modifier.width(14.dp))
-
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "Pengenalan Huruf Hangul",
-                                        fontSize = 15.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = InkBlack
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xFFEFF6FF),
+                                            Color.White
+                                        )
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = NunbitYellowContainer
+                                )
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(16.dp),
+                                    color = HaneulContainer,
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF93C5FD)),
+                                    modifier = Modifier.size(50.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Text("한", fontSize = 26.sp, fontWeight = FontWeight.Black, color = HaneulBlue)
+                                    }
+                                }
+
+                                Spacer(modifier = Modifier.width(14.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "40 Huruf",
-                                            fontSize = 10.sp,
+                                            text = "Pengenalan Huruf Hangul",
+                                            fontSize = 15.sp,
                                             fontWeight = FontWeight.ExtraBold,
-                                            color = Color(0xFFCA8A04),
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            color = InkBlack,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = NunbitYellowContainer
+                                        ) {
+                                            Text(
+                                                text = "40 Huruf",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFFCA8A04),
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = "Flashcard interaktif vokal & konsonan lengkap dengan audio & mnemonic bentuk huruf",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF475569),
+                                        lineHeight = 15.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "✨ 14 Konsonan Dasar • 10 Vokal Dasar • Diftong",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = HaneulBlue
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Surface(
+                                    shape = CircleShape,
+                                    color = HaneulContainer,
+                                    modifier = Modifier.size(34.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = "Buka Hangul Flashcard",
+                                            tint = HaneulBlue,
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    text = "Flashcard interaktif vokal & konsonan lengkap dengan audio & mnemonic bentuk huruf",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary,
-                                    lineHeight = 15.sp
-                                )
                             }
-
-                            Icon(
-                                Icons.Default.PlayCircle,
-                                contentDescription = "Buka Hangul Flashcard",
-                                tint = HaneulBlue,
-                                modifier = Modifier.size(26.dp)
-                            )
                         }
                     }
                 }
@@ -729,14 +766,29 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "Modul Belajar Praktis",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = InkBlack
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = HaneulContainer
+                            ) {
+                                Text(
+                                    text = "6 Modul",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = HaneulBlue,
+                                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
                         Text(
-                            text = "Modul Belajar Lengkap",
-                            fontSize = 17.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = InkBlack
-                        )
-                        Text(
-                            text = "6 Modul Praktik",
+                            text = "Dari Nol Sampai Bisa",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             fontWeight = FontWeight.Medium
@@ -747,19 +799,79 @@ fun HomeScreen(
                 // 9. Grid 6 Modul Utama (2 Kolom)
                 item {
                     val modules = listOf(
-                        ModuleItem("writing", "Menulis Hangul", "한글 쓰기", "Lantunan vokal urut, kanvas & kuis dikte", Icons.Default.Edit, Color(0xFF2563EB), Color(0xFFDBEAFE)),
-                        ModuleItem("speaking", "Berbicara", "말하기 연습", "Template perkenalan & role-play dialog", Icons.Default.Mic, Color(0xFFD97706), Color(0xFFFEF3C7)),
-                        ModuleItem("listening", "Mendengar", "듣기 퀴즈", "Audio kuis, speed control & keypad", Icons.Default.Headphones, Color(0xFF059669), Color(0xFFD1FAE5)),
-                        ModuleItem("vocab", "Kosakata & SRS", "단어장 (SRS)", "SuperMemo-2 Spaced Repetition & matching", Icons.Default.Book, Color(0xFF7C3AED), Color(0xFFEDE9FE)),
-                        ModuleItem("reading", "Membaca Aloud", "읽기 연습", "Karaoke reader, custom text & WPM", Icons.AutoMirrored.Filled.MenuBook, Color(0xFFDC2626), Color(0xFFFEE2E2)),
-                        ModuleItem("video", "Video Belajar", "영상 학습", "Subtitle ganda interaktif & shadowing", Icons.Default.VideoLibrary, Color(0xFF0D9488), Color(0xFFCCFBF1))
+                        ModuleItem(
+                            id = "writing",
+                            title = "Menulis Hangul",
+                            korean = "한글 쓰기",
+                            desc = "Lantunan vokal urut, kanvas & kuis dikte",
+                            icon = Icons.Default.Edit,
+                            badgeColor = Color(0xFF2563EB),
+                            badgeBg = Color(0xFFDBEAFE),
+                            tag = "✍️ 40 Pola Coretan",
+                            gradientStart = Color(0xFFEFF6FF)
+                        ),
+                        ModuleItem(
+                            id = "speaking",
+                            title = "Berbicara",
+                            korean = "말하기 연습",
+                            desc = "Role-play percakapan nyata & evaluasi suara",
+                            icon = Icons.Default.Mic,
+                            badgeColor = Color(0xFFD97706),
+                            badgeBg = Color(0xFFFEF3C7),
+                            tag = "🗣️ Interaktif STT",
+                            gradientStart = Color(0xFFFFFBEB)
+                        ),
+                        ModuleItem(
+                            id = "listening",
+                            title = "Mendengar",
+                            korean = "듣기 퀴즈",
+                            desc = "Audio kuis, speed control & keypad",
+                            icon = Icons.Default.Headphones,
+                            badgeColor = Color(0xFF059669),
+                            badgeBg = Color(0xFFD1FAE5),
+                            tag = "🎧 12 Audio Soal",
+                            gradientStart = Color(0xFFECFDF5)
+                        ),
+                        ModuleItem(
+                            id = "vocab",
+                            title = "Kosakata & SRS",
+                            korean = "단어장 (SRS)",
+                            desc = "SuperMemo-2 Spaced Repetition & matching game",
+                            icon = Icons.Default.Book,
+                            badgeColor = Color(0xFF7C3AED),
+                            badgeBg = Color(0xFFEDE9FE),
+                            tag = "🧠 Spaced Repetition",
+                            gradientStart = Color(0xFFF5F3FF)
+                        ),
+                        ModuleItem(
+                            id = "reading",
+                            title = "Membaca Aloud",
+                            korean = "읽기 연습",
+                            desc = "Karaoke reader teks Korea, custom paste & WPM",
+                            icon = Icons.AutoMirrored.Filled.MenuBook,
+                            badgeColor = Color(0xFFDC2626),
+                            badgeBg = Color(0xFFFEE2E2),
+                            tag = "📖 Karaoke & WPM",
+                            gradientStart = Color(0xFFFFF1F2)
+                        ),
+                        ModuleItem(
+                            id = "video",
+                            title = "Video Belajar",
+                            korean = "영상 학습",
+                            desc = "Subtitle ganda interaktif & latihan shadowing",
+                            icon = Icons.Default.VideoLibrary,
+                            badgeColor = Color(0xFF0D9488),
+                            badgeBg = Color(0xFFCCFBF1),
+                            tag = "🎬 Dual Subtitle",
+                            gradientStart = Color(0xFFF0FDFA)
+                        )
                     )
 
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                         for (i in modules.indices step 2) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
                                 ModuleCard(
                                     item = modules[i],
@@ -783,68 +895,107 @@ fun HomeScreen(
                 // 10. Panduan Tata Bahasa Hub (TOPIK I)
                 item {
                     Card(
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         border = CardDefaults.outlinedCardBorder().copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE2E8F0))
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFDE68A))
                         ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { showGrammarHub = true }
                             .testTag("open_grammar_hub_card")
                     ) {
-                        Row(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = Color(0xFFFEF3C7),
-                                modifier = Modifier.size(46.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("문", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = Color(0xFF92400E))
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "Panduan Tata Bahasa (문법)",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = InkBlack
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xFFFFFBEB),
+                                            Color.White
+                                        )
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = HaneulContainer
+                                )
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFFFEF3C7),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFFFCD34D)),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("문법", fontWeight = FontWeight.Black, fontSize = 15.sp, color = Color(0xFF92400E))
+                                            Text("Grammar", fontWeight = FontWeight.Bold, fontSize = 8.sp, color = Color(0xFFB45309))
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(14.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "TOPIK I",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = HaneulBlue,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            text = "Panduan Tata Bahasa",
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = InkBlack,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFFEF3C7)
+                                        ) {
+                                            Text(
+                                                text = "TOPIK I",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF92400E),
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = "Pola SOV, partikel 은/는, 이/가, 을/를 & akhiran sopan -아요/어요",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF475569),
+                                        lineHeight = 15.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "📚 10 Bab Materi Lengkap",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF92400E)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color(0xFFFEF3C7),
+                                    modifier = Modifier.size(34.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = "Buka Tata Bahasa",
+                                            tint = Color(0xFF92400E),
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Pola SOV, partikel 은/는, 이/가, 을/를 & akhiran sopan -아요/어요",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary,
-                                    lineHeight = 15.sp
-                                )
                             }
-                            Icon(
-                                Icons.Default.PlayCircle,
-                                contentDescription = null,
-                                tint = HaneulBlue,
-                                modifier = Modifier.size(24.dp)
-                            )
                         }
                     }
                 }
@@ -852,68 +1003,107 @@ fun HomeScreen(
                 // 11. Panduan Keseharian di Korea (일상생활 Hub)
                 item {
                     Card(
-                        shape = RoundedCornerShape(18.dp),
+                        shape = RoundedCornerShape(20.dp),
                         colors = CardDefaults.cardColors(containerColor = Color.White),
                         border = CardDefaults.outlinedCardBorder().copy(
-                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE2E8F0))
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFA7F3D0))
                         ),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable { showDailyLifeHub = true }
                             .testTag("open_daily_life_hub_card")
                     ) {
-                        Row(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(14.dp),
-                                color = Color(0xFFD1FAE5),
-                                modifier = Modifier.size(46.dp)
-                            ) {
-                                Box(contentAlignment = Alignment.Center) {
-                                    Text("생", fontWeight = FontWeight.ExtraBold, fontSize = 20.sp, color = Color(0xFF065F46))
-                                }
-                            }
-                            Spacer(modifier = Modifier.width(14.dp))
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text(
-                                        text = "Panduan Keseharian (일상생활)",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = InkBlack
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(
+                                            Color(0xFFECFDF5),
+                                            Color.White
+                                        )
                                     )
-                                    Spacer(modifier = Modifier.width(6.dp))
-                                    Surface(
-                                        shape = RoundedCornerShape(6.dp),
-                                        color = Color(0xFFE0F2FE)
+                                )
+                                .padding(16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(14.dp),
+                                    color = Color(0xFFD1FAE5),
+                                    border = androidx.compose.foundation.BorderStroke(1.dp, Color(0xFF6EE7B7)),
+                                    modifier = Modifier.size(48.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("생활", fontWeight = FontWeight.Black, fontSize = 15.sp, color = Color(0xFF065F46))
+                                            Text("Life", fontWeight = FontWeight.Bold, fontSize = 8.sp, color = Color(0xFF047857))
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(14.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            text = "6 Topik Nyata",
-                                            fontSize = 10.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = HaneulBlue,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            text = "Panduan Keseharian",
+                                            fontSize = 15.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = InkBlack,
+                                            modifier = Modifier.weight(1f, fill = false)
+                                        )
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Surface(
+                                            shape = RoundedCornerShape(6.dp),
+                                            color = Color(0xFFD1FAE5)
+                                        ) {
+                                            Text(
+                                                text = "6 Situasi",
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                color = Color(0xFF065F46),
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                            )
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(3.dp))
+                                    Text(
+                                        text = "Ekspresi emosi & kesal, tegur sapa, toilet kafe, sepeda 따릉이 & etiket",
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF475569),
+                                        lineHeight = 15.sp
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = "☕ Kafe • 🚲 따릉이 • 🏠 Etiket",
+                                        fontSize = 10.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = Color(0xFF047857)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Surface(
+                                    shape = CircleShape,
+                                    color = Color(0xFFD1FAE5),
+                                    modifier = Modifier.size(34.dp)
+                                ) {
+                                    Box(contentAlignment = Alignment.Center) {
+                                        Icon(
+                                            Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = "Buka Keseharian",
+                                            tint = Color(0xFF065F46),
+                                            modifier = Modifier.size(16.dp)
                                         )
                                     }
                                 }
-                                Spacer(modifier = Modifier.height(2.dp))
-                                Text(
-                                    text = "Rasa kesal & emosi, tegur sapa, toilet kafe, sepeda 따릉이 & etiket rumah",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary,
-                                    lineHeight = 15.sp
-                                )
                             }
-                            Icon(
-                                Icons.Default.PlayCircle,
-                                contentDescription = null,
-                                tint = Color(0xFF059669),
-                                modifier = Modifier.size(24.dp)
-                            )
                         }
                     }
                 }
@@ -965,7 +1155,9 @@ data class ModuleItem(
     val desc: String,
     val icon: ImageVector,
     val badgeColor: Color,
-    val badgeBg: Color
+    val badgeBg: Color,
+    val tag: String,
+    val gradientStart: Color
 )
 
 @Composable
@@ -975,78 +1167,122 @@ fun ModuleCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = modifier
-            .border(1.dp, Color(0xFFE2E8F0), RoundedCornerShape(18.dp))
+            .border(
+                width = 1.2.dp,
+                color = item.badgeColor.copy(alpha = 0.22f),
+                shape = RoundedCornerShape(20.dp)
+            )
+            .clip(RoundedCornerShape(20.dp))
             .clickable { onClick() }
             .testTag("module_card_${item.id}")
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = item.badgeBg,
-                    modifier = Modifier.size(38.dp)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            item.icon,
-                            contentDescription = item.title,
-                            tint = item.badgeColor,
-                            modifier = Modifier.size(22.dp)
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            item.gradientStart,
+                            Color.White
                         )
+                    )
+                )
+                .padding(14.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = item.badgeBg,
+                        modifier = Modifier.size(42.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                item.icon,
+                                contentDescription = item.title,
+                                tint = item.badgeColor,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    Surface(
+                        shape = CircleShape,
+                        color = item.badgeBg,
+                        modifier = Modifier.size(30.dp)
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowForward,
+                                contentDescription = "Buka ${item.title}",
+                                tint = item.badgeColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = item.badgeColor.copy(alpha = 0.12f)
+                ) {
+                    Text(
+                        text = item.korean,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = item.badgeColor,
+                        modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = item.title,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = InkBlack
+                )
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                Text(
+                    text = item.desc,
+                    fontSize = 11.sp,
+                    color = Color(0xFF475569),
+                    lineHeight = 15.sp,
+                    maxLines = 2
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
 
                 Surface(
                     shape = RoundedCornerShape(6.dp),
                     color = Color(0xFFF1F5F9)
                 ) {
                     Text(
-                        text = "Buka",
+                        text = item.tag,
                         fontSize = 10.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = HaneulBlue,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFF334155),
+                        maxLines = 1,
+                        softWrap = false,
                         modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = item.korean,
-                fontSize = 11.sp,
-                fontWeight = FontWeight.Bold,
-                color = item.badgeColor
-            )
-
-            Text(
-                text = item.title,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.ExtraBold,
-                color = InkBlack
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = item.desc,
-                fontSize = 11.sp,
-                color = TextSecondary,
-                lineHeight = 14.sp,
-                maxLines = 2
-            )
         }
     }
 }

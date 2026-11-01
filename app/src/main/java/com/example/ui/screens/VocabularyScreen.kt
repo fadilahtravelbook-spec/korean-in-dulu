@@ -44,6 +44,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
@@ -85,7 +86,8 @@ fun VocabularyScreen(
     onSpeak: (String) -> Unit,
     onSubmitSrs: (card: VocabCard, rating: Int) -> Unit,
     onToggleBookmark: (cardId: String) -> Unit,
-    onAddCustomVocab: ((korean: String, meaning: String, category: String) -> Unit)? = null
+    onAddCustomVocab: ((korean: String, meaning: String, category: String) -> Unit)? = null,
+    onAddXp: ((Int) -> Unit)? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Flashcard SRS, 1: Daftar Kosakata, 2: Game Cocokkan Kata
     var searchQuery by remember { mutableStateOf("") }
@@ -110,24 +112,54 @@ fun VocabularyScreen(
                     OutlinedTextField(
                         value = inputKorean,
                         onValueChange = { inputKorean = it },
-                        label = { Text("Bahasa Korea (Hangul)") },
+                        label = { Text("Bahasa Korea (Hangul)", color = TextSecondary) },
                         placeholder = { Text("Contoh: 사과") },
                         singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = InkBlack, fontSize = 14.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = InkBlack,
+                            unfocusedTextColor = InkBlack,
+                            focusedBorderColor = HaneulBlue,
+                            unfocusedBorderColor = Color(0xFFCBD5E1),
+                            cursorColor = HaneulBlue,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
+                        ),
                         modifier = Modifier.fillMaxWidth().testTag("add_vocab_korean_input")
                     )
                     OutlinedTextField(
                         value = inputMeaning,
                         onValueChange = { inputMeaning = it },
-                        label = { Text("Arti Bahasa Indonesia") },
+                        label = { Text("Arti Bahasa Indonesia", color = TextSecondary) },
                         placeholder = { Text("Contoh: Apel") },
                         singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = InkBlack, fontSize = 14.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = InkBlack,
+                            unfocusedTextColor = InkBlack,
+                            focusedBorderColor = HaneulBlue,
+                            unfocusedBorderColor = Color(0xFFCBD5E1),
+                            cursorColor = HaneulBlue,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
+                        ),
                         modifier = Modifier.fillMaxWidth().testTag("add_vocab_meaning_input")
                     )
                     OutlinedTextField(
                         value = inputCategory,
                         onValueChange = { inputCategory = it },
-                        label = { Text("Kategori") },
+                        label = { Text("Kategori", color = TextSecondary) },
                         singleLine = true,
+                        textStyle = androidx.compose.ui.text.TextStyle(color = InkBlack, fontSize = 14.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = InkBlack,
+                            unfocusedTextColor = InkBlack,
+                            focusedBorderColor = HaneulBlue,
+                            unfocusedBorderColor = Color(0xFFCBD5E1),
+                            cursorColor = HaneulBlue,
+                            focusedContainerColor = Color.White,
+                            unfocusedContainerColor = Color.White
+                        ),
                         modifier = Modifier.fillMaxWidth().testTag("add_vocab_category_input")
                     )
                 }
@@ -241,7 +273,8 @@ fun VocabularyScreen(
                 2 -> {
                     VocabMatchingGameView(
                         cards = vocabList,
-                        onSpeak = onSpeak
+                        onSpeak = onSpeak,
+                        onRewardXp = onAddXp
                     )
                 }
             }
@@ -257,6 +290,7 @@ fun SrsFlashcardReviewView(
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
+    var showSrsGuide by remember { mutableStateOf(false) }
 
     if (cards.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -283,34 +317,85 @@ fun SrsFlashcardReviewView(
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         // Progress header
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFFEF3C7)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "SM-2 Interval: ${currentCard.interval} hari",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        color = Color(0xFF92400E),
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = Color(0xFFFEF3C7)
+                    ) {
+                        Text(
+                            text = "SM-2 Interval: ${currentCard.interval} hari",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp,
+                            color = Color(0xFF92400E),
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (showSrsGuide) Color(0xFFEFF6FF) else Color(0xFFF1F5F9),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable { showSrsGuide = !showSrsGuide }
+                    ) {
+                        Text(
+                            text = if (showSrsGuide) "Tutup Panduan" else "ℹ️ Info SRS",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HaneulBlue,
+                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+
+                Text(
+                    text = "Kartu ${safeIndex + 1} dari ${cards.size}",
+                    fontSize = 12.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            AnimatedVisibility(visible = showSrsGuide) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFEFF6FF),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFBFDBFE))
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Column(modifier = Modifier.padding(10.dp)) {
+                        Text(
+                            text = "💡 Cara Kerja Spaced Repetition (SuperMemo-2):",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HaneulBlue
+                        )
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = "• Lupa (Rating 1): Kartu diulang hari ini agar jejak ingatan pulih.\n• Ragu (Rating 3): Ingat sebagian, review dijadwalkan 3 hari lagi.\n• Mudah (Rating 5): Ingatan kuat, interval dilipatgandakan (+7 hingga 14 hari) untuk efisiensi memori jangka panjang.",
+                            fontSize = 10.sp,
+                            color = InkBlack,
+                            lineHeight = 15.sp
+                        )
+                    }
                 }
             }
-            Text(
-                text = "Kartu ${safeIndex + 1} dari ${cards.size}",
-                fontSize = 12.sp,
-                color = TextSecondary,
-                fontWeight = FontWeight.SemiBold
-            )
         }
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(8.dp))
 
         // Big 3D Animated Flashcard
         Card(
@@ -541,16 +626,47 @@ fun SrsFlashcardReviewView(
                 }
             }
         } else {
-            Button(
-                onClick = { isFlipped = true },
-                colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
-                shape = RoundedCornerShape(14.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp)
-                    .testTag("show_answer_button")
-            ) {
-                Text("Buka Jawaban Kartu (Balik)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    onClick = { isFlipped = true },
+                    colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                    shape = RoundedCornerShape(14.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp)
+                        .testTag("show_answer_button")
+                ) {
+                    Text("Buka Jawaban Kartu (Balik)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            if (currentIndex > 0) currentIndex--
+                            isFlipped = false
+                        },
+                        enabled = currentIndex > 0,
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("⬅️ Kartu Sebelumnya", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+
+                    androidx.compose.material3.OutlinedButton(
+                        onClick = {
+                            currentIndex++
+                            isFlipped = false
+                        },
+                        shape = RoundedCornerShape(10.dp)
+                    ) {
+                        Text("Lewati Kartu ➡️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
             }
         }
     }
@@ -584,7 +700,7 @@ fun VocabListView(
         OutlinedTextField(
             value = searchQuery,
             onValueChange = onSearchChange,
-            placeholder = { Text("Cari kata dalam Hangul, Latin, atau Indonesia...") },
+            placeholder = { Text("Cari kata dalam Hangul, Latin, atau Indonesia...", color = TextSecondary) },
             leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = TextSecondary) },
             trailingIcon = {
                 if (searchQuery.isNotEmpty()) {
@@ -594,6 +710,16 @@ fun VocabListView(
                 }
             },
             singleLine = true,
+            textStyle = androidx.compose.ui.text.TextStyle(color = InkBlack, fontSize = 14.sp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedTextColor = InkBlack,
+                unfocusedTextColor = InkBlack,
+                focusedBorderColor = HaneulBlue,
+                unfocusedBorderColor = Color(0xFFCBD5E1),
+                cursorColor = HaneulBlue,
+                focusedContainerColor = Color.White,
+                unfocusedContainerColor = Color.White
+            ),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier
                 .fillMaxWidth()
@@ -773,7 +899,8 @@ fun VocabListView(
 @Composable
 fun VocabMatchingGameView(
     cards: List<VocabCard>,
-    onSpeak: (String) -> Unit
+    onSpeak: (String) -> Unit,
+    onRewardXp: ((Int) -> Unit)? = null
 ) {
     var roundSeed by remember { mutableIntStateOf(0) }
     val samplePairs = remember(cards, roundSeed) {
@@ -783,6 +910,12 @@ fun VocabMatchingGameView(
     var selectedMeaning by remember(roundSeed) { mutableStateOf<String?>(null) }
     val matchedKeys = remember(roundSeed) { mutableStateListOf<String>() }
     val shuffledMeanings = remember(samplePairs, roundSeed) { samplePairs.map { it.meaning }.shuffled() }
+
+    androidx.compose.runtime.LaunchedEffect(matchedKeys.size) {
+        if (matchedKeys.size == samplePairs.size && samplePairs.isNotEmpty()) {
+            onRewardXp?.invoke(25)
+        }
+    }
 
     Column(
         modifier = Modifier
