@@ -122,6 +122,24 @@ fun SpeakingScreen(
         }
     }
 
+    if (templates.isEmpty() || rolePlaySteps.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC))
+        ) {
+            AppSubHeader(
+                title = "Berbicara (말하기)",
+                subtitle = "Latihan perkenalan diri dan role-play percakapan",
+                onBack = onBack
+            )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Materi latihan berbicara sedang disiapkan.", color = TextSecondary)
+            }
+        }
+        return
+    }
+
     var mainTab by remember { mutableIntStateOf(0) } // 0: Template Perkenalan, 1: Role-Play Percakapan Hannie
 
     // Template intro state
@@ -153,8 +171,14 @@ fun SpeakingScreen(
     var generatedIndonesianSentence = currentTemplate.templateId
     currentTemplate.placeholders.forEach { ph ->
         val v = formValues[ph.key] ?: ph.defaultValue
-        generatedKoreanSentence = generatedKoreanSentence.replace("{${ph.key}}", v)
-        generatedIndonesianSentence = generatedIndonesianSentence.replace("{${ph.key}}", v)
+        val koVal = if (v.contains(" (")) v.substringBefore(" (").trim() else v
+        val idVal = if (v.contains(" (") && v.endsWith(")")) v.substringAfter(" (").removeSuffix(")").trim() else v
+        generatedKoreanSentence = generatedKoreanSentence
+            .replace("{{${ph.key}}}", koVal)
+            .replace("{${ph.key}}", koVal)
+        generatedIndonesianSentence = generatedIndonesianSentence
+            .replace("{{${ph.key}}}", idVal)
+            .replace("{${ph.key}}", idVal)
     }
 
     fun startListeningWithTarget(target: String) {
@@ -483,11 +507,12 @@ fun SpeakingScreen(
                                     if (isRecording) {
                                         speechHelper.stopListening()
                                         isRecording = false
-                                        // Evaluate with whatever was recognized or fallback
-                                        val spoken = if (recognizedSpokenText.isNotBlank()) recognizedSpokenText else generatedKoreanSentence
+                                        val spoken = recognizedSpokenText
                                         val eval = SpeechRecognitionHelper.evaluatePronunciation(generatedKoreanSentence, spoken)
                                         speechAssessment = eval
-                                        onRecordProgress("speaking", currentTemplate.id, "Bicara: ${currentTemplate.title}", eval.accuracy)
+                                        if (spoken.isNotBlank()) {
+                                            onRecordProgress("speaking", currentTemplate.id, "Bicara: ${currentTemplate.title}", eval.accuracy)
+                                        }
                                     } else {
                                         val hasPerm = ContextCompat.checkSelfPermission(
                                             context,

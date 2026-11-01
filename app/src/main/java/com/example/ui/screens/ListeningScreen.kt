@@ -147,6 +147,24 @@ fun ListeningScreen(
     onSpeak: (String, Float) -> Unit,
     onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
 ) {
+    if (quizzes.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC))
+        ) {
+            AppSubHeader(
+                title = "Mendengar (듣기)",
+                subtitle = "Latihan pemahaman audio, kontrol kecepatan, dan dikte",
+                onBack = onBack
+            )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Belum ada materi kuis mendengarkan yang tersedia.", color = TextSecondary)
+            }
+        }
+        return
+    }
+
     var modeTab by remember { mutableIntStateOf(0) } // 0: Quiz Pilihan Ganda, 1: Dikte Tulisan
     var currentQuizIndex by remember { mutableIntStateOf(0) }
     val currentQuiz = quizzes.getOrElse(currentQuizIndex) { quizzes.first() }

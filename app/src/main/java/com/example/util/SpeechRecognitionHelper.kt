@@ -38,6 +38,13 @@ class SpeechRecognitionHelper(private val context: Context) {
         onResult: (String) -> Unit,
         onError: (String) -> Unit
     ) {
+        if (android.os.Looper.myLooper() != android.os.Looper.getMainLooper()) {
+            android.os.Handler(android.os.Looper.getMainLooper()).post {
+                startListening(languageCode, onReady, onRmsChanged, onResult, onError)
+            }
+            return
+        }
+
         stopListening()
 
         if (!isAvailable()) {
@@ -46,7 +53,7 @@ class SpeechRecognitionHelper(private val context: Context) {
         }
 
         try {
-            val recognizer = SpeechRecognizer.createSpeechRecognizer(context)
+            val recognizer = SpeechRecognizer.createSpeechRecognizer(context.applicationContext)
             if (recognizer == null) {
                 onError("Gagal menginisialisasi modul perekam suara. Silakan coba kembali.")
                 return
@@ -88,12 +95,14 @@ class SpeechRecognitionHelper(private val context: Context) {
                         SpeechRecognizer.ERROR_SPEECH_TIMEOUT -> "Waktu bicara habis, belum terdengar suara"
                         else -> "Tidak dapat mengenali suara (Kode: $error)"
                     }
+                    stopListening()
                     onError(msg)
                 }
 
                 override fun onResults(results: Bundle?) {
                     val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
                     val spoken = matches?.firstOrNull() ?: ""
+                    stopListening()
                     onResult(spoken)
                 }
 
@@ -109,6 +118,7 @@ class SpeechRecognitionHelper(private val context: Context) {
 
             speechRecognizer?.startListening(intent)
         } catch (e: Exception) {
+            stopListening()
             onError("Gagal memulai microphone: ${e.localizedMessage}")
         }
     }
@@ -116,6 +126,7 @@ class SpeechRecognitionHelper(private val context: Context) {
     fun stopListening() {
         try {
             speechRecognizer?.stopListening()
+            speechRecognizer?.cancel()
             speechRecognizer?.destroy()
         } catch (_: Exception) {
         } finally {

@@ -51,9 +51,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ttsManager.stop()
     }
 
-    fun completeOnboarding(name: String, level: Int) {
+    fun completeOnboarding(name: String, level: Int, goalMinutes: Int = 15) {
         viewModelScope.launch {
-            repository.completeOnboarding(name, level)
+            repository.completeOnboarding(name, level, goalMinutes)
         }
     }
 

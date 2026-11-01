@@ -74,6 +74,7 @@ class MainActivity : ComponentActivity() {
 
                 // Current Screen route state
                 var currentScreen by remember { mutableStateOf("home") }
+                var initialWritingLetter by remember { mutableStateOf<String?>(null) }
 
                 // Check if user profile is ready or onboarding is needed
                 val currentProfile = profile
@@ -89,8 +90,8 @@ class MainActivity : ComponentActivity() {
                 } else if (!currentProfile.onboarded) {
                     OnboardingScreen(
                         placementQuestions = viewModel.repository.placementTestQuestions,
-                        onComplete = { name, level ->
-                            viewModel.completeOnboarding(name, level)
+                        onComplete = { name, level, goalMinutes ->
+                            viewModel.completeOnboarding(name, level, goalMinutes)
                             currentScreen = "home"
                         }
                     )
@@ -209,6 +210,7 @@ class MainActivity : ComponentActivity() {
                                         onBack = { currentScreen = "home" },
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onNavigateToWriting = { char ->
+                                            initialWritingLetter = char
                                             currentScreen = "writing"
                                         },
                                         onAddXp = { xp ->
@@ -220,7 +222,11 @@ class MainActivity : ComponentActivity() {
                                 "writing" -> {
                                     WritingScreen(
                                         letters = viewModel.repository.hangulAlphabet,
-                                        onBack = { currentScreen = "home" },
+                                        initialLetter = initialWritingLetter,
+                                        onBack = {
+                                            initialWritingLetter = null
+                                            currentScreen = "home"
+                                        },
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onAddXp = { xp -> viewModel.addXp(xp) },
@@ -326,6 +332,10 @@ class MainActivity : ComponentActivity() {
                                             viewModel.resetOnboarding()
                                         }
                                     )
+                                }
+
+                                else -> {
+                                    currentScreen = "home"
                                 }
                             }
                         }

@@ -45,8 +45,8 @@ interface UserDao {
     @Query("UPDATE user_profile SET lastAccessedLessonId = :lessonId WHERE id = 'default_user'")
     suspend fun updateLastAccessedLesson(lessonId: String)
 
-    @Query("UPDATE user_profile SET onboarded = 1, name = :name, level = :level WHERE id = 'default_user'")
-    suspend fun completeOnboarding(name: String, level: Int)
+    @Query("UPDATE user_profile SET onboarded = 1, name = :name, level = :level, dailyGoalMinutes = :goalMinutes WHERE id = 'default_user'")
+    suspend fun completeOnboarding(name: String, level: Int, goalMinutes: Int = 15)
 }
 
 @Dao
@@ -66,10 +66,10 @@ interface VocabDao {
     @Query("SELECT * FROM vocab_cards WHERE isBookmarked = 1")
     fun getBookmarkedCards(): Flow<List<VocabCard>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertAll(cards: List<VocabCard>)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertCard(card: VocabCard)
 
     @Update

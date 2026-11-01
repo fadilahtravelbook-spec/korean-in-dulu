@@ -6,18 +6,27 @@ import android.util.Log
 import java.util.Locale
 
 class TtsManager(context: Context) : TextToSpeech.OnInitListener {
-    private var tts: TextToSpeech? = TextToSpeech(context.applicationContext, this)
+    private var tts: TextToSpeech? = null
     private var isInitialized = false
     private var pendingSpeech: Pair<String, Float>? = null
 
+    init {
+        try {
+            tts = TextToSpeech(context.applicationContext, this)
+        } catch (e: Exception) {
+            Log.e("TtsManager", "Failed to initialize TextToSpeech instance", e)
+        }
+    }
+
     override fun onInit(status: Int) {
         if (status == TextToSpeech.SUCCESS) {
-            val result = tts?.setLanguage(Locale.KOREAN)
+            val currentTts = tts ?: return
+            val result = currentTts.setLanguage(Locale.KOREAN)
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 // Secondary fallback
-                val fallbackUs = tts?.setLanguage(Locale.US)
+                val fallbackUs = currentTts.setLanguage(Locale.US)
                 if (fallbackUs == TextToSpeech.LANG_MISSING_DATA || fallbackUs == TextToSpeech.LANG_NOT_SUPPORTED) {
-                    tts?.setLanguage(Locale.getDefault())
+                    currentTts.setLanguage(Locale.getDefault())
                 }
                 Log.w("TtsManager", "Korean language voice data not present; fallback configured.")
             }
@@ -28,13 +37,14 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
             }
         } else {
             isInitialized = false
+            pendingSpeech = null
             Log.e("TtsManager", "Failed to initialize TTS engine. Status: $status")
         }
     }
 
     fun speak(text: String, speed: Float = 0.95f) {
         if (text.isBlank()) return
-        if (!isInitialized) {
+        if (!isInitialized || tts == null) {
             pendingSpeech = text to speed
             return
         }
@@ -57,13 +67,14 @@ class TtsManager(context: Context) : TextToSpeech.OnInitListener {
 
     fun shutdown() {
         pendingSpeech = null
+        isInitialized = false
         try {
             tts?.stop()
             tts?.shutdown()
-            tts = null
-            isInitialized = false
         } catch (e: Exception) {
             Log.e("TtsManager", "Error shutting down TTS", e)
+        } finally {
+            tts = null
         }
     }
 }

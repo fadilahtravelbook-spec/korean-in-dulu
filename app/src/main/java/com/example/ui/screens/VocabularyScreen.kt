@@ -23,13 +23,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -69,6 +73,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.VocabCard
 import com.example.ui.components.AppSubHeader
+import com.example.ui.components.HangulKeyboardUtil
+import com.example.ui.components.VirtualKorean2BeolSikKeyboard
 import com.example.ui.theme.HaneulBlue
 import com.example.ui.theme.HaneulContainer
 import com.example.ui.theme.InkBlack
@@ -89,7 +95,8 @@ fun VocabularyScreen(
     onAddCustomVocab: ((korean: String, meaning: String, category: String) -> Unit)? = null,
     onAddXp: ((Int) -> Unit)? = null
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) } // 0: Flashcard SRS, 1: Daftar Kosakata, 2: Game Cocokkan Kata
+    var selectedTab by remember { mutableIntStateOf(0) } // 0: Flashcard SRS, 1: Daftar Kosakata, 2: Game Cocokkan Kata, 3: Latihan Ketik
+    var selectedTypingIndex by remember { mutableIntStateOf(0) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Semua") }
     var showOnlyBookmarked by remember { mutableStateOf(false) }
@@ -235,17 +242,22 @@ fun VocabularyScreen(
                 Tab(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    text = { Text("SRS Flashcards", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                    text = { Text("Flashcards", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
                 )
                 Tab(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
-                    text = { Text("Daftar Kata (${vocabList.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                    text = { Text("Daftar (${vocabList.size})", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
                 )
                 Tab(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    text = { Text("Game Pasangan", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                    text = { Text("Pasangan", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
+                    text = { Text("Ketik ⌨️", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
                 )
             }
 
@@ -254,7 +266,12 @@ fun VocabularyScreen(
                     SrsFlashcardReviewView(
                         cards = vocabList,
                         onSpeak = onSpeak,
-                        onSubmitSrs = onSubmitSrs
+                        onSubmitSrs = onSubmitSrs,
+                        onNavigateToTyping = { card ->
+                            val idx = vocabList.indexOfFirst { it.id == card.id }
+                            if (idx >= 0) selectedTypingIndex = idx
+                            selectedTab = 3
+                        }
                     )
                 }
                 1 -> {
@@ -267,7 +284,12 @@ fun VocabularyScreen(
                         showOnlyBookmarked = showOnlyBookmarked,
                         onToggleOnlyBookmarked = { showOnlyBookmarked = !showOnlyBookmarked },
                         onSpeak = onSpeak,
-                        onToggleBookmark = onToggleBookmark
+                        onToggleBookmark = onToggleBookmark,
+                        onNavigateToTyping = { card ->
+                            val idx = vocabList.indexOfFirst { it.id == card.id }
+                            if (idx >= 0) selectedTypingIndex = idx
+                            selectedTab = 3
+                        }
                     )
                 }
                 2 -> {
@@ -275,6 +297,14 @@ fun VocabularyScreen(
                         cards = vocabList,
                         onSpeak = onSpeak,
                         onRewardXp = onAddXp
+                    )
+                }
+                3 -> {
+                    VocabKeyboardTypingView(
+                        cards = vocabList,
+                        initialIndex = selectedTypingIndex,
+                        onSpeak = onSpeak,
+                        onAddXp = onAddXp
                     )
                 }
             }
@@ -286,7 +316,8 @@ fun VocabularyScreen(
 fun SrsFlashcardReviewView(
     cards: List<VocabCard>,
     onSpeak: (String) -> Unit,
-    onSubmitSrs: (card: VocabCard, rating: Int) -> Unit
+    onSubmitSrs: (card: VocabCard, rating: Int) -> Unit,
+    onNavigateToTyping: ((VocabCard) -> Unit)? = null
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var isFlipped by remember { mutableStateOf(false) }
@@ -682,7 +713,8 @@ fun VocabListView(
     showOnlyBookmarked: Boolean,
     onToggleOnlyBookmarked: () -> Unit,
     onSpeak: (String) -> Unit,
-    onToggleBookmark: (String) -> Unit
+    onToggleBookmark: (String) -> Unit,
+    onNavigateToTyping: ((VocabCard) -> Unit)? = null
 ) {
     val categories = listOf("Semua", "Salam", "Makanan", "Keluarga", "Angka", "Kehidupan", "Emosi & Kesal", "Tegur Sapa", "Toilet & Mandi", "Sepeda & Transportasi", "Kustom")
 
@@ -880,6 +912,11 @@ fun VocabListView(
                                 IconButton(onClick = { onSpeak(card.korean) }) {
                                     Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Dengarkan", tint = HaneulBlue)
                                 }
+                                if (onNavigateToTyping != null) {
+                                    IconButton(onClick = { onNavigateToTyping(card) }) {
+                                        Icon(Icons.Default.Keyboard, contentDescription = "Ketik Kata Ini", tint = HaneulBlue)
+                                    }
+                                }
                                 IconButton(onClick = { onToggleBookmark(card.id) }) {
                                     Icon(
                                         if (card.isBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
@@ -902,17 +939,55 @@ fun VocabMatchingGameView(
     onSpeak: (String) -> Unit,
     onRewardXp: ((Int) -> Unit)? = null
 ) {
+    if (cards.isEmpty()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(16.dp),
+                color = Color.White,
+                border = CardDefaults.outlinedCardBorder().copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFE2E8F0))
+                ),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "🎴 Belum ada kosakata untuk game",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = InkBlack
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Koleksi kosakata Anda masih kosong. Buka tab Daftar Kosakata untuk menambahkan kata pertama Anda!",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+        return
+    }
+
     var roundSeed by remember { mutableIntStateOf(0) }
     val samplePairs = remember(cards, roundSeed) {
         if (cards.size > 5) cards.shuffled().take(5) else cards
     }
-    var selectedKorean by remember(roundSeed) { mutableStateOf<String?>(null) }
-    var selectedMeaning by remember(roundSeed) { mutableStateOf<String?>(null) }
-    val matchedKeys = remember(roundSeed) { mutableStateListOf<String>() }
-    val shuffledMeanings = remember(samplePairs, roundSeed) { samplePairs.map { it.meaning }.shuffled() }
+    var selectedKoreanId by remember(roundSeed) { mutableStateOf<String?>(null) }
+    var selectedMeaningId by remember(roundSeed) { mutableStateOf<String?>(null) }
+    val matchedIds = remember(roundSeed) { mutableStateListOf<String>() }
+    val shuffledMeaningCards = remember(samplePairs, roundSeed) { samplePairs.shuffled() }
 
-    androidx.compose.runtime.LaunchedEffect(matchedKeys.size) {
-        if (matchedKeys.size == samplePairs.size && samplePairs.isNotEmpty()) {
+    androidx.compose.runtime.LaunchedEffect(matchedIds.size) {
+        if (matchedIds.size == samplePairs.size && samplePairs.isNotEmpty()) {
             onRewardXp?.invoke(25)
         }
     }
@@ -930,7 +1005,7 @@ fun VocabMatchingGameView(
         ) {
             Column {
                 Text(text = "Game Pasangan Kata (Matching Pairs)", fontWeight = FontWeight.Bold, fontSize = 15.sp, color = HaneulBlue)
-                Text(text = "Cocokkan Hangul dengan artinya (${matchedKeys.size}/${samplePairs.size})", fontSize = 12.sp, color = TextSecondary)
+                Text(text = "Cocokkan Hangul dengan artinya (${matchedIds.size}/${samplePairs.size})", fontSize = 12.sp, color = TextSecondary)
             }
             Surface(
                 shape = RoundedCornerShape(8.dp),
@@ -954,8 +1029,8 @@ fun VocabMatchingGameView(
         ) {
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 samplePairs.forEach { card ->
-                    val isMatched = matchedKeys.contains(card.korean)
-                    val isSelected = selectedKorean == card.korean
+                    val isMatched = matchedIds.contains(card.id)
+                    val isSelected = selectedKoreanId == card.id
 
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -971,15 +1046,14 @@ fun VocabMatchingGameView(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .clickable(enabled = !isMatched) {
-                                selectedKorean = card.korean
+                                selectedKoreanId = card.id
                                 onSpeak(card.korean)
-                                if (selectedMeaning != null) {
-                                    val match = samplePairs.find { it.korean == card.korean && it.meaning == selectedMeaning }
-                                    if (match != null) {
-                                        matchedKeys.add(card.korean)
+                                if (selectedMeaningId != null) {
+                                    if (selectedMeaningId == card.id) {
+                                        matchedIds.add(card.id)
                                     }
-                                    selectedKorean = null
-                                    selectedMeaning = null
+                                    selectedKoreanId = null
+                                    selectedMeaningId = null
                                 }
                             }
                     ) {
@@ -996,10 +1070,9 @@ fun VocabMatchingGameView(
             }
 
             Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                shuffledMeanings.forEach { meaning ->
-                    val matchedCard = samplePairs.find { it.meaning == meaning }
-                    val isMatched = matchedCard != null && matchedKeys.contains(matchedCard.korean)
-                    val isSelected = selectedMeaning == meaning
+                shuffledMeaningCards.forEach { card ->
+                    val isMatched = matchedIds.contains(card.id)
+                    val isSelected = selectedMeaningId == card.id
 
                     Surface(
                         shape = RoundedCornerShape(12.dp),
@@ -1015,19 +1088,18 @@ fun VocabMatchingGameView(
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(12.dp))
                             .clickable(enabled = !isMatched) {
-                                selectedMeaning = meaning
-                                if (selectedKorean != null) {
-                                    val match = samplePairs.find { it.korean == selectedKorean && it.meaning == meaning }
-                                    if (match != null) {
-                                        matchedKeys.add(match.korean)
+                                selectedMeaningId = card.id
+                                if (selectedKoreanId != null) {
+                                    if (selectedKoreanId == card.id) {
+                                        matchedIds.add(card.id)
                                     }
-                                    selectedKorean = null
-                                    selectedMeaning = null
+                                    selectedKoreanId = null
+                                    selectedMeaningId = null
                                 }
                             }
                     ) {
                         Text(
-                            text = meaning,
+                            text = card.meaning,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = if (isMatched) Color(0xFF065F46) else InkBlack,
@@ -1041,7 +1113,7 @@ fun VocabMatchingGameView(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        if (matchedKeys.size == samplePairs.size && samplePairs.isNotEmpty()) {
+        if (matchedIds.size == samplePairs.size && samplePairs.isNotEmpty()) {
             Surface(
                 shape = RoundedCornerShape(16.dp),
                 color = Color(0xFFD1FAE5),
@@ -1071,6 +1143,297 @@ fun VocabMatchingGameView(
                         Text("Babak Baru (Acak 5 Kata Lain) 🔄", color = Color.White, fontWeight = FontWeight.Bold)
                     }
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Tab 3: Latihan Mengetik Kosakata dengan Keyboard Hangul 2-Beol-Sik
+ */
+@Composable
+fun VocabKeyboardTypingView(
+    cards: List<VocabCard>,
+    initialIndex: Int = 0,
+    onSpeak: (String) -> Unit,
+    onAddXp: ((Int) -> Unit)? = null
+) {
+    if (cards.isEmpty()) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("Tidak ada kosakata untuk diketik.", color = TextSecondary)
+        }
+        return
+    }
+
+    var currentIndex by remember { mutableIntStateOf(initialIndex.coerceIn(0, cards.size - 1)) }
+    val currentCard = cards.getOrElse(currentIndex) { cards.first() }
+
+    var isShiftActive by remember { mutableStateOf(false) }
+    var typedJamos by remember(currentCard.korean) { mutableStateOf(listOf<Char>()) }
+    var wordCompleted by remember(currentCard.korean) { mutableStateOf(false) }
+
+    val targetJamos = remember(currentCard.korean) {
+        HangulKeyboardUtil.decompose(currentCard.korean)
+    }
+    val nextKey = targetJamos.getOrNull(typedJamos.size)
+    val liveComposed = remember(typedJamos) {
+        HangulKeyboardUtil.compose(typedJamos)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Kartu Kata Target
+        Card(
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = Color.White),
+            border = CardDefaults.outlinedCardBorder().copy(
+                brush = androidx.compose.ui.graphics.SolidColor(
+                    if (wordCompleted) SaessakGreen else Color(0xFFE2E8F0)
+                )
+            ),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = HaneulContainer
+                    ) {
+                        Text(
+                            text = currentCard.category,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HaneulBlue,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    Text(
+                        text = "Kata ${currentIndex + 1} / ${cards.size}",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = currentCard.korean,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Black,
+                            color = HaneulBlue
+                        )
+                        Text(
+                            text = "[${currentCard.romanization}] • ${currentCard.meaning}",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = InkBlack
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { onSpeak(currentCard.korean) },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(HaneulContainer)
+                            .size(42.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "Bunyikan Kata",
+                            tint = HaneulBlue,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                // Kotak Input Hasil Pengetikan
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "Hasil Ketikan Anda:",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextSecondary
+                        )
+                        Text(
+                            text = liveComposed.ifEmpty { "Ketik di bawah..." },
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = if (wordCompleted) Color(0xFF065F46) else InkBlack
+                        )
+                    }
+
+                    if (wordCompleted) {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFD1FAE5)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.CheckCircle, contentDescription = null, tint = SaessakGreen, modifier = Modifier.size(16.dp))
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Tuntas +15 XP", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF065F46))
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Roadmap Urutan Tuts
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(text = "Urutan: ", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = TextSecondary)
+                    targetJamos.forEachIndexed { idx, ch ->
+                        val isDone = idx < typedJamos.size
+                        val isCurrent = idx == typedJamos.size
+                        val qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(ch)
+
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = when {
+                                isDone -> Color(0xFFD1FAE5)
+                                isCurrent -> NunbitYellowContainer
+                                else -> Color(0xFFF1F5F9)
+                            },
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(
+                                    when {
+                                        isDone -> SaessakGreen
+                                        isCurrent -> NunbitYellow
+                                        else -> Color(0xFFCBD5E1)
+                                    }
+                                )
+                            ),
+                            modifier = Modifier.padding(horizontal = 2.dp)
+                        ) {
+                            Text(
+                                text = "$ch[$qwertyHint]",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 11.sp,
+                                color = when {
+                                    isDone -> Color(0xFF065F46)
+                                    isCurrent -> Color(0xFF78350F)
+                                    else -> InkBlack
+                                },
+                                modifier = Modifier.padding(horizontal = 5.dp, vertical = 3.dp)
+                            )
+                        }
+
+                        if (idx < targetJamos.size - 1) {
+                            Text(text = "➔", fontSize = 9.sp, color = TextMuted, modifier = Modifier.padding(horizontal = 1.dp))
+                        }
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Virtual Keyboard 2-Beol-Sik
+        VirtualKorean2BeolSikKeyboard(
+            isShiftActive = isShiftActive,
+            highlightChar = if (!wordCompleted) nextKey else null,
+            onKeyPress = { pressedChar ->
+                if (!wordCompleted && nextKey != null) {
+                    if (pressedChar == nextKey) {
+                        val updated = typedJamos + pressedChar
+                        typedJamos = updated
+                        if (updated.size >= targetJamos.size) {
+                            wordCompleted = true
+                            onSpeak(currentCard.korean)
+                            onAddXp?.invoke(15)
+                        }
+                    } else {
+                        typedJamos = typedJamos + pressedChar
+                    }
+                }
+            },
+            onShiftToggle = { isShiftActive = !isShiftActive },
+            onBackspace = {
+                if (typedJamos.isNotEmpty()) {
+                    typedJamos = typedJamos.dropLast(1)
+                    wordCompleted = false
+                }
+            },
+            onReset = {
+                typedJamos = emptyList()
+                wordCompleted = false
+            },
+            onSpeak = { onSpeak(currentCard.korean) }
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // Navigasi Kata
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Button(
+                onClick = {
+                    if (currentIndex > 0) {
+                        currentIndex--
+                        typedJamos = emptyList()
+                        wordCompleted = false
+                        onSpeak(cards[currentIndex].korean)
+                    }
+                },
+                enabled = currentIndex > 0,
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE2E8F0)),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("⬅️ Kata Sebelumnya", color = if (currentIndex > 0) InkBlack else Color.Gray, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            }
+
+            Button(
+                onClick = {
+                    if (currentIndex < cards.size - 1) {
+                        currentIndex++
+                        typedJamos = emptyList()
+                        wordCompleted = false
+                        onSpeak(cards[currentIndex].korean)
+                    }
+                },
+                enabled = currentIndex < cards.size - 1,
+                colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Kata Berikutnya ➡️", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

@@ -58,8 +58,8 @@ class KoreanRepository(context: Context) {
         return vocabDao.getCardsDueCount(System.currentTimeMillis())
     }
 
-    suspend fun completeOnboarding(name: String, level: Int) {
-        userDao.completeOnboarding(name, level)
+    suspend fun completeOnboarding(name: String, level: Int, goalMinutes: Int = 15) {
+        userDao.completeOnboarding(name, level, goalMinutes)
         // Unlock First Steps badge
         unlockBadge("badge_first_step", "Langkah Pertama", "Menyelesaikan Onboarding & Placement Test", "🎯")
     }
@@ -366,7 +366,57 @@ class KoreanRepository(context: Context) {
                 VocabCard("v63", "죄송하다", "joesonghada", "Mohon Maaf (Sopan)", "늦어서 정말 죄송합니다.", "Benar-benar mohon maaf karena terlambat.", "Tegur Sapa"),
                 VocabCard("v64", "말씀", "malsseum", "Perkataan / Bicara (Halus)", "말씀 좀 여쭤봐도 될까요?", "Bolehkah saya bertanya sesuatu sebentar?", "Tegur Sapa")
             )
-            vocabDao.insertAll(initialCards + dailyLifeCards)
+
+            // Koleksi Lengkap Angka Fundamental (Sino-Korea, Asli Korea, dan Satuan Hitung)
+            val numberCards = listOf(
+                // Angka Sino-Korea (한자어 숫자) - Untuk Uang, Tanggal, Menit, Nomor Telepon, Lantai
+                VocabCard("num_s0", "영 / 공", "yeong / gong", "Nol (Sino-Korea)", "전화번호는 공일공...", "Nomor telepon adalah 010...", "Angka"),
+                VocabCard("num_s1", "일", "il", "Satu (Sino-Korea)", "일층에 안내 데스크가 있어요.", "Di lantai satu ada meja informasi.", "Angka"),
+                VocabCard("num_s2", "이", "i", "Dua (Sino-Korea)", "이층 카페로 올라가요.", "Naik ke kafe lantai dua.", "Angka"),
+                VocabCard("num_s3", "삼", "sam", "Tiga (Sino-Korea)", "삼월에 새 학기가 시작해요.", "Di bulan Maret semester baru dimulai.", "Angka"),
+                VocabCard("num_s4", "사", "sa", "Empat (Sino-Korea)", "지하철 사 번 출구로 나오세요.", "Keluarlah melalui pintu keluar nomor 4 stasiun subway.", "Angka"),
+                VocabCard("num_s5", "오", "o", "Lima (Sino-Korea)", "오 분 뒤에 버스가 도착해요.", "Bus tiba lima menit lagi.", "Angka"),
+                VocabCard("num_s6", "육", "yuk", "Enam (Sino-Korea)", "육월에는 날씨가 참 좋아요.", "Di bulan Juni cuacanya sangat bagus.", "Angka"),
+                VocabCard("num_s7", "칠", "chil", "Tujuh (Sino-Korea)", "칠 번 버스를 타면 시청에 가요.", "Kalau naik bus nomor 7 akan sampai di balai kota.", "Angka"),
+                VocabCard("num_s8", "팔", "pal", "Delapan (Sino-Korea)", "팔월에 부산 바다로 여행 가요.", "Di bulan Agustus pergi liburan ke laut Busan.", "Angka"),
+                VocabCard("num_s9", "구", "gu", "Sembilan (Sino-Korea)", "구호선 급행 지하철을 탔어요.", "Naik subway jalur 9 ekspres.", "Angka"),
+                VocabCard("num_s10", "십", "sip", "Sepuluh (Sino-Korea)", "십 분만 더 쉬고 공부해요.", "Istirahat sepuluh menit lagi lalu belajar.", "Angka"),
+                VocabCard("num_s100", "백", "baek", "Seratus (Sino-Korea)", "백 점 만점을 받았어요!", "Mendapat nilai sempurna seratus!", "Angka"),
+                VocabCard("num_s1000", "천", "cheon", "Seribu (Sino-Korea)", "생수 한 병에 천 원이에요.", "Satu botol air mineral harganya seribu won.", "Angka"),
+                VocabCard("num_s10000", "만", "man", "Sepuluh Ribu (Sino-Korea)", "교통카드를 만 원 충전했어요.", "Top up kartu transportasi sepuluh ribu won.", "Angka"),
+                VocabCard("num_s100000", "십만", "simman", "Seratus Ribu (Sino-Korea)", "신발 가격이 십만 원이에요.", "Harga sepatunya seratus ribu won.", "Angka"),
+                VocabCard("num_s1000000", "백만", "baengman", "Satu Juta (Sino-Korea)", "서울 인구가 거의 천만 명이에요.", "Populasi kota Seoul hampir sepuluh juta orang.", "Angka"),
+
+                // Angka Asli Korea (순우리말 숫자) - Untuk Menghitung Benda, Orang, Jam, Umur
+                VocabCard("num_n1", "하나 / 한", "hana / han", "Satu (Angka Asli Korea)", "커피 한 잔 주세요.", "Tolong berikan satu cangkir kopi.", "Angka"),
+                VocabCard("num_n2", "둘 / 두", "dul / du", "Dua (Angka Asli Korea)", "사과 두 개 샀어요.", "Saya membeli dua buah apel.", "Angka"),
+                VocabCard("num_n3", "셋 / 세", "set / se", "Tiga (Angka Asli Korea)", "친구 세 명과 만났어요.", "Bertemu dengan tiga orang teman.", "Angka"),
+                VocabCard("num_n4", "넷 / 네", "net / ne", "Empat (Angka Asli Korea)", "네 시에 영화가 시작해요.", "Filmnya mulai jam empat.", "Angka"),
+                VocabCard("num_n5", "다섯", "daseot", "Lima (Angka Asli Korea)", "손가락이 다섯 개 있어요.", "Ada lima jari tangan.", "Angka"),
+                VocabCard("num_n6", "여섯", "yeoseot", "Enam (Angka Asli Korea)", "오후 여섯 시에 퇴근해요.", "Pulang kerja jam enam sore.", "Angka"),
+                VocabCard("num_n7", "일곱", "ilgop", "Tujuh (Angka Asli Korea)", "아침 일곱 시에 일어나요.", "Bangun tidur jam tujuh pagi.", "Angka"),
+                VocabCard("num_n8", "여덟", "yeodeol", "Delapan (Angka Asli Korea)", "여덟 명 예약할게요.", "Saya ingin reservasi untuk delapan orang.", "Angka"),
+                VocabCard("num_n9", "아홉", "ahop", "Sembilan (Angka Asli Korea)", "아홉 시에 지하철이 와요.", "Subway datang jam sembilan.", "Angka"),
+                VocabCard("num_n10", "열", "yeol", "Sepuluh (Angka Asli Korea)", "열 개 포장해 주세요.", "Tolong bungkus sepuluh buah.", "Angka"),
+                VocabCard("num_n20", "스물 / 스무", "seumul / seumu", "Dua Puluh (Angka Asli Korea)", "스무 살이 되었어요.", "Sudah berusia dua puluh tahun.", "Angka"),
+                VocabCard("num_n30", "서른", "seoreun", "Tiga Puluh (Angka Asli Korea)", "서른 살 청년이에요.", "Pemuda berusia tiga puluh tahun.", "Angka"),
+
+                // Satuan Hitung Fundamental (Classifiers / 단위 명사)
+                VocabCard("num_c1", "개", "gae", "Satuan Buah / Benda Umum", "사과 한 개 주세요.", "Tolong satu buah apel.", "Angka"),
+                VocabCard("num_c2", "명", "myeong", "Satuan Orang", "식당에 두 명 자리 있나요?", "Apakah ada meja untuk dua orang di restoran?", "Angka"),
+                VocabCard("num_c3", "분", "bun", "Satuan Orang / Tamu (Bentuk Hormat)", "손님 세 분 오셨습니다.", "Tiga orang tamu telah tiba.", "Angka"),
+                VocabCard("num_c4", "잔", "jan", "Satuan Cangkir / Gelas Minuman", "따뜻한 녹차 한 잔 마셔요.", "Minum secangkir teh hijau hangat.", "Angka"),
+                VocabCard("num_c5", "병", "byeong", "Satuan Botol", "콜라 두 병 주세요.", "Tolong dua botol cola.", "Angka"),
+                VocabCard("num_c6", "마리", "mari", "Satuan Ekor Hewan", "귀여운 강아지 한 마리가 있어요.", "Ada seekor anak anjing yang lucu.", "Angka"),
+                VocabCard("num_c7", "권", "gwon", "Satuan Jilid Buku", "한국어 교재 두 권을 샀어요.", "Membeli dua jilid buku teks bahasa Korea.", "Angka"),
+                VocabCard("num_c8", "장", "jang", "Satuan Lembar Kertas / Tiket", "지하철 티켓 한 장 주세요.", "Tolong selembar tiket subway.", "Angka"),
+                VocabCard("num_c9", "시", "si", "Satuan Jam (Waktu)", "지금 몇 시예요? 세 시예요.", "Sekarang jam berapa? Jam tiga.", "Angka"),
+                VocabCard("num_c10", "분", "bun", "Satuan Menit (Waktu)", "십오 분 후에 만나요.", "Ayo bertemu lima belas menit lagi.", "Angka"),
+                VocabCard("num_c11", "원", "won", "Satuan Mata Uang Won Korea", "모두 만 오천 원입니다.", "Semuanya total lima belas ribu won.", "Angka"),
+                VocabCard("num_c12", "층", "cheung", "Satuan Lantai Gedung", "우리 사무실은 삼층에 있어요.", "Kantor kami berada di lantai tiga.", "Angka")
+            )
+
+            vocabDao.insertAll(initialCards + dailyLifeCards + numberCards)
         } else {
             // Ensure daily life cards are present in existing user profiles
             val dailyLifeCards = listOf(
@@ -417,7 +467,53 @@ class KoreanRepository(context: Context) {
                 VocabCard("v63", "죄송하다", "joesonghada", "Mohon Maaf (Sopan)", "늦어서 정말 죄송합니다.", "Benar-benar mohon maaf karena terlambat.", "Tegur Sapa"),
                 VocabCard("v64", "말씀", "malsseum", "Perkataan / Bicara (Halus)", "말씀 좀 여쭤봐도 될까요?", "Bolehkah saya bertanya sesuatu sebentar?", "Tegur Sapa")
             )
-            vocabDao.insertAll(dailyLifeCards)
+
+            val numberCards = listOf(
+                VocabCard("num_s0", "영 / 공", "yeong / gong", "Nol (Sino-Korea)", "전화번호는 공일공...", "Nomor telepon adalah 010...", "Angka"),
+                VocabCard("num_s1", "일", "il", "Satu (Sino-Korea)", "일층에 안내 데스크가 있어요.", "Di lantai satu ada meja informasi.", "Angka"),
+                VocabCard("num_s2", "이", "i", "Dua (Sino-Korea)", "이층 카페로 올라가요.", "Naik ke kafe lantai dua.", "Angka"),
+                VocabCard("num_s3", "삼", "sam", "Tiga (Sino-Korea)", "삼월에 새 학기가 시작해요.", "Di bulan Maret semester baru dimulai.", "Angka"),
+                VocabCard("num_s4", "사", "sa", "Empat (Sino-Korea)", "지하철 사 번 출구로 나오세요.", "Keluarlah melalui pintu keluar nomor 4 stasiun subway.", "Angka"),
+                VocabCard("num_s5", "오", "o", "Lima (Sino-Korea)", "오 분 뒤에 버스가 도착해요.", "Bus tiba lima menit lagi.", "Angka"),
+                VocabCard("num_s6", "육", "yuk", "Enam (Sino-Korea)", "육월에는 날씨가 참 좋아요.", "Di bulan Juni cuacanya sangat bagus.", "Angka"),
+                VocabCard("num_s7", "칠", "chil", "Tujuh (Sino-Korea)", "칠 번 버스를 타면 시청에 가요.", "Kalau naik bus nomor 7 akan sampai di balai kota.", "Angka"),
+                VocabCard("num_s8", "팔", "pal", "Delapan (Sino-Korea)", "팔월에 부산 바다로 여행 가요.", "Di bulan Agustus pergi liburan ke laut Busan.", "Angka"),
+                VocabCard("num_s9", "구", "gu", "Sembilan (Sino-Korea)", "구호선 급행 지하철을 탔어요.", "Naik subway jalur 9 ekspres.", "Angka"),
+                VocabCard("num_s10", "십", "sip", "Sepuluh (Sino-Korea)", "십 분만 더 쉬고 공부해요.", "Istirahat sepuluh menit lagi lalu belajar.", "Angka"),
+                VocabCard("num_s100", "백", "baek", "Seratus (Sino-Korea)", "백 점 만점을 받았어요!", "Mendapat nilai sempurna seratus!", "Angka"),
+                VocabCard("num_s1000", "천", "cheon", "Seribu (Sino-Korea)", "생수 한 병에 천 원이에요.", "Satu botol air mineral harganya seribu won.", "Angka"),
+                VocabCard("num_s10000", "만", "man", "Sepuluh Ribu (Sino-Korea)", "교통카드를 만 원 충전했어요.", "Top up kartu transportasi sepuluh ribu won.", "Angka"),
+                VocabCard("num_s100000", "십만", "simman", "Seratus Ribu (Sino-Korea)", "신발 가격이 십만 원이에요.", "Harga sepatunya seratus ribu won.", "Angka"),
+                VocabCard("num_s1000000", "백만", "baengman", "Satu Juta (Sino-Korea)", "서울 인구가 거의 천만 명이에요.", "Populasi kota Seoul hampir sepuluh juta orang.", "Angka"),
+
+                VocabCard("num_n1", "하나 / 한", "hana / han", "Satu (Angka Asli Korea)", "커피 한 잔 주세요.", "Tolong berikan satu cangkir kopi.", "Angka"),
+                VocabCard("num_n2", "둘 / 두", "dul / du", "Dua (Angka Asli Korea)", "사과 두 개 샀어요.", "Saya membeli dua buah apel.", "Angka"),
+                VocabCard("num_n3", "셋 / 세", "set / se", "Tiga (Angka Asli Korea)", "친구 세 명과 만났어요.", "Bertemu dengan tiga orang teman.", "Angka"),
+                VocabCard("num_n4", "넷 / 네", "net / ne", "Empat (Angka Asli Korea)", "네 시에 영화가 시작해요.", "Filmnya mulai jam empat.", "Angka"),
+                VocabCard("num_n5", "다섯", "daseot", "Lima (Angka Asli Korea)", "손가락이 다섯 개 있어요.", "Ada lima jari tangan.", "Angka"),
+                VocabCard("num_n6", "여섯", "yeoseot", "Enam (Angka Asli Korea)", "오후 여섯 시에 퇴근해요.", "Pulang kerja jam enam sore.", "Angka"),
+                VocabCard("num_n7", "일곱", "ilgop", "Tujuh (Angka Asli Korea)", "아침 일곱 시에 일어나요.", "Bangun tidur jam tujuh pagi.", "Angka"),
+                VocabCard("num_n8", "여덟", "yeodeol", "Delapan (Angka Asli Korea)", "여덟 명 예약할게요.", "Saya ingin reservasi untuk delapan orang.", "Angka"),
+                VocabCard("num_n9", "아홉", "ahop", "Sembilan (Angka Asli Korea)", "아홉 시에 지하철이 와요.", "Subway datang jam sembilan.", "Angka"),
+                VocabCard("num_n10", "열", "yeol", "Sepuluh (Angka Asli Korea)", "열 개 포장해 주세요.", "Tolong bungkus sepuluh buah.", "Angka"),
+                VocabCard("num_n20", "스물 / 스무", "seumul / seumu", "Dua Puluh (Angka Asli Korea)", "스무 살이 되었어요.", "Sudah berusia dua puluh tahun.", "Angka"),
+                VocabCard("num_n30", "서른", "seoreun", "Tiga Puluh (Angka Asli Korea)", "서른 살 청년이에요.", "Pemuda berusia tiga puluh tahun.", "Angka"),
+
+                VocabCard("num_c1", "개", "gae", "Satuan Buah / Benda Umum", "빵 한 개와 우유 한 병 주세요.", "Tolong satu buah roti dan satu botol susu.", "Angka"),
+                VocabCard("num_c2", "명", "myeong", "Satuan Orang", "식당에 두 명 자리 있나요?", "Apakah ada meja untuk dua orang di restoran?", "Angka"),
+                VocabCard("num_c3", "분", "bun", "Satuan Orang / Tamu (Bentuk Hormat)", "손님 세 분 오셨습니다.", "Tiga orang tamu telah tiba.", "Angka"),
+                VocabCard("num_c4", "잔", "jan", "Satuan Cangkir / Gelas Minuman", "따뜻한 녹차 한 잔 마셔요.", "Minum secangkir teh hijau hangat.", "Angka"),
+                VocabCard("num_c5", "병", "byeong", "Satuan Botol", "콜라 두 병 주세요.", "Tolong dua botol cola.", "Angka"),
+                VocabCard("num_c6", "마리", "mari", "Satuan Ekor Hewan", "귀여운 강아지 한 마리가 있어요.", "Ada seekor anak anjing yang lucu.", "Angka"),
+                VocabCard("num_c7", "권", "gwon", "Satuan Jilid Buku", "한국어 교재 두 권을 샀어요.", "Membeli dua jilid buku teks bahasa Korea.", "Angka"),
+                VocabCard("num_c8", "장", "jang", "Satuan Lembar Kertas / Tiket", "지하철 티켓 한 장 주세요.", "Tolong selembar tiket subway.", "Angka"),
+                VocabCard("num_c9", "시", "si", "Satuan Jam (Waktu)", "지금 몇 시예요? 세 시예요.", "Sekarang jam berapa? Jam tiga.", "Angka"),
+                VocabCard("num_c10", "분", "bun", "Satuan Menit (Waktu)", "십오 분 후에 만나요.", "Ayo bertemu lima belas menit lagi.", "Angka"),
+                VocabCard("num_c11", "원", "won", "Satuan Mata Uang Won Korea", "모두 만 오천 원입니다.", "Semuanya total lima belas ribu won.", "Angka"),
+                VocabCard("num_c12", "층", "cheung", "Satuan Lantai Gedung", "우리 사무실은 삼층에 있어요.", "Kantor kami berada di lantai tiga.", "Angka")
+            )
+
+            vocabDao.insertAll(dailyLifeCards + numberCards)
         }
     }
 

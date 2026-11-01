@@ -90,6 +90,24 @@ fun VideoImmersionScreen(
     onSaveToVocab: (String, String) -> Unit,
     onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
 ) {
+    if (videoLessons.isEmpty()) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFF8FAFC))
+        ) {
+            AppSubHeader(
+                title = "Video Belajar (영상 학습)",
+                subtitle = "Imersi video percakapan nyata, subtitle interaktif & shadowing",
+                onBack = onBack
+            )
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("Belum ada video pelajaran yang tersedia.", color = TextSecondary)
+            }
+        }
+        return
+    }
+
     var selectedVideoIndex by remember { mutableIntStateOf(0) }
     val currentVideo = videoLessons.getOrElse(selectedVideoIndex) { videoLessons.first() }
 

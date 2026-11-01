@@ -74,7 +74,7 @@ import com.example.ui.theme.SarangRed
 @Composable
 fun OnboardingScreen(
     placementQuestions: List<PlacementQuestion>,
-    onComplete: (name: String, level: Int) -> Unit
+    onComplete: (name: String, level: Int, goalMinutes: Int) -> Unit
 ) {
     // Stage: 0 = Intro Slides, 1 = Placement Test, 2 = Result & Name Input
     var stage by remember { mutableIntStateOf(0) }
@@ -628,7 +628,7 @@ fun OnboardingScreen(
                     Button(
                         onClick = {
                             if (isNameValid) {
-                                onComplete(userName.trim(), calculatedLevel)
+                                onComplete(userName.trim(), calculatedLevel, selectedGoalMinutes)
                             }
                         },
                         modifier = Modifier

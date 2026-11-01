@@ -414,15 +414,17 @@ fun HangulWritingCanvas(
                             val midX = w / 2f
                             val midY = h / 2f
 
-                            fun animLine(fromX: Float, fromY: Float, toX: Float, toY: Float, steps: Int = 14) {
+                            suspend fun animLine(fromX: Float, fromY: Float, toX: Float, toY: Float, steps: Int = 14) {
                                 val list = mutableListOf<Offset>()
                                 for (s in 0..steps) {
                                     val t = s.toFloat() / steps
                                     list.add(Offset(fromX + ((toX - fromX) * t), fromY + ((toY - fromY) * t)))
                                     currentPoints = list.toList()
+                                    delay(18)
                                 }
                                 strokes.add(DrawnStroke(points = list.toList(), color = Color(0xFF2563EB), strokeWidth = 18f))
                                 currentPoints = emptyList()
+                                delay(120)
                             }
 
                             when (targetCharacter) {

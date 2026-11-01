@@ -801,13 +801,13 @@ fun HomeScreen(
                     val modules = listOf(
                         ModuleItem(
                             id = "writing",
-                            title = "Menulis Hangul",
-                            korean = "한글 쓰기",
-                            desc = "Lantunan vokal urut, kanvas & kuis dikte",
+                            title = "Menulis & Keyboard",
+                            korean = "한글 쓰기 & 타자",
+                            desc = "Latihan ketik 2-beol-sik, coretan huruf, kanvas & dikte",
                             icon = Icons.Default.Edit,
                             badgeColor = Color(0xFF2563EB),
                             badgeBg = Color(0xFFDBEAFE),
-                            tag = "✍️ 40 Pola Coretan",
+                            tag = "⌨️ Ketik & Coretan",
                             gradientStart = Color(0xFFEFF6FF)
                         ),
                         ModuleItem(
@@ -967,14 +967,14 @@ fun HomeScreen(
                                     }
                                     Spacer(modifier = Modifier.height(3.dp))
                                     Text(
-                                        text = "Pola SOV, partikel 은/는, 이/가, 을/를 & akhiran sopan -아요/어요",
+                                        text = "Pola SOV, Partikel, Sistem Angka (Sino & Asli), Waktu/Jam & Satuan Hitung",
                                         fontSize = 11.sp,
                                         color = Color(0xFF475569),
                                         lineHeight = 15.sp
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
-                                        text = "📚 10 Bab Materi Lengkap",
+                                        text = "📚 Tata Bahasa & Sistem Angka Interaktif",
                                         fontSize = 10.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         color = Color(0xFF92400E)
