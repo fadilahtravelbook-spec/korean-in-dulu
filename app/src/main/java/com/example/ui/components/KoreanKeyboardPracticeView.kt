@@ -1112,35 +1112,62 @@ fun KoreanKeyboardPracticeView(
             onReset = { onResetDrill() },
             onSpeak = {
                 currentExercise?.let { onSpeak(it.targetText, ttsSpeed) }
+            },
+            onEnter = {
+                if (showCompletedBanner) {
+                    onNextExercise()
+                }
             }
         )
     }
 }
 
+enum class VirtualKeyboardMode {
+    HANGUL,    // 🇰🇷 한글 두벌식 (2-Beol-Sik)
+    ENGLISH,   // 🔤 영문 (English QWERTY)
+    SYMBOLS    // 🔢!#1 (숫자 & 기호)
+}
+
 /**
- * Komponen Virtual Keyboard Korea Standar (두벌식 2-Beol-Sik)
+ * Komponen Virtual Keyboard Korea Standar Otentik (두벌식 2-Beol-Sik + 한/영 + !#1)
  */
 @Composable
 fun VirtualKorean2BeolSikKeyboard(
-    isShiftActive: Boolean,
-    highlightChar: Char?,
+    isShiftActive: Boolean = false,
+    highlightChar: Char? = null,
     onKeyPress: (Char) -> Unit,
-    onShiftToggle: () -> Unit,
-    onBackspace: () -> Unit,
-    onReset: () -> Unit,
-    onSpeak: () -> Unit
+    onShiftToggle: () -> Unit = {},
+    onBackspace: () -> Unit = {},
+    onReset: () -> Unit = {},
+    onSpeak: () -> Unit = {},
+    onEnter: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
 ) {
-    // Shift detection
+    var keyboardMode by remember { mutableStateOf(VirtualKeyboardMode.HANGUL) }
+    var englishShiftActive by remember { mutableStateOf(false) }
+    var symbolsPage by remember { mutableIntStateOf(1) }
+
+    // Baris Angka Lengkap dengan Simbol Sekunder khas Keyboard Korea (1..0)
+    val numberRow = listOf(
+        Pair('1', "!"),
+        Pair('2', "@"),
+        Pair('3', "#"),
+        Pair('4', "$"),
+        Pair('5', "%"),
+        Pair('6', "^"),
+        Pair('7', "&"),
+        Pair('8', "*"),
+        Pair('9', "("),
+        Pair('0', ")")
+    )
+
+    // Shift detection untuk konsonan ganda Hangul (ㅃ ㅉ ㄸ ㄲ ㅆ ㅒ ㅖ)
     val shiftedJamos = setOf('ㅃ', 'ㅉ', 'ㄸ', 'ㄲ', 'ㅆ', 'ㅒ', 'ㅖ')
     val isShiftNeeded = highlightChar in shiftedJamos
     val shouldHighlightShift = isShiftActive || isShiftNeeded
 
-    // Baris 0: Angka & Simbol Umum (1 2 3 4 5 6 7 8 9 0 ~ -)
-    val numberRow = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '~', '-')
-
-    // Definisi Baris Tuts Keyboard
-    // Baris 1: QWERTY Q-P
-    val row1 = listOf(
+    // Baris 1-3 Hangul (Standard 2-Beol-Sik)
+    val hangulRow1 = listOf(
         Pair('ㅂ', 'ㅃ'),
         Pair('ㅈ', 'ㅉ'),
         Pair('ㄷ', 'ㄸ'),
@@ -1153,8 +1180,7 @@ fun VirtualKorean2BeolSikKeyboard(
         Pair('ㅔ', 'ㅖ')
     )
 
-    // Baris 2: QWERTY A-L
-    val row2 = listOf(
+    val hangulRow2 = listOf(
         Pair('ㅁ', 'ㅁ'),
         Pair('ㄴ', 'ㄴ'),
         Pair('ㅇ', 'ㅇ'),
@@ -1166,8 +1192,7 @@ fun VirtualKorean2BeolSikKeyboard(
         Pair('ㅣ', 'ㅣ')
     )
 
-    // Baris 3: QWERTY Z-M
-    val row3 = listOf(
+    val hangulRow3 = listOf(
         Pair('ㅋ', 'ㅋ'),
         Pair('ㅌ', 'ㅌ'),
         Pair('ㅊ', 'ㅊ'),
@@ -1177,29 +1202,152 @@ fun VirtualKorean2BeolSikKeyboard(
         Pair('ㅡ', 'ㅡ')
     )
 
+    // Baris 1-3 English QWERTY
+    val englishRow1 = listOf('q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p')
+    val englishRow2 = listOf('a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l')
+    val englishRow3 = listOf('z', 'x', 'c', 'v', 'b', 'n', 'm')
+
+    // Halaman 1 Simbol (Simbol percakapan esensial, mata uang Won ₩, tanda tanya, tanda seru, tilde)
+    val symbolsPage1Row1 = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
+    val symbolsPage1Row2 = listOf('@', '#', '₩', '%', '&', '-', '+', '(', ')', '/')
+    val symbolsPage1Row3 = listOf('*', '"', '\'', ':', ';', '!', '?', '~', '^')
+
+    // Halaman 2 Simbol (Kurung siku, kurung kurawal, simbol matematika & internasional)
+    val symbolsPage2Row1 = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0')
+    val symbolsPage2Row2 = listOf('[', ']', '{', '}', '<', '>', '=', '_', '\\', '|')
+    val symbolsPage2Row3 = listOf('$', '€', '£', '¥', '°', '•', '¿', '¡', '§')
+
+    // Auto-detect & switch ke halaman simbol jika target karakter ada di simbol sekunder
+    LaunchedEffect(highlightChar) {
+        if (highlightChar != null) {
+            if (highlightChar in symbolsPage2Row2 || highlightChar in symbolsPage2Row3) {
+                keyboardMode = VirtualKeyboardMode.SYMBOLS
+                symbolsPage = 2
+            } else if (highlightChar in symbolsPage1Row2 || highlightChar in symbolsPage1Row3) {
+                if (highlightChar !in setOf(',', '.', '?', '!', '~', ' ')) {
+                    keyboardMode = VirtualKeyboardMode.SYMBOLS
+                    symbolsPage = 1
+                }
+            }
+        }
+    }
+
     Surface(
         color = Color(0xFFF1F5F9),
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp)
+            .padding(horizontal = 4.dp)
             .border(1.dp, Color(0xFFCBD5E1), RoundedCornerShape(16.dp))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 10.dp, horizontal = 4.dp),
+                .padding(vertical = 8.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Baris 0: Angka & Simbol Umum
+            // Header Bar Keyboard (Mode Indikator + Pintasan Lafal & Reset)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp, vertical = 2.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Badge Mode Saat Ini
+                Surface(
+                    shape = RoundedCornerShape(6.dp),
+                    color = when (keyboardMode) {
+                        VirtualKeyboardMode.HANGUL -> HaneulContainer
+                        VirtualKeyboardMode.ENGLISH -> Color(0xFFEDE9FE)
+                        VirtualKeyboardMode.SYMBOLS -> NunbitYellowContainer
+                    }
+                ) {
+                    Text(
+                        text = when (keyboardMode) {
+                            VirtualKeyboardMode.HANGUL -> "🇰🇷 한글 2-Beol-Sik"
+                            VirtualKeyboardMode.ENGLISH -> "🔤 English QWERTY"
+                            VirtualKeyboardMode.SYMBOLS -> "🔢!#1 Simbol ($symbolsPage/2)"
+                        },
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = when (keyboardMode) {
+                            VirtualKeyboardMode.HANGUL -> HaneulBlue
+                            VirtualKeyboardMode.ENGLISH -> Color(0xFF6B21A8)
+                            VirtualKeyboardMode.SYMBOLS -> Color(0xFF92400E)
+                        },
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
+
+                // Panduan Target (Jika ada highlightChar)
+                if (highlightChar != null) {
+                    val qwerty = HangulKeyboardUtil.getQwertyKeyHint(highlightChar)
+                    val displayChar = if (highlightChar == ' ') "[SPASI]" else highlightChar.toString()
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = NunbitYellowContainer
+                    ) {
+                        Text(
+                            text = "Target: $displayChar ($qwerty)",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF78350F),
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
+
+                // Tombol Reset & Lafal Ringkas
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = Color(0xFFE2E8F0),
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { onReset() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Refresh, contentDescription = "Reset", tint = InkBlack, modifier = Modifier.size(12.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text("Reset", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = InkBlack)
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(6.dp),
+                        color = HaneulContainer,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable { onSpeak() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Lafal", tint = HaneulBlue, modifier = Modifier.size(12.dp))
+                            Spacer(modifier = Modifier.width(2.dp))
+                            Text("Lafal", fontSize = 9.sp, fontWeight = FontWeight.Bold, color = HaneulBlue)
+                        }
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            // ====================== BARIS 0 (Angka & Simbol Sekunder 1..0) ======================
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
+                horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally)
             ) {
-                numberRow.forEach { numChar ->
+                numberRow.forEach { (numChar, subSym) ->
                     val isHighlighted = highlightChar == numChar
                     KeyboardNumberKeyButton(
                         char = numChar,
+                        subSymbol = subSym,
                         isHighlighted = isHighlighted,
                         modifier = Modifier.weight(1f),
                         onClick = { onKeyPress(numChar) }
@@ -1207,114 +1355,235 @@ fun VirtualKorean2BeolSikKeyboard(
                 }
             }
 
+            Spacer(modifier = Modifier.height(3.dp))
+
+            // ====================== BARIS 1 ======================
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally)
+            ) {
+                when (keyboardMode) {
+                    VirtualKeyboardMode.HANGUL -> {
+                        hangulRow1.forEach { (normal, shifted) ->
+                            val charToEmit = if (isShiftActive) shifted else normal
+                            val isHighlighted = highlightChar == charToEmit || (!isShiftActive && highlightChar == shifted)
+                            val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
+
+                            KeyboardKeyButton(
+                                char = charToEmit,
+                                subChar = if (!isShiftActive && shifted != normal) shifted.toString() else "",
+                                qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
+                                isLeftHand = isLeftHand,
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.ENGLISH -> {
+                        englishRow1.forEach { rawChar ->
+                            val charToEmit = if (englishShiftActive) rawChar.uppercaseChar() else rawChar
+                            val isHighlighted = highlightChar?.lowercaseChar() == rawChar
+                            KeyboardSimpleKeyButton(
+                                text = charToEmit.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.SYMBOLS -> {
+                        val row1Symbols = if (symbolsPage == 1) symbolsPage1Row1 else symbolsPage2Row1
+                        row1Symbols.forEach { sym ->
+                            val isHighlighted = highlightChar == sym
+                            KeyboardSimpleKeyButton(
+                                text = sym.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(sym) }
+                            )
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Baris 1
+            // ====================== BARIS 2 ======================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally)
             ) {
-                row1.forEach { (normal, shifted) ->
-                    val charToEmit = if (isShiftActive) shifted else normal
-                    val isHighlighted = highlightChar == charToEmit || (!isShiftActive && highlightChar == shifted)
-                    val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
+                when (keyboardMode) {
+                    VirtualKeyboardMode.HANGUL -> {
+                        hangulRow2.forEach { (normal, shifted) ->
+                            val charToEmit = if (isShiftActive) shifted else normal
+                            val isHighlighted = highlightChar == charToEmit
+                            val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
 
-                    KeyboardKeyButton(
-                        char = charToEmit,
-                        subChar = if (!isShiftActive && shifted != normal) shifted.toString() else "",
-                        qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
-                        isLeftHand = isLeftHand,
-                        isHighlighted = isHighlighted,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onKeyPress(charToEmit) }
-                    )
+                            KeyboardKeyButton(
+                                char = charToEmit,
+                                subChar = "",
+                                qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
+                                isLeftHand = isLeftHand,
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.ENGLISH -> {
+                        englishRow2.forEach { rawChar ->
+                            val charToEmit = if (englishShiftActive) rawChar.uppercaseChar() else rawChar
+                            val isHighlighted = highlightChar?.lowercaseChar() == rawChar
+                            KeyboardSimpleKeyButton(
+                                text = charToEmit.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.SYMBOLS -> {
+                        val row2Symbols = if (symbolsPage == 1) symbolsPage1Row2 else symbolsPage2Row2
+                        row2Symbols.forEach { sym ->
+                            val isHighlighted = highlightChar == sym
+                            KeyboardSimpleKeyButton(
+                                text = sym.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(sym) }
+                            )
+                        }
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Baris 2
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally)
-            ) {
-                row2.forEach { (normal, shifted) ->
-                    val charToEmit = if (isShiftActive) shifted else normal
-                    val isHighlighted = highlightChar == charToEmit
-                    val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
-
-                    KeyboardKeyButton(
-                        char = charToEmit,
-                        subChar = "",
-                        qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
-                        isLeftHand = isLeftHand,
-                        isHighlighted = isHighlighted,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onKeyPress(charToEmit) }
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(5.dp))
-
-            // Baris 3 (Dengan tombol Shift & Backspace)
+            // ====================== BARIS 3 (Shift / Page Switcher, Karakter Tengah, Backspace) ======================
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tombol Shift
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = if (shouldHighlightShift) NunbitYellow else Color(0xFFE2E8F0),
-                    modifier = Modifier
-                        .weight(1.3f)
-                        .height(44.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onShiftToggle() }
-                        .testTag("keyboard_shift_btn"),
-                    border = CardDefaults.outlinedCardBorder().copy(
-                        brush = Brush.horizontalGradient(
-                            if (shouldHighlightShift) listOf(Color(0xFFD97706), Color(0xFFB45309))
-                            else listOf(Color(0xFFCBD5E1), Color(0xFF94A3B8))
+                // Tombol Kiri Baris 3: Shift (Hangul/English) atau Page Switcher (Symbols)
+                if (keyboardMode == VirtualKeyboardMode.SYMBOLS) {
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = NunbitYellowContainer,
+                        modifier = Modifier
+                            .weight(1.3f)
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                symbolsPage = if (symbolsPage == 1) 2 else 1
+                            }
+                            .testTag("keyboard_symbols_page_toggle_btn"),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = Brush.horizontalGradient(listOf(NunbitYellow, Color(0xFFD97706)))
                         )
-                    )
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.KeyboardArrowUp,
-                                contentDescription = "Shift",
-                                tint = if (shouldHighlightShift) Color(0xFF78350F) else InkBlack,
-                                modifier = Modifier.size(16.dp)
-                            )
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
                             Text(
-                                if (isShiftNeeded && !isShiftActive) "⇧ Shift!" else "⇧",
-                                fontSize = if (isShiftNeeded && !isShiftActive) 9.sp else 12.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = if (shouldHighlightShift) Color(0xFF78350F) else InkBlack
+                                text = if (symbolsPage == 1) "1/2 ➔" else "2/2 ➔",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF78350F)
+                            )
+                        }
+                    }
+                } else {
+                    val shiftActive = if (keyboardMode == VirtualKeyboardMode.HANGUL) shouldHighlightShift else englishShiftActive
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = if (shiftActive) NunbitYellow else Color(0xFFE2E8F0),
+                        modifier = Modifier
+                            .weight(1.3f)
+                            .height(44.dp)
+                            .clip(RoundedCornerShape(8.dp))
+                            .clickable {
+                                if (keyboardMode == VirtualKeyboardMode.HANGUL) {
+                                    onShiftToggle()
+                                } else {
+                                    englishShiftActive = !englishShiftActive
+                                }
+                            }
+                            .testTag("keyboard_shift_btn"),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = Brush.horizontalGradient(
+                                if (shiftActive) listOf(Color(0xFFD97706), Color(0xFFB45309))
+                                else listOf(Color(0xFFCBD5E1), Color(0xFF94A3B8))
+                            )
+                        )
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.KeyboardArrowUp,
+                                    contentDescription = "Shift",
+                                    tint = if (shiftActive) Color(0xFF78350F) else InkBlack,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                if (keyboardMode == VirtualKeyboardMode.HANGUL && isShiftNeeded && !isShiftActive) {
+                                    Text(
+                                        "⇧ Shift!",
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = Color(0xFF78350F)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Tombol Karakter Tengah Baris 3
+                when (keyboardMode) {
+                    VirtualKeyboardMode.HANGUL -> {
+                        hangulRow3.forEach { (normal, shifted) ->
+                            val charToEmit = if (isShiftActive) shifted else normal
+                            val isHighlighted = highlightChar == charToEmit
+                            val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
+
+                            KeyboardKeyButton(
+                                char = charToEmit,
+                                subChar = "",
+                                qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
+                                isLeftHand = isLeftHand,
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.ENGLISH -> {
+                        englishRow3.forEach { rawChar ->
+                            val charToEmit = if (englishShiftActive) rawChar.uppercaseChar() else rawChar
+                            val isHighlighted = highlightChar?.lowercaseChar() == rawChar
+                            KeyboardSimpleKeyButton(
+                                text = charToEmit.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(charToEmit) }
+                            )
+                        }
+                    }
+                    VirtualKeyboardMode.SYMBOLS -> {
+                        val row3Symbols = if (symbolsPage == 1) symbolsPage1Row3 else symbolsPage2Row3
+                        row3Symbols.forEach { sym ->
+                            val isHighlighted = highlightChar == sym
+                            KeyboardSimpleKeyButton(
+                                text = sym.toString(),
+                                isHighlighted = isHighlighted,
+                                modifier = Modifier.weight(1f),
+                                onClick = { onKeyPress(sym) }
                             )
                         }
                     }
                 }
 
-                row3.forEach { (normal, shifted) ->
-                    val charToEmit = if (isShiftActive) shifted else normal
-                    val isHighlighted = highlightChar == charToEmit
-                    val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
-
-                    KeyboardKeyButton(
-                        char = charToEmit,
-                        subChar = "",
-                        qwertyHint = HangulKeyboardUtil.getQwertyKeyHint(normal),
-                        isLeftHand = isLeftHand,
-                        isHighlighted = isHighlighted,
-                        modifier = Modifier.weight(1f),
-                        onClick = { onKeyPress(charToEmit) }
-                    )
-                }
-
-                // Tombol Backspace
+                // Tombol Backspace Kanan
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = Color(0xFFE2E8F0),
@@ -1339,50 +1608,75 @@ fun VirtualKorean2BeolSikKeyboard(
                 }
             }
 
-            Spacer(modifier = Modifier.height(5.dp))
+            Spacer(modifier = Modifier.height(4.dp))
 
-            // Baris 4: Kontrol, Tanda Baca & Spasi
+            // ====================== BARIS 4 (Bawah: !#1, 한/영, Koma, Spacebar, Titik, ?, !, ~, Enter) ======================
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(3.dp, Alignment.CenterHorizontally),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Tombol Ulangi / Reset
+                // Tombol !#1 / Mode Simbol
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color(0xFFE2E8F0),
+                    color = if (keyboardMode == VirtualKeyboardMode.SYMBOLS) NunbitYellowContainer else Color(0xFFE2E8F0),
                     modifier = Modifier
                         .weight(1.1f)
                         .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onReset() }
+                        .clickable {
+                            keyboardMode = if (keyboardMode == VirtualKeyboardMode.SYMBOLS) VirtualKeyboardMode.HANGUL else VirtualKeyboardMode.SYMBOLS
+                        }
+                        .testTag("keyboard_symbols_mode_btn")
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text("Reset", fontSize = 10.sp, color = InkBlack, fontWeight = FontWeight.Bold)
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = if (keyboardMode == VirtualKeyboardMode.SYMBOLS) "한글" else "!#1",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (keyboardMode == VirtualKeyboardMode.SYMBOLS) Color(0xFF78350F) else InkBlack
+                        )
+                    }
+                }
+
+                // Tombol 한/영 (Hangul / English Switch)
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = if (keyboardMode == VirtualKeyboardMode.ENGLISH) HaneulContainer else Color(0xFFE2E8F0),
+                    modifier = Modifier
+                        .weight(1.0f)
+                        .height(42.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            keyboardMode = if (keyboardMode == VirtualKeyboardMode.ENGLISH) VirtualKeyboardMode.HANGUL else VirtualKeyboardMode.ENGLISH
+                        }
+                        .testTag("keyboard_kor_eng_toggle_btn")
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "한/영",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (keyboardMode == VirtualKeyboardMode.ENGLISH) HaneulBlue else InkBlack
+                        )
                     }
                 }
 
                 // Tuts Koma (,)
                 KeyboardPunctuationKeyButton(
                     char = ',',
-                    hint = ",",
+                    hint = "",
                     isHighlighted = highlightChar == ',',
-                    modifier = Modifier.weight(0.85f),
+                    modifier = Modifier.weight(0.75f),
                     onClick = { onKeyPress(',') }
                 )
 
-                // Spasi (Spacebar)
+                // Spacebar (한국어 / English / Space)
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = if (highlightChar == ' ') NunbitYellowContainer else Color.White,
                     modifier = Modifier
-                        .weight(2.6f)
+                        .weight(2.3f)
                         .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onKeyPress(' ') }
@@ -1390,14 +1684,19 @@ fun VirtualKorean2BeolSikKeyboard(
                     border = CardDefaults.outlinedCardBorder().copy(
                         brush = Brush.horizontalGradient(
                             if (highlightChar == ' ') listOf(NunbitYellow, Color(0xFFD97706))
-                            else listOf(Color(0xFFCBD5E1), Color(0xFF94A3B8))
+                            else listOf(Color(0xFFCBD5E1), Color(0xFFCBD5E1))
                         )
                     )
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Text(
-                            text = if (highlightChar == ' ') "👉 [SPASI] 👈" else "한글 Space",
-                            fontSize = 11.sp,
+                            text = when {
+                                highlightChar == ' ' -> "👉 [SPASI] 👈"
+                                keyboardMode == VirtualKeyboardMode.HANGUL -> "한국어 Space"
+                                keyboardMode == VirtualKeyboardMode.ENGLISH -> "English"
+                                else -> "Space"
+                            },
+                            fontSize = 10.sp,
                             fontWeight = if (highlightChar == ' ') FontWeight.ExtraBold else FontWeight.Medium,
                             color = if (highlightChar == ' ') Color(0xFF92400E) else TextSecondary
                         )
@@ -1407,51 +1706,109 @@ fun VirtualKorean2BeolSikKeyboard(
                 // Tuts Titik (.)
                 KeyboardPunctuationKeyButton(
                     char = '.',
-                    hint = ".",
+                    hint = "",
                     isHighlighted = highlightChar == '.',
-                    modifier = Modifier.weight(0.85f),
+                    modifier = Modifier.weight(0.75f),
                     onClick = { onKeyPress('.') }
                 )
 
                 // Tuts Tanda Tanya (?)
                 KeyboardPunctuationKeyButton(
                     char = '?',
-                    hint = "?",
+                    hint = "",
                     isHighlighted = highlightChar == '?',
-                    modifier = Modifier.weight(0.85f),
+                    modifier = Modifier.weight(0.8f),
                     onClick = { onKeyPress('?') }
                 )
 
                 // Tuts Tanda Seru (!)
                 KeyboardPunctuationKeyButton(
                     char = '!',
-                    hint = "!",
+                    hint = "",
                     isHighlighted = highlightChar == '!',
-                    modifier = Modifier.weight(0.85f),
+                    modifier = Modifier.weight(0.8f),
                     onClick = { onKeyPress('!') }
                 )
 
-                // Tombol Lafal Suara
+                // Tuts Tilde (~)
+                KeyboardPunctuationKeyButton(
+                    char = '~',
+                    hint = "",
+                    isHighlighted = highlightChar == '~',
+                    modifier = Modifier.weight(0.8f),
+                    onClick = { onKeyPress('~') }
+                )
+
+                // Tombol Enter / Selesai (↵)
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = HaneulContainer,
+                    color = HaneulBlue,
                     modifier = Modifier
-                        .weight(1.1f)
+                        .weight(1.15f)
                         .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
-                        .clickable { onSpeak() }
+                        .clickable {
+                            if (onEnter != null) onEnter()
+                            else onKeyPress('\n')
+                        }
+                        .testTag("keyboard_enter_btn")
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(2.dp))
-                        Text("Lafal", fontSize = 10.sp, color = HaneulBlue, fontWeight = FontWeight.Bold)
+                    Box(contentAlignment = Alignment.Center) {
+                        Text(
+                            text = "↵ Enter",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White
+                        )
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Tombol Tuts Simpel untuk Mode Alfabet Inggris & Simbol
+ */
+@Composable
+fun KeyboardSimpleKeyButton(
+    text: String,
+    isHighlighted: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (isHighlighted) NunbitYellowContainer else Color.White,
+        animationSpec = tween(150),
+        label = "simpleKeyBg"
+    )
+    val textColor = if (isHighlighted) Color(0xFF78350F) else InkBlack
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = bgColor,
+        modifier = modifier
+            .height(44.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .testTag("key_$text"),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = Brush.horizontalGradient(
+                if (isHighlighted) listOf(NunbitYellow, Color(0xFFD97706))
+                else listOf(Color(0xFFCBD5E1), Color(0xFFCBD5E1))
+            )
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = text,
+                fontSize = 15.sp,
+                fontWeight = if (isHighlighted) FontWeight.Black else FontWeight.Bold,
+                color = textColor
+            )
         }
     }
 }
@@ -1462,6 +1819,7 @@ fun VirtualKorean2BeolSikKeyboard(
 @Composable
 fun KeyboardNumberKeyButton(
     char: Char,
+    subSymbol: String = "",
     isHighlighted: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -1490,16 +1848,27 @@ fun KeyboardNumberKeyButton(
             )
         )
     ) {
-        Box(
+        Column(
             modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Text(
                 text = char.toString(),
-                fontSize = 13.sp,
+                fontSize = 12.sp,
                 fontWeight = if (isHighlighted) FontWeight.Black else FontWeight.Bold,
-                color = textColor
+                color = textColor,
+                lineHeight = 13.sp
             )
+            if (subSymbol.isNotEmpty()) {
+                Text(
+                    text = subSymbol,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = if (isHighlighted) Color(0xFF92400E) else TextMuted,
+                    lineHeight = 9.sp
+                )
+            }
         }
     }
 }
@@ -1510,7 +1879,7 @@ fun KeyboardNumberKeyButton(
 @Composable
 fun KeyboardPunctuationKeyButton(
     char: Char,
-    hint: String,
+    hint: String = "",
     isHighlighted: Boolean,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
@@ -1546,16 +1915,18 @@ fun KeyboardPunctuationKeyButton(
         ) {
             Text(
                 text = char.toString(),
-                fontSize = 15.sp,
+                fontSize = 14.sp,
                 fontWeight = if (isHighlighted) FontWeight.Black else FontWeight.Bold,
                 color = textColor
             )
-            Text(
-                text = hint,
-                fontSize = 8.sp,
-                fontWeight = FontWeight.Medium,
-                color = TextMuted
-            )
+            if (hint.isNotEmpty() && hint != char.toString()) {
+                Text(
+                    text = hint,
+                    fontSize = 7.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextMuted
+                )
+            }
         }
     }
 }

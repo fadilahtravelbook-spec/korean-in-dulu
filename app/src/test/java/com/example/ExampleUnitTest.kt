@@ -57,4 +57,15 @@ class ExampleUnitTest {
     assertEquals("Shift+R", HangulKeyboardUtil.getQwertyKeyHint('ㄲ'))
     assertEquals("Shift+Q", HangulKeyboardUtil.getQwertyKeyHint('ㅃ'))
   }
+
+  @Test
+  fun testAllDocumentSentencesCompose() {
+    for (doc in com.example.data.model.KoreanDocumentDataProvider.sampleDocuments) {
+      for (s in doc.sentences) {
+        val decomposed = HangulKeyboardUtil.decompose(s.korean)
+        val composed = HangulKeyboardUtil.compose(decomposed)
+        assertEquals("Failed for sentence: ${s.korean}", s.korean, composed)
+      }
+    }
+  }
 }

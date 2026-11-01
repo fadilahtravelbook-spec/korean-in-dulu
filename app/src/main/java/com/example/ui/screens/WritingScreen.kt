@@ -977,7 +977,15 @@ fun LetterWritingPracticeView(
                 typedLetterJamos = emptyList()
                 letterCompleted = false
             },
-            onSpeak = { onSpeak(currentLetter.soundSample, ttsSpeed) }
+            onSpeak = { onSpeak(currentLetter.soundSample, ttsSpeed) },
+            onEnter = {
+                if (letterCompleted && selectedLetterIndex < filteredLetters.size - 1) {
+                    selectedLetterIndex++
+                    latestScore = null
+                    val nextLetter = filteredLetters.getOrElse(selectedLetterIndex) { currentLetter }
+                    onSpeak(nextLetter.soundSample, ttsSpeed)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -2044,7 +2052,17 @@ fun WordWritingPracticeView(
                 typedWordJamos = emptyList()
                 wordCompleted = false
             },
-            onSpeak = { onSpeak(currentWord.word, ttsSpeed) }
+            onSpeak = { onSpeak(currentWord.word, ttsSpeed) },
+            onEnter = {
+                if (wordCompleted && selectedWordIndex < wordList.size - 1) {
+                    selectedWordIndex++
+                    selectedSyllableIndex = 0
+                    typedWordJamos = emptyList()
+                    wordCompleted = false
+                    wrongWordWarning = null
+                    onSpeak(wordList[selectedWordIndex].word, ttsSpeed)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(28.dp))
@@ -2279,7 +2297,19 @@ fun BlindDictationQuizView(
             onReset = {
                 typedQuizJamos = emptyList()
             },
-            onSpeak = { onSpeak(currentQuiz.soundSample, ttsSpeed) }
+            onSpeak = { onSpeak(currentQuiz.soundSample, ttsSpeed) },
+            onEnter = {
+                if (isAnswerCorrect || isRevealed) {
+                    if (basicLetters.isNotEmpty()) {
+                        quizIndex = (quizIndex + 1) % basicLetters.size
+                        isRevealed = false
+                        quizScore = null
+                        typedQuizJamos = emptyList()
+                        val next = basicLetters.getOrElse(quizIndex) { basicLetters.first() }
+                        onSpeak(next.soundSample, ttsSpeed)
+                    }
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(12.dp))

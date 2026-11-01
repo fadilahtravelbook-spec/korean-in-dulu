@@ -1426,7 +1426,16 @@ fun VocabKeyboardTypingView(
                 typedJamos = emptyList()
                 wordCompleted = false
             },
-            onSpeak = { onSpeak(currentCard.korean) }
+            onSpeak = { onSpeak(currentCard.korean) },
+            onEnter = {
+                if (wordCompleted && currentIndex < cards.size - 1) {
+                    currentIndex++
+                    typedJamos = emptyList()
+                    wordCompleted = false
+                    wrongKeyWarning = null
+                    onSpeak(cards[currentIndex].korean)
+                }
+            }
         )
 
         Spacer(modifier = Modifier.height(14.dp))
