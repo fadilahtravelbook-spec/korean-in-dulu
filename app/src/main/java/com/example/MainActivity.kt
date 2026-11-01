@@ -200,7 +200,9 @@ class MainActivity : ComponentActivity() {
                                     WritingScreen(
                                         letters = viewModel.repository.hangulAlphabet,
                                         onBack = { currentScreen = "home" },
-                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onAddXp = { xp -> viewModel.addXp(xp) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
                                         },
@@ -243,6 +245,9 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onToggleBookmark = { cardId ->
                                             viewModel.toggleBookmark(cardId)
+                                        },
+                                        onAddCustomVocab = { ko, meaning, category ->
+                                            viewModel.addCustomVocabCard(ko, meaning, category)
                                         }
                                     )
                                 }

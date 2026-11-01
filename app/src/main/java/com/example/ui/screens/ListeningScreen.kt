@@ -20,15 +20,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Keyboard
-import androidx.compose.material.icons.filled.Quiz
-import androidx.compose.material.icons.filled.Repeat
-import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -161,7 +156,7 @@ fun ListeningScreen(
                     ) {
                         Box(contentAlignment = Alignment.Center) {
                             Icon(
-                                Icons.Default.VolumeUp,
+                                Icons.AutoMirrored.Filled.VolumeUp,
                                 contentDescription = "Putar Audio",
                                 tint = Color.White,
                                 modifier = Modifier.size(38.dp)
@@ -428,7 +423,105 @@ fun ListeningScreen(
                             shape = RoundedCornerShape(14.dp)
                         )
 
-                        Spacer(modifier = Modifier.height(14.dp))
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        // On-screen Hangul Assistant Pad
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(Color(0xFFF1F5F9), RoundedCornerShape(12.dp))
+                                .padding(10.dp)
+                        ) {
+                            Text(
+                                text = "Bantuan Papan Ketik Hangul (한글 키패드):",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = HaneulBlue
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            // Extract syllables from current quiz target for quick typing
+                            val targetChars = currentQuiz.spokenKorean.replace(" ", "").toList().distinct().take(12)
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                targetChars.forEach { c ->
+                                    Surface(
+                                        shape = RoundedCornerShape(6.dp),
+                                        color = Color.White,
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(6.dp))
+                                            .clickable {
+                                                dictationInput += c
+                                                dictationChecked = false
+                                            }
+                                    ) {
+                                        Text(
+                                            text = c.toString(),
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = InkBlack,
+                                            modifier = Modifier.padding(horizontal = 7.dp, vertical = 5.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(6.dp))
+
+                            // Actions: Space & Backspace
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color.White,
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            dictationInput += " "
+                                            dictationChecked = false
+                                        }
+                                ) {
+                                    Text(
+                                        text = "Spasi (␣)",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = HaneulBlue,
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        modifier = Modifier.padding(vertical = 6.dp)
+                                    )
+                                }
+
+                                Surface(
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color(0xFFFEE2E2),
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .clip(RoundedCornerShape(6.dp))
+                                        .clickable {
+                                            if (dictationInput.isNotEmpty()) {
+                                                dictationInput = dictationInput.dropLast(1)
+                                                dictationChecked = false
+                                            }
+                                        }
+                                ) {
+                                    Text(
+                                        text = "Hapus (⌫)",
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 11.sp,
+                                        color = Color(0xFF991B1B),
+                                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                                        modifier = Modifier.padding(vertical = 6.dp)
+                                    )
+                                }
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
 
                         Button(
                             onClick = {

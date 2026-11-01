@@ -24,25 +24,27 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.BookmarkBorder
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Style
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.TouchApp
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
@@ -66,7 +68,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.data.model.VocabCard
 import com.example.ui.components.AppSubHeader
-import com.example.ui.components.AudioSpeakerButton
 import com.example.ui.theme.HaneulBlue
 import com.example.ui.theme.HaneulContainer
 import com.example.ui.theme.InkBlack
@@ -83,69 +84,165 @@ fun VocabularyScreen(
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
     onSubmitSrs: (card: VocabCard, rating: Int) -> Unit,
-    onToggleBookmark: (cardId: String) -> Unit
+    onToggleBookmark: (cardId: String) -> Unit,
+    onAddCustomVocab: ((korean: String, meaning: String, category: String) -> Unit)? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Flashcard SRS, 1: Daftar Kosakata, 2: Game Cocokkan Kata
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("Semua") }
+    var showOnlyBookmarked by remember { mutableStateOf(false) }
+    var showAddDialog by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFFF8FAFC))
-    ) {
-        AppSubHeader(
-            title = "Kosakata (단어장)",
-            subtitle = "Spaced Repetition (SRS SM-2) & Kamus Pintar",
-            onBack = onBack
+    // Dialog Input State
+    var inputKorean by remember { mutableStateOf("") }
+    var inputMeaning by remember { mutableStateOf("") }
+    var inputCategory by remember { mutableStateOf("Kustom") }
+
+    if (showAddDialog) {
+        AlertDialog(
+            onDismissRequest = { showAddDialog = false },
+            title = {
+                Text("Tambah Kosakata Kustom", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = HaneulBlue)
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text("Simpan kata baru ke koleksi SRS Spaced Repetition Anda.", fontSize = 12.sp, color = TextSecondary)
+                    OutlinedTextField(
+                        value = inputKorean,
+                        onValueChange = { inputKorean = it },
+                        label = { Text("Bahasa Korea (Hangul)") },
+                        placeholder = { Text("Contoh: 사과") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("add_vocab_korean_input")
+                    )
+                    OutlinedTextField(
+                        value = inputMeaning,
+                        onValueChange = { inputMeaning = it },
+                        label = { Text("Arti Bahasa Indonesia") },
+                        placeholder = { Text("Contoh: Apel") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("add_vocab_meaning_input")
+                    )
+                    OutlinedTextField(
+                        value = inputCategory,
+                        onValueChange = { inputCategory = it },
+                        label = { Text("Kategori") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth().testTag("add_vocab_category_input")
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (inputKorean.isNotBlank() && inputMeaning.isNotBlank()) {
+                            onAddCustomVocab?.invoke(inputKorean.trim(), inputMeaning.trim(), inputCategory.trim().ifBlank { "Kustom" })
+                            inputKorean = ""
+                            inputMeaning = ""
+                            showAddDialog = false
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                    shape = RoundedCornerShape(10.dp),
+                    enabled = inputKorean.isNotBlank() && inputMeaning.isNotBlank()
+                ) {
+                    Text("Simpan ke Kamus", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                Button(
+                    onClick = { showAddDialog = false },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFF1F5F9))
+                ) {
+                    Text("Batal", color = InkBlack)
+                }
+            }
         )
+    }
 
-        TabRow(
-            selectedTabIndex = selectedTab,
-            containerColor = Color.White,
-            contentColor = HaneulBlue
-        ) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { selectedTab = 0 },
-                text = { Text("SRS Flashcards", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { selectedTab = 1 },
-                text = { Text("Daftar Kata", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
-            )
-            Tab(
-                selected = selectedTab == 2,
-                onClick = { selectedTab = 2 },
-                text = { Text("Game Pasangan", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
-            )
+    Scaffold(
+        floatingActionButton = {
+            if (selectedTab == 1 && onAddCustomVocab != null) {
+                FloatingActionButton(
+                    onClick = { showAddDialog = true },
+                    containerColor = HaneulBlue,
+                    contentColor = Color.White,
+                    shape = CircleShape,
+                    modifier = Modifier.testTag("add_vocab_fab")
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.Add, contentDescription = "Tambah Kata")
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text("Tambah Kata", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            }
         }
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(Color(0xFFF8FAFC))
+        ) {
+            AppSubHeader(
+                title = "Kosakata (단어장)",
+                subtitle = "Spaced Repetition (SRS SM-2) & Kamus Pintar",
+                onBack = onBack
+            )
 
-        when (selectedTab) {
-            0 -> {
-                SrsFlashcardReviewView(
-                    cards = vocabList,
-                    onSpeak = onSpeak,
-                    onSubmitSrs = onSubmitSrs
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = Color.White,
+                contentColor = HaneulBlue
+            ) {
+                Tab(
+                    selected = selectedTab == 0,
+                    onClick = { selectedTab = 0 },
+                    text = { Text("SRS Flashcards", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    text = { Text("Daftar Kata (${vocabList.size})", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
+                )
+                Tab(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    text = { Text("Game Pasangan", fontWeight = FontWeight.Bold, fontSize = 12.sp) }
                 )
             }
-            1 -> {
-                VocabListView(
-                    vocabList = vocabList,
-                    searchQuery = searchQuery,
-                    onSearchChange = { searchQuery = it },
-                    selectedCategory = selectedCategory,
-                    onCategoryChange = { selectedCategory = it },
-                    onSpeak = onSpeak,
-                    onToggleBookmark = onToggleBookmark
-                )
-            }
-            2 -> {
-                VocabMatchingGameView(
-                    cards = vocabList,
-                    onSpeak = onSpeak
-                )
+
+            when (selectedTab) {
+                0 -> {
+                    SrsFlashcardReviewView(
+                        cards = vocabList,
+                        onSpeak = onSpeak,
+                        onSubmitSrs = onSubmitSrs
+                    )
+                }
+                1 -> {
+                    VocabListView(
+                        vocabList = vocabList,
+                        searchQuery = searchQuery,
+                        onSearchChange = { searchQuery = it },
+                        selectedCategory = selectedCategory,
+                        onCategoryChange = { selectedCategory = it },
+                        showOnlyBookmarked = showOnlyBookmarked,
+                        onToggleOnlyBookmarked = { showOnlyBookmarked = !showOnlyBookmarked },
+                        onSpeak = onSpeak,
+                        onToggleBookmark = onToggleBookmark
+                    )
+                }
+                2 -> {
+                    VocabMatchingGameView(
+                        cards = vocabList,
+                        onSpeak = onSpeak
+                    )
+                }
             }
         }
     }
@@ -172,7 +269,7 @@ fun SrsFlashcardReviewView(
     // 3D Card Flip Animation
     val rotation by animateFloatAsState(
         targetValue = if (isFlipped) 180f else 0f,
-        animationSpec = tween(durationMillis = 400),
+        animationSpec = tween(durationMillis = 350),
         label = "flashcard_flip_animation"
     )
 
@@ -195,7 +292,7 @@ fun SrsFlashcardReviewView(
                     color = Color(0xFFFEF3C7)
                 ) {
                     Text(
-                        text = "SM-2 Reps: ${currentCard.repetitions}",
+                        text = "SM-2 Interval: ${currentCard.interval} hari",
                         fontWeight = FontWeight.Bold,
                         fontSize = 11.sp,
                         color = Color(0xFF92400E),
@@ -249,45 +346,56 @@ fun SrsFlashcardReviewView(
                             fontSize = 11.sp,
                             fontWeight = FontWeight.Bold,
                             color = HaneulBlue,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(28.dp))
 
                     Text(
                         text = currentCard.korean,
-                        fontSize = 38.sp,
+                        fontSize = 42.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = InkBlack,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
-                    AudioSpeakerButton(
-                        onClick = { onSpeak(currentCard.korean) },
-                        label = "Dengarkan Suara"
+                    Text(
+                        text = "[${currentCard.romanization}]",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextSecondary
                     )
 
                     Spacer(modifier = Modifier.height(28.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = { onSpeak(currentCard.korean) },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(HaneulContainer)
+                            .size(54.dp)
                     ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "Dengarkan Audio",
+                            tint = HaneulBlue,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.TouchApp, contentDescription = null, tint = TextMuted, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "Ketuk untuk melihat arti & contoh",
-                            fontSize = 12.sp,
-                            color = TextMuted,
-                            fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
-                        )
+                        Text("Ketuk kartu untuk melihat arti & contoh", fontSize = 11.sp, color = TextMuted)
                     }
                 }
             } else {
-                // BACK OF CARD (Counter-rotated so text is readable)
+                // BACK OF CARD (Flipped)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -299,30 +407,21 @@ fun SrsFlashcardReviewView(
                     Text(
                         text = currentCard.korean,
                         fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.ExtraBold,
                         color = HaneulBlue
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    Text(
-                        text = "[${currentCard.romanization}]",
-                        fontSize = 15.sp,
-                        color = Color(0xFFCA8A04),
-                        fontWeight = FontWeight.SemiBold
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
                         text = currentCard.meaning,
-                        fontSize = 22.sp,
+                        fontSize = 24.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = InkBlack,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(20.dp))
 
                     Surface(
                         shape = RoundedCornerShape(14.dp),
@@ -336,7 +435,7 @@ fun SrsFlashcardReviewView(
                                 fontWeight = FontWeight.Bold,
                                 color = TextSecondary
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = currentCard.exampleSentence,
                                 fontSize = 14.sp,
@@ -350,51 +449,106 @@ fun SrsFlashcardReviewView(
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    IconButton(
+                        onClick = { onSpeak(currentCard.exampleSentence) },
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(HaneulContainer)
+                            .size(46.dp)
+                    ) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.VolumeUp,
+                            contentDescription = "Dengarkan Contoh",
+                            tint = HaneulBlue,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // SRS 4 Review Rating Buttons (with predicted interval previews)
-        Text(
-            text = "Berapa lama Anda mengingat kata ini?",
-            fontSize = 12.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = TextSecondary
-        )
+        // SRS Rating Buttons (SM-2 Algorithm grading)
+        if (isFlipped) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    text = "Berapa mudah Anda mengingat kata ini?",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Spacer(modifier = Modifier.height(8.dp))
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            val ratings = listOf(
-                Triple("Lupa", "Besok", SarangRed to 0),
-                Triple("Sulit", "2 Hari", Color(0xFFEA580C) to 1),
-                Triple("Ingat", "6 Hari", HaneulBlue to 2),
-                Triple("Mudah", "14 Hari", SaessakGreen to 3)
-            )
-
-            ratings.forEach { (lbl, intervalHint, pair) ->
-                val (color, r) = pair
-                Button(
-                    onClick = {
-                        onSubmitSrs(currentCard, r)
-                        isFlipped = false
-                        currentIndex++
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = color),
-                    shape = RoundedCornerShape(12.dp),
-                    contentPadding = PaddingValues(vertical = 8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(text = lbl, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
-                        Text(text = intervalHint, fontSize = 9.sp, color = Color.White.copy(alpha = 0.85f))
+                    Button(
+                        onClick = {
+                            onSubmitSrs(currentCard, 1)
+                            isFlipped = false
+                            currentIndex++
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SarangRed),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Lupa", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Ulangi", fontSize = 9.sp)
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            onSubmitSrs(currentCard, 3)
+                            isFlipped = false
+                            currentIndex++
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = NunbitYellow),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Ragu", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = InkBlack)
+                            Text("+3 Hari", fontSize = 9.sp, color = InkBlack)
+                        }
+                    }
+
+                    Button(
+                        onClick = {
+                            onSubmitSrs(currentCard, 5)
+                            isFlipped = false
+                            currentIndex++
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = SaessakGreen),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text("Mudah", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("+7 Hari", fontSize = 9.sp)
+                        }
                     }
                 }
+            }
+        } else {
+            Button(
+                onClick = { isFlipped = true },
+                colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
+                shape = RoundedCornerShape(14.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .testTag("show_answer_button")
+            ) {
+                Text("Buka Jawaban Kartu (Balik)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
             }
         }
     }
@@ -407,14 +561,17 @@ fun VocabListView(
     onSearchChange: (String) -> Unit,
     selectedCategory: String,
     onCategoryChange: (String) -> Unit,
+    showOnlyBookmarked: Boolean,
+    onToggleOnlyBookmarked: () -> Unit,
     onSpeak: (String) -> Unit,
     onToggleBookmark: (String) -> Unit
 ) {
-    val categories = listOf("Semua", "Emosi & Kesal", "Tegur Sapa", "Toilet & Mandi", "Sepeda & Transportasi", "Keseharian & Rumah", "Salam", "Makanan & Minuman", "Kehidupan", "Angka", "Kustom")
+    val categories = listOf("Semua", "Salam", "Makanan", "Keluarga", "Angka", "Kehidupan", "Emosi & Kesal", "Tegur Sapa", "Toilet & Mandi", "Sepeda & Transportasi", "Kustom")
 
     val filteredList = vocabList.filter { card ->
+        (!showOnlyBookmarked || card.isBookmarked) &&
         (selectedCategory == "Semua" || card.category.contains(selectedCategory, ignoreCase = true)) &&
-                (searchQuery.isBlank() || card.korean.contains(searchQuery) || card.meaning.contains(searchQuery, ignoreCase = true) || card.romanization.contains(searchQuery, ignoreCase = true))
+        (searchQuery.isBlank() || card.korean.contains(searchQuery) || card.meaning.contains(searchQuery, ignoreCase = true) || card.romanization.contains(searchQuery, ignoreCase = true))
     }
 
     Column(
@@ -442,6 +599,48 @@ fun VocabListView(
         )
 
         Spacer(modifier = Modifier.height(10.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = if (showOnlyBookmarked) Color(0xFFFEF3C7) else Color(0xFFF1F5F9),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(10.dp))
+                    .clickable { onToggleOnlyBookmarked() }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        if (showOnlyBookmarked) Icons.Default.Bookmark else Icons.Default.BookmarkBorder,
+                        contentDescription = null,
+                        tint = if (showOnlyBookmarked) NunbitYellow else TextSecondary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(
+                        text = if (showOnlyBookmarked) "Hanya Bookmark ⭐" else "Filter Bookmark",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (showOnlyBookmarked) Color(0xFF92400E) else TextSecondary
+                    )
+                }
+            }
+
+            Text(
+                text = "${filteredList.size} kosakata ditemukan",
+                fontSize = 11.sp,
+                color = TextSecondary,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
 
         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             items(categories) { cat ->
@@ -496,7 +695,7 @@ fun VocabListView(
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Tidak ada kata yang cocok dengan filter \"$selectedCategory\" atau kata kunci \"$searchQuery\".",
+                            text = "Tidak ada kata yang cocok dengan filter atau kata kunci \"$searchQuery\".",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center
@@ -543,13 +742,15 @@ fun VocabListView(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(text = card.meaning, fontSize = 14.sp, fontWeight = FontWeight.SemiBold, color = HaneulBlue)
-                                Spacer(modifier = Modifier.height(4.dp))
-                                Text(text = "Contoh: ${card.exampleSentence}", fontSize = 11.sp, color = TextMuted)
+                                if (card.exampleSentence.isNotBlank()) {
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(text = "Contoh: ${card.exampleSentence}", fontSize = 11.sp, color = TextMuted)
+                                }
                             }
 
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(onClick = { onSpeak(card.korean) }) {
-                                    Icon(Icons.Default.VolumeUp, contentDescription = "Dengarkan", tint = HaneulBlue)
+                                    Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = "Dengarkan", tint = HaneulBlue)
                                 }
                                 IconButton(onClick = { onToggleBookmark(card.id) }) {
                                     Icon(

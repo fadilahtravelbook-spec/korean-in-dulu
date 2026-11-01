@@ -513,43 +513,43 @@ class KoreanRepository(context: Context) {
 
     // Datasets
     val hangulAlphabet: List<HangulLetter> = listOf(
-        // Vokal Dasar
-        HangulLetter("ㅏ", "A", "a", "Vokal Dasar", "Garis vertikal panjang dengan satu coretan ke kanan.", 2, listOf("1. Tarik garis vertikal dari atas ke bawah", "2. Tarik garis pendek horizontal ke kanan tepat di tengah")),
-        HangulLetter("ㅑ", "Ya", "ya", "Vokal Dasar", "Vokal A dengan dua coretan pendek ke kanan.", 3, listOf("1. Tarik garis vertikal dari atas ke bawah", "2. Tarik garis pendek horizontal pertama", "3. Tarik garis pendek horizontal kedua")),
-        HangulLetter("ㅓ", "Eo", "eo", "Vokal Dasar", "Garis vertikal dengan satu coretan horizontal ke kiri.", 2, listOf("1. Tarik garis pendek horizontal dari kiri ke kanan", "2. Tarik garis vertikal melintasi ujung kanan")),
-        HangulLetter("ㅕ", "Yeo", "yeo", "Vokal Dasar", "Dua garis pendek horizontal ke kiri lalu garis vertikal.", 3, listOf("1. Garis horizontal atas", "2. Garis horizontal bawah", "3. Garis vertikal panjang")),
-        HangulLetter("ㅗ", "O", "o", "Vokal Dasar", "Garis horizontal bawah dengan satu coretan pendek ke atas.", 2, listOf("1. Tarik garis pendek vertikal dari atas ke bawah", "2. Tarik garis horizontal panjang dari kiri ke kanan")),
-        HangulLetter("ㅛ", "Yo", "yo", "Vokal Dasar", "Dua coretan pendek ke atas di atas garis horizontal.", 3, listOf("1. Garis vertikal pendek kiri", "2. Garis vertikal pendek kanan", "3. Garis horizontal panjang")),
-        HangulLetter("ㅜ", "U", "u", "Vokal Dasar", "Garis horizontal dengan satu coretan pendek ke bawah.", 2, listOf("1. Tarik garis horizontal panjang", "2. Tarik garis pendek vertikal tepat di tengah ke bawah")),
-        HangulLetter("ㅠ", "Yu", "yu", "Vokal Dasar", "Garis horizontal dengan dua coretan pendek ke bawah.", 3, listOf("1. Garis horizontal panjang", "2. Garis vertikal pendek kiri", "3. Garis vertikal pendek kanan")),
-        HangulLetter("ㅡ", "Eu", "eu", "Vokal Dasar", "Garis horizontal datar mewakili tanah datar.", 1, listOf("1. Tarik garis horizontal dari kiri ke kanan secara halus")),
-        HangulLetter("ㅣ", "I", "i", "Vokal Dasar", "Garis vertikal lurus mewakili manusia yang berdiri.", 1, listOf("1. Tarik garis vertikal lurus dari atas ke bawah")),
+        // Vokal Dasar (Menggunakan awalan ㅇ agar pengucapan TTS bulat dan jernih)
+        HangulLetter("ㅏ", "A", "a", "Vokal Dasar", "Garis vertikal panjang dengan satu coretan ke kanan.", 2, listOf("1. Tarik garis vertikal dari atas ke bawah", "2. Tarik garis pendek horizontal ke kanan tepat di tengah"), soundSample = "아"),
+        HangulLetter("ㅑ", "Ya", "ya", "Vokal Dasar", "Vokal A dengan dua coretan pendek ke kanan.", 3, listOf("1. Tarik garis vertikal dari atas ke bawah", "2. Tarik garis pendek horizontal pertama", "3. Tarik garis pendek horizontal kedua"), soundSample = "야"),
+        HangulLetter("ㅓ", "Eo", "eo", "Vokal Dasar", "Garis vertikal dengan satu coretan horizontal ke kiri.", 2, listOf("1. Tarik garis pendek horizontal dari kiri ke kanan", "2. Tarik garis vertikal melintasi ujung kanan"), soundSample = "어"),
+        HangulLetter("ㅕ", "Yeo", "yeo", "Vokal Dasar", "Dua garis pendek horizontal ke kiri lalu garis vertikal.", 3, listOf("1. Garis horizontal atas", "2. Garis horizontal bawah", "3. Garis vertikal panjang"), soundSample = "여"),
+        HangulLetter("ㅗ", "O", "o", "Vokal Dasar", "Garis horizontal bawah dengan satu coretan pendek ke atas.", 2, listOf("1. Tarik garis pendek vertikal dari atas ke bawah", "2. Tarik garis horizontal panjang dari kiri ke kanan"), soundSample = "오"),
+        HangulLetter("ㅛ", "Yo", "yo", "Vokal Dasar", "Dua coretan pendek ke atas di atas garis horizontal.", 3, listOf("1. Garis vertikal pendek kiri", "2. Garis vertikal pendek kanan", "3. Garis horizontal panjang"), soundSample = "요"),
+        HangulLetter("ㅜ", "U", "u", "Vokal Dasar", "Garis horizontal dengan satu coretan pendek ke bawah.", 2, listOf("1. Tarik garis horizontal panjang", "2. Tarik garis pendek vertikal tepat di tengah ke bawah"), soundSample = "우"),
+        HangulLetter("ㅠ", "Yu", "yu", "Vokal Dasar", "Garis horizontal dengan dua coretan pendek ke bawah.", 3, listOf("1. Garis horizontal panjang", "2. Garis vertikal pendek kiri", "3. Garis vertikal pendek kanan"), soundSample = "유"),
+        HangulLetter("ㅡ", "Eu", "eu", "Vokal Dasar", "Garis horizontal datar mewakili tanah datar.", 1, listOf("1. Tarik garis horizontal dari kiri ke kanan secara halus"), soundSample = "으"),
+        HangulLetter("ㅣ", "I", "i", "Vokal Dasar", "Garis vertikal lurus mewakili manusia yang berdiri.", 1, listOf("1. Tarik garis vertikal lurus dari atas ke bawah"), soundSample = "이"),
 
         // Konsonan Dasar
-        HangulLetter("ㄱ", "Giyeok", "g/k", "Konsonan Dasar", "Bentuk siku: ke kanan lalu ke bawah.", 1, listOf("1. Dari kiri ke kanan, lalu langsung tekuk ke bawah tanpa putus")),
-        HangulLetter("ㄴ", "Nieun", "n", "Konsonan Dasar", "Bentuk sudut siku bawah: vertikal turun lalu ke kanan.", 1, listOf("1. Dari atas turun lurus ke bawah, lalu tekuk ke kanan")),
-        HangulLetter("ㄷ", "Digeut", "d/t", "Konsonan Dasar", "Bentuk C kotak: garis atas lalu siku bawah.", 2, listOf("1. Garis horizontal atas", "2. Dari awal garis atas, turun lalu tekuk ke kanan")),
-        HangulLetter("ㄹ", "Rieul", "r/l", "Konsonan Dasar", "Bentuk ular / angka 2 bersudut.", 3, listOf("1. Garis siku (ㄱ)", "2. Garis horizontal tengah", "3. Garis siku bawah (ㄴ)")),
-        HangulLetter("ㅁ", "Mieum", "m", "Konsonan Dasar", "Kotak tertutup mewakili bentuk mulut.", 3, listOf("1. Garis vertikal kiri", "2. Sudut atas ke kanan lalu turun", "3. Garis penutup bawah")),
-        HangulLetter("ㅂ", "Bieup", "b/p", "Konsonan Dasar", "Wadah terbuka atas dengan dua tiang dan jembatan.", 4, listOf("1. Tiang kiri turun", "2. Tiang kanan turun", "3. Jembatan tengah", "4. Dasar penutup bawah")),
-        HangulLetter("ㅅ", "Siot", "s", "Konsonan Dasar", "Bentuk atap rumah / dua cabang kaki.", 2, listOf("1. Garis miring ke kiri bawah", "2. Garis miring dari tengah cabang ke kanan bawah")),
-        HangulLetter("ㅇ", "Ieung", "ng / silent", "Konsonan Dasar", "Lingkaran bulat sempurna.", 1, listOf("1. Buat lingkaran berlawanan arah jarum jam mulai dari posisi jam 12")),
-        HangulLetter("ㅈ", "Jieut", "j", "Konsonan Dasar", "Atap datar dengan kaki bercabang dua.", 2, listOf("1. Garis horizontal atas lalu tekuk miring kiri", "2. Garis miring ke kanan dari pertemuan sudut")),
-        HangulLetter("ㅎ", "Hieut", "h", "Konsonan Dasar", "Topi kecil di atas lingkaran ieung.", 3, listOf("1. Coretan pendek atas", "2. Garis horizontal tengah", "3. Lingkaran di bawah")),
+        HangulLetter("ㄱ", "Giyeok", "g/k", "Konsonan Dasar", "Bentuk siku: ke kanan lalu ke bawah.", 1, listOf("1. Dari kiri ke kanan, lalu langsung tekuk ke bawah tanpa putus"), soundSample = "기역"),
+        HangulLetter("ㄴ", "Nieun", "n", "Konsonan Dasar", "Bentuk sudut siku bawah: vertikal turun lalu ke kanan.", 1, listOf("1. Dari atas turun lurus ke bawah, lalu tekuk ke kanan"), soundSample = "니은"),
+        HangulLetter("ㄷ", "Digeut", "d/t", "Konsonan Dasar", "Bentuk C kotak: garis atas lalu siku bawah.", 2, listOf("1. Garis horizontal atas", "2. Dari awal garis atas, turun lalu tekuk ke kanan"), soundSample = "디귿"),
+        HangulLetter("ㄹ", "Rieul", "r/l", "Konsonan Dasar", "Bentuk ular / angka 2 bersudut.", 3, listOf("1. Garis siku (ㄱ)", "2. Garis horizontal tengah", "3. Garis siku bawah (ㄴ)"), soundSample = "리을"),
+        HangulLetter("ㅁ", "Mieum", "m", "Konsonan Dasar", "Kotak tertutup mewakili bentuk mulut.", 3, listOf("1. Garis vertikal kiri", "2. Sudut atas ke kanan lalu turun", "3. Garis penutup bawah"), soundSample = "미음"),
+        HangulLetter("ㅂ", "Bieup", "b/p", "Konsonan Dasar", "Wadah terbuka atas dengan dua tiang dan jembatan.", 4, listOf("1. Tiang kiri turun", "2. Tiang kanan turun", "3. Jembatan tengah", "4. Dasar penutup bawah"), soundSample = "비읍"),
+        HangulLetter("ㅅ", "Siot", "s", "Konsonan Dasar", "Bentuk atap rumah / dua cabang kaki.", 2, listOf("1. Garis miring ke kiri bawah", "2. Garis miring dari tengah cabang ke kanan bawah"), soundSample = "시옷"),
+        HangulLetter("ㅇ", "Ieung", "ng / silent", "Konsonan Dasar", "Lingkaran bulat sempurna.", 1, listOf("1. Buat lingkaran berlawanan arah jarum jam mulai dari posisi jam 12"), soundSample = "이응"),
+        HangulLetter("ㅈ", "Jieut", "j", "Konsonan Dasar", "Atap datar dengan kaki bercabang dua.", 2, listOf("1. Garis horizontal atas lalu tekuk miring kiri", "2. Garis miring ke kanan dari pertemuan sudut"), soundSample = "지읒"),
+        HangulLetter("ㅎ", "Hieut", "h", "Konsonan Dasar", "Topi kecil di atas lingkaran ieung.", 3, listOf("1. Coretan pendek atas", "2. Garis horizontal tengah", "3. Lingkaran di bawah"), soundSample = "히읗"),
 
         // Vokal Ganda
-        HangulLetter("ㅐ", "Ae", "ae", "Vokal Ganda", "Kombinasi vokal ㅏ dan ㅣ.", 3, listOf("1. Tarik garis vertikal kiri", "2. Coretan pendek tengah", "3. Garis vertikal kanan")),
-        HangulLetter("ㅔ", "E", "e", "Vokal Ganda", "Kombinasi vokal ㅓ dan ㅣ.", 3, listOf("1. Coretan horizontal kiri", "2. Garis vertikal tengah", "3. Garis vertikal kanan")),
-        HangulLetter("ㅘ", "Wa", "wa", "Vokal Ganda", "Kombinasi vokal ㅗ dan ㅏ.", 4, listOf("1. Garis vertikal atas", "2. Garis horizontal bawah", "3. Garis vertikal kanan", "4. Coretan ke kanan")),
-        HangulLetter("ㅝ", "Wo", "wo", "Vokal Ganda", "Kombinasi vokal ㅜ dan ㅓ.", 4, listOf("1. Garis horizontal atas", "2. Garis vertikal bawah", "3. Coretan horizontal", "4. Garis vertikal")),
-        HangulLetter("ㅢ", "Ui", "ui", "Vokal Ganda", "Kombinasi vokal ㅡ dan ㅣ.", 2, listOf("1. Garis horizontal bawah", "2. Garis vertikal kanan")),
+        HangulLetter("ㅐ", "Ae", "ae", "Vokal Ganda", "Kombinasi vokal ㅏ dan ㅣ.", 3, listOf("1. Tarik garis vertikal kiri", "2. Coretan pendek tengah", "3. Garis vertikal kanan"), soundSample = "애"),
+        HangulLetter("ㅔ", "E", "e", "Vokal Ganda", "Kombinasi vokal ㅓ dan ㅣ.", 3, listOf("1. Coretan horizontal kiri", "2. Garis vertikal tengah", "3. Garis vertikal kanan"), soundSample = "에"),
+        HangulLetter("ㅘ", "Wa", "wa", "Vokal Ganda", "Kombinasi vokal ㅗ dan ㅏ.", 4, listOf("1. Garis vertikal atas", "2. Garis horizontal bawah", "3. Garis vertikal kanan", "4. Coretan ke kanan"), soundSample = "와"),
+        HangulLetter("ㅝ", "Wo", "wo", "Vokal Ganda", "Kombinasi vokal ㅜ dan ㅓ.", 4, listOf("1. Garis horizontal atas", "2. Garis vertikal bawah", "3. Coretan horizontal", "4. Garis vertikal"), soundSample = "워"),
+        HangulLetter("ㅢ", "Ui", "ui", "Vokal Ganda", "Kombinasi vokal ㅡ dan ㅣ.", 2, listOf("1. Garis horizontal bawah", "2. Garis vertikal kanan"), soundSample = "의"),
 
         // Konsonan Ganda & Batchim
-        HangulLetter("ㄲ", "Ssang-giyeok", "kk", "Konsonan Ganda", "Dua huruf giyeok berdampingan.", 2, listOf("1. Tulis giyeok pertama (ㄱ)", "2. Tulis giyeok kedua (ㄱ) tepat di sampingnya")),
-        HangulLetter("ㅆ", "Ssang-siot", "ss", "Konsonan Ganda", "Dua huruf siot berdampingan (suara S tegas).", 4, listOf("1. Siot pertama kiri", "2. Siot kedua kanan")),
-        HangulLetter("ㄸ", "Ssang-digeut", "tt", "Konsonan Ganda", "Dua huruf digeut berdampingan.", 4, listOf("1. Digeut pertama kiri", "2. Digeut kedua kanan")),
-        HangulLetter("ㅃ", "Ssang-bieup", "pp", "Konsonan Ganda", "Dua huruf bieup berdampingan.", 8, listOf("1. Bieup pertama kiri", "2. Bieup kedua kanan")),
-        HangulLetter("ㅉ", "Ssang-jieut", "jj", "Konsonan Ganda", "Dua huruf jieut berdampingan.", 4, listOf("1. Jieut pertama kiri", "2. Jieut kedua kanan"))
+        HangulLetter("ㄲ", "Ssang-giyeok", "kk", "Konsonan Ganda", "Dua huruf giyeok berdampingan.", 2, listOf("1. Tulis giyeok pertama (ㄱ)", "2. Tulis giyeok kedua (ㄱ) tepat di sampingnya"), soundSample = "쌍기역"),
+        HangulLetter("ㅆ", "Ssang-siot", "ss", "Konsonan Ganda", "Dua huruf siot berdampingan (suara S tegas).", 4, listOf("1. Siot pertama kiri", "2. Siot kedua kanan"), soundSample = "쌍시옷"),
+        HangulLetter("ㄸ", "Ssang-digeut", "tt", "Konsonan Ganda", "Dua huruf digeut berdampingan.", 4, listOf("1. Digeut pertama kiri", "2. Digeut kedua kanan"), soundSample = "쌍디귿"),
+        HangulLetter("ㅃ", "Ssang-bieup", "pp", "Konsonan Ganda", "Dua huruf bieup berdampingan.", 8, listOf("1. Bieup pertama kiri", "2. Bieup kedua kanan"), soundSample = "쌍비읍"),
+        HangulLetter("ㅉ", "Ssang-jieut", "jj", "Konsonan Ganda", "Dua huruf jieut berdampingan.", 4, listOf("1. Jieut pertama kiri", "2. Jieut kedua kanan"), soundSample = "쌍지읒")
     )
 
     val introTemplates: List<IntroTemplate> = listOf(

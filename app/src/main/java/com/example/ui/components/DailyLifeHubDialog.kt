@@ -22,11 +22,11 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Bathtub
-import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DirectionsBike
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.LocalConvenienceStore
@@ -109,7 +109,7 @@ val dailyLifeCategories: List<DailyLifeCategory> = listOf(
     DailyLifeCategory(
         title = "Sepeda & Transportasi",
         koreanSubtitle = "자전거 & 대중교통",
-        icon = Icons.Default.DirectionsBike,
+        icon = Icons.AutoMirrored.Filled.DirectionsBike,
         color = Color(0xFF059669),
         containerColor = Color(0xFFF0FDF4),
         culturalTipTitle = "K-Culture: Sepeda Sewa Seoul (따릉이) & Diskon Transit",
@@ -185,7 +185,7 @@ val dailyLifeCategories: List<DailyLifeCategory> = listOf(
     DailyLifeCategory(
         title = "Tegur Sapa",
         koreanSubtitle = "인사 & 스몰토크",
-        icon = Icons.Default.Chat,
+        icon = Icons.AutoMirrored.Filled.Chat,
         color = Color(0xFFD97706),
         containerColor = Color(0xFFFFFBEB),
         culturalTipTitle = "K-Culture: Makna '밥 먹었어요?' & Budaya Basa-Basi Korea",

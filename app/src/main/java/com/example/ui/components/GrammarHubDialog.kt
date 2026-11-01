@@ -22,9 +22,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -363,7 +363,7 @@ fun GrammarHubDialog(
                                             ) {
                                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                                     Icon(
-                                                        Icons.Default.VolumeUp,
+                                                        Icons.AutoMirrored.Filled.VolumeUp,
                                                         contentDescription = "Dengar",
                                                         tint = HaneulBlue,
                                                         modifier = Modifier.size(18.dp)

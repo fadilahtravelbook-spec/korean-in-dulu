@@ -19,11 +19,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -256,6 +256,7 @@ fun TopStatBar(
 fun HannieMascotCard(
     quote: String,
     title: String = "Pesan Semangat dari Hannie (한이)",
+    onSpeak: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -284,17 +285,40 @@ fun HannieMascotCard(
             Spacer(modifier = Modifier.width(12.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-                Surface(
-                    color = Color(0xFFEEF2FF),
-                    shape = RoundedCornerShape(8.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = title,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = HaneulBlue,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                    )
+                    Surface(
+                        color = Color(0xFFEEF2FF),
+                        shape = RoundedCornerShape(8.dp)
+                    ) {
+                        Text(
+                            text = title,
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = HaneulBlue,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+
+                    if (onSpeak != null) {
+                        IconButton(
+                            onClick = onSpeak,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(HaneulContainer)
+                        ) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.VolumeUp,
+                                contentDescription = "Dengarkan pesan Hannie",
+                                tint = HaneulBlue,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
                 }
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -376,7 +400,7 @@ fun AudioSpeakerButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                Icons.Default.VolumeUp,
+                Icons.AutoMirrored.Filled.VolumeUp,
                 contentDescription = "Dengarkan Audio Suara",
                 tint = HaneulBlue,
                 modifier = Modifier.size(20.dp)

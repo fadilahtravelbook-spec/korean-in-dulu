@@ -47,6 +47,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         ttsManager.speak(text, spd)
     }
 
+    fun stopSpeaking() {
+        ttsManager.stop()
+    }
+
     fun completeOnboarding(name: String, level: Int) {
         viewModelScope.launch {
             repository.completeOnboarding(name, level)
