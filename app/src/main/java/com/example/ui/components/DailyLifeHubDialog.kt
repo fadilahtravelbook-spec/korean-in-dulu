@@ -211,9 +211,6 @@ fun DailyLifeHubDialog(
     onDismiss: () -> Unit,
     onSpeak: (String) -> Unit
 ) {
-    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
-    val currentCategory = dailyLifeCategories.getOrElse(selectedCategoryIndex) { dailyLifeCategories.first() }
-
     Dialog(
         onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -275,8 +272,22 @@ fun DailyLifeHubDialog(
                     }
                 }
 
-                // Category Tabs
-                ScrollableTabRow(
+                DailyLifeHubContent(onSpeak = onSpeak)
+            }
+        }
+    }
+}
+
+@Composable
+fun DailyLifeHubContent(
+    onSpeak: (String) -> Unit
+) {
+    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+    val currentCategory = dailyLifeCategories.getOrElse(selectedCategoryIndex) { dailyLifeCategories.first() }
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        // Category Tabs
+        ScrollableTabRow(
                     selectedTabIndex = selectedCategoryIndex,
                     containerColor = Color(0xFFF8FAFC),
                     contentColor = HaneulBlue,
@@ -454,20 +465,9 @@ fun DailyLifeHubDialog(
                         }
                     }
 
-                    // Bottom Dismiss Button
                     item {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Button(
-                            onClick = onDismiss,
-                            colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
-                            shape = RoundedCornerShape(12.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text("Tutup Panduan", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                        }
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-            }
-        }
     }
 }

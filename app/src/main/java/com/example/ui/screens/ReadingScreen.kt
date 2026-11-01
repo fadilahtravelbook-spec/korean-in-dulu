@@ -87,7 +87,9 @@ fun ReadingScreen(
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
     onSaveToVocab: (korean: String, meaning: String) -> Unit,
-    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
+    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit,
+    onNavigateToCustomReader: (() -> Unit)? = null,
+    onNavigateToWpmReading: (() -> Unit)? = null
 ) {
     var selectedStoryIndex by remember { mutableIntStateOf(0) }
     val story = stories.getOrElse(selectedStoryIndex) { stories.firstOrNull() ?: return }
@@ -119,6 +121,59 @@ fun ReadingScreen(
             subtitle = "Karaoke highlight reader, kamus kata & tes reading aloud",
             onBack = onBack
         )
+
+        // Quick Dedicated Screen Action Chips
+        if (onNavigateToCustomReader != null || onNavigateToWpmReading != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(Color.White)
+                    .padding(horizontal = 14.dp, vertical = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (onNavigateToCustomReader != null) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = HaneulContainer,
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onNavigateToCustomReader() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("📑", fontSize = 14.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Pembaca Teks ↗", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = HaneulBlue)
+                        }
+                    }
+                }
+
+                if (onNavigateToWpmReading != null) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEF3C7),
+                        modifier = Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(10.dp))
+                            .clickable { onNavigateToWpmReading() }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text("⚡", fontSize = 14.sp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Tes WPM ↗", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF92400E))
+                        }
+                    }
+                }
+            }
+        }
 
         TabRow(
             selectedTabIndex = activeTab,

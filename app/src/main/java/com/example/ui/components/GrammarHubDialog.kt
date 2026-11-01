@@ -113,6 +113,71 @@ fun GrammarHubDialog(
     onDismiss: () -> Unit,
     onSpeak: (String) -> Unit
 ) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth(0.95f)
+                .fillMaxHeight(0.94f)
+                .clip(RoundedCornerShape(24.dp)),
+            color = Color(0xFFF8FAFC)
+        ) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                // Header Bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(HaneulBlue)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Surface(
+                            shape = CircleShape,
+                            color = NunbitYellow,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Text("문", fontWeight = FontWeight.Black, color = InkBlack, fontSize = 16.sp)
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = "Tata Bahasa & Sistem Angka",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                text = "Sino-Korea, Asli Korea, Partikel & SOV",
+                                fontSize = 11.sp,
+                                color = Color.White.copy(alpha = 0.85f)
+                            )
+                        }
+                    }
+
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.testTag("close_grammar_dialog_button")
+                    ) {
+                        Icon(Icons.Default.Close, contentDescription = "Tutup", tint = Color.White)
+                    }
+                }
+
+                GrammarHubContent(onSpeak = onSpeak)
+            }
+        }
+    }
+}
+
+@Composable
+fun GrammarHubContent(
+    onSpeak: (String) -> Unit
+) {
     // 0: Pola & Partikel, 1: Akhiran Sopan, 2: Sistem Angka (숫자), 3: Kuis Cepat ⚡
     var selectedSection by remember { mutableIntStateOf(0) }
 
@@ -293,60 +358,7 @@ fun GrammarHubDialog(
         )
     }
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth(0.95f)
-                .fillMaxHeight(0.94f)
-                .clip(RoundedCornerShape(24.dp)),
-            color = Color(0xFFF8FAFC)
-        ) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                // Header Bar
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(HaneulBlue)
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Surface(
-                            shape = CircleShape,
-                            color = NunbitYellow,
-                            modifier = Modifier.size(36.dp)
-                        ) {
-                            Box(contentAlignment = Alignment.Center) {
-                                Text("문", fontWeight = FontWeight.Black, color = InkBlack, fontSize = 16.sp)
-                            }
-                        }
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Column {
-                            Text(
-                                text = "Tata Bahasa & Sistem Angka",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 15.sp,
-                                color = Color.White
-                            )
-                            Text(
-                                text = "Sino-Korea, Asli Korea, Partikel & SOV",
-                                fontSize = 11.sp,
-                                color = Color.White.copy(alpha = 0.85f)
-                            )
-                        }
-                    }
-
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.testTag("close_grammar_dialog_button")
-                    ) {
-                        Icon(Icons.Default.Close, contentDescription = "Tutup", tint = Color.White)
-                    }
-                }
+    Column(modifier = Modifier.fillMaxSize()) {
 
                 // Tab Selector
                 TabRow(
@@ -1011,8 +1023,6 @@ fun GrammarHubDialog(
                                     ) {
                                         Text("Coba Lagi", fontWeight = FontWeight.Bold)
                                     }
-                                }
-                            }
                         }
                     }
                 }

@@ -42,15 +42,29 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.MainViewModel
+import com.example.ui.screens.AddCustomVocabScreen
+import com.example.ui.screens.BatchimGuideScreen
+import com.example.ui.screens.CustomTextReaderScreen
+import com.example.ui.screens.DailyLifeHubScreen
+import com.example.ui.screens.GrammarHubScreen
 import com.example.ui.screens.HangulIntroScreen
+import com.example.ui.screens.HangulLetterDetailScreen
 import com.example.ui.screens.HomeScreen
+import com.example.ui.screens.KeyboardChallengeScreen
+import com.example.ui.screens.KoreanDocumentScreen
 import com.example.ui.screens.ListeningScreen
 import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.ProfileScreen
 import com.example.ui.screens.ReadingScreen
+import com.example.ui.screens.RolePlayScreen
 import com.example.ui.screens.SpeakingScreen
+import com.example.ui.screens.StatsDetailScreen
+import com.example.ui.screens.SyllableCombineScreen
 import com.example.ui.screens.VideoImmersionScreen
+import com.example.ui.screens.VocabMatchingGameScreen
 import com.example.ui.screens.VocabularyScreen
+import com.example.ui.screens.WordPracticeScreen
+import com.example.ui.screens.WpmSpeedReadingScreen
 import com.example.ui.screens.WritingScreen
 import com.example.ui.theme.HaneulBlue
 import com.example.ui.theme.HaneulContainer
@@ -76,6 +90,7 @@ class MainActivity : ComponentActivity() {
                 // Current Screen route state
                 var currentScreen by remember { mutableStateOf("home") }
                 var initialWritingLetter by remember { mutableStateOf<String?>(null) }
+                var selectedDetailCharacter by remember { mutableStateOf("ㅏ") }
 
                 // Check if user profile is ready or onboarding is needed
                 val currentProfile = profile
@@ -216,6 +231,10 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onAddXp = { xp ->
                                             viewModel.addXp(xp)
+                                        },
+                                        onNavigateToDetail = { char ->
+                                            selectedDetailCharacter = char
+                                            currentScreen = "hangul_letter_detail"
                                         }
                                     )
                                 }
@@ -236,6 +255,21 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onNavigateToHangulIntro = {
                                             currentScreen = "hangul_intro"
+                                        },
+                                        onNavigateToDocuments = {
+                                            currentScreen = "korean_documents"
+                                        },
+                                        onNavigateToWordPractice = {
+                                            currentScreen = "word_practice"
+                                        },
+                                        onNavigateToKeyboardChallenge = {
+                                            currentScreen = "keyboard_challenge"
+                                        },
+                                        onNavigateToSyllableCombine = {
+                                            currentScreen = "syllable_combine"
+                                        },
+                                        onNavigateToBatchim = {
+                                            currentScreen = "batchim_guide"
                                         }
                                     )
                                 }
@@ -249,6 +283,9 @@ class MainActivity : ComponentActivity() {
                                         onSpeakWithSpeed = { text, speed -> viewModel.speak(text, speed) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
+                                        },
+                                        onNavigateToRolePlay = {
+                                            currentScreen = "role_play"
                                         }
                                     )
                                 }
@@ -280,6 +317,12 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onAddXp = { xp ->
                                             viewModel.addXp(xp)
+                                        },
+                                        onNavigateToAddVocab = {
+                                            currentScreen = "add_custom_vocab"
+                                        },
+                                        onNavigateToGame = {
+                                            currentScreen = "vocab_matching_game"
                                         }
                                     )
                                 }
@@ -294,6 +337,12 @@ class MainActivity : ComponentActivity() {
                                         },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
+                                        },
+                                        onNavigateToCustomReader = {
+                                            currentScreen = "custom_reader"
+                                        },
+                                        onNavigateToWpmReading = {
+                                            currentScreen = "wpm_reading"
                                         }
                                     )
                                 }
@@ -332,6 +381,159 @@ class MainActivity : ComponentActivity() {
                                         onResetOnboarding = {
                                             viewModel.resetOnboarding()
                                         }
+                                    )
+                                }
+
+                                "korean_documents" -> {
+                                    KoreanDocumentScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onAddXp = { xp -> viewModel.addXp(xp) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "word_practice" -> {
+                                    WordPracticeScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onAddXp = { xp -> viewModel.addXp(xp) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "keyboard_challenge" -> {
+                                    KeyboardChallengeScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onAddXp = { xp -> viewModel.addXp(xp) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "batchim_guide" -> {
+                                    BatchimGuideScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "syllable_combine" -> {
+                                    SyllableCombineScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text, speed -> viewModel.speak(text, speed) },
+                                        onStopSpeak = { viewModel.stopSpeaking() },
+                                        onAddXp = { xp -> viewModel.addXp(xp) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "grammar_hub" -> {
+                                    GrammarHubScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onStopSpeak = { viewModel.stopSpeaking() }
+                                    )
+                                }
+
+                                "daily_life_hub" -> {
+                                    DailyLifeHubScreen(
+                                        onBack = { currentScreen = "home" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onStopSpeak = { viewModel.stopSpeaking() }
+                                    )
+                                }
+
+                                "hangul_letter_detail" -> {
+                                    HangulLetterDetailScreen(
+                                        character = selectedDetailCharacter,
+                                        onBack = { currentScreen = "hangul_intro" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onNavigateToWriting = { char ->
+                                            initialWritingLetter = char
+                                            currentScreen = "writing"
+                                        }
+                                    )
+                                }
+
+                                "role_play" -> {
+                                    RolePlayScreen(
+                                        rolePlaySteps = viewModel.repository.rolePlaySteps,
+                                        onBack = { currentScreen = "speaking" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onSpeakWithSpeed = { text, speed -> viewModel.speak(text, speed) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "add_custom_vocab" -> {
+                                    AddCustomVocabScreen(
+                                        onBack = { currentScreen = "vocab" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onAddCustomVocab = { ko, meaning, category ->
+                                            viewModel.addCustomVocabCard(ko, meaning, category)
+                                            currentScreen = "vocab"
+                                        },
+                                        onAddXp = { xp -> viewModel.addXp(xp) }
+                                    )
+                                }
+
+                                "vocab_matching_game" -> {
+                                    VocabMatchingGameScreen(
+                                        cards = vocabList,
+                                        onBack = { currentScreen = "vocab" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onRewardXp = { xp -> viewModel.addXp(xp) }
+                                    )
+                                }
+
+                                "custom_reader" -> {
+                                    CustomTextReaderScreen(
+                                        onBack = { currentScreen = "reading" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onSaveToVocab = { ko, idMeaning ->
+                                            viewModel.addCustomVocabCard(ko, idMeaning, "Kustom")
+                                        }
+                                    )
+                                }
+
+                                "wpm_reading" -> {
+                                    WpmSpeedReadingScreen(
+                                        stories = viewModel.repository.readingStories,
+                                        onBack = { currentScreen = "reading" },
+                                        onSpeak = { text -> viewModel.speak(text) },
+                                        onRecordProgress = { mod, lesson, title, score ->
+                                            viewModel.recordProgress(mod, lesson, title, score)
+                                        }
+                                    )
+                                }
+
+                                "stats_detail" -> {
+                                    StatsDetailScreen(
+                                        streak = profile?.streak ?: 1,
+                                        xp = profile?.xp ?: 100,
+                                        level = profile?.level ?: 1,
+                                        completedLessons = completedCount,
+                                        onBack = { currentScreen = "home" },
+                                        onNavigateToProfile = { currentScreen = "profile" },
+                                        onUseStreakFreeze = { /* freeze logic */ }
                                     )
                                 }
 

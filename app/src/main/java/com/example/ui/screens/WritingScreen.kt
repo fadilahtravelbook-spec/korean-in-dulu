@@ -116,14 +116,13 @@ fun WritingScreen(
     onStopSpeak: () -> Unit = {},
     onAddXp: (Int) -> Unit = {},
     onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit,
-    onNavigateToHangulIntro: (() -> Unit)? = null
+    onNavigateToHangulIntro: (() -> Unit)? = null,
+    onNavigateToDocuments: (() -> Unit)? = null,
+    onNavigateToWordPractice: (() -> Unit)? = null,
+    onNavigateToKeyboardChallenge: (() -> Unit)? = null,
+    onNavigateToSyllableCombine: (() -> Unit)? = null,
+    onNavigateToBatchim: (() -> Unit)? = null
 ) {
-    // Mode Utama Menulis:
-    // 0: Coretan Huruf (Stroke Order & Auto-play Berurutan)
-    // 1: Gabung Suku Kata (Choseong + Jungseong + Jongseong)
-    // 2: Kata Dasar (Praktik menulis kata bermakna)
-    // 3: Kuis Dikte (Blind Test pendengaran & menulis)
-    // 4: Aturan Batchim (Konsonan Akhir)
     var mainWritingTab by remember { mutableIntStateOf(0) }
 
     // Global Audio Speed: 0.6x (Sangat Jelas), 0.8x (Santai), 1.0x (Normal), 1.2x (Cepat)
@@ -143,7 +142,7 @@ fun WritingScreen(
         // App Header
         AppSubHeader(
             title = "Ketik & Latihan Hangul (한글 타자 & 쓰기)",
-            subtitle = "Latihan ketik 2-Beol-Sik, susun suku kata, kuis dikte audio & aturan batchim",
+            subtitle = "Latihan ketik 2-Beol-Sik, coretan huruf, dan kuis dikte audio Hangul",
             onBack = onBack,
             trailingAction = if (onNavigateToHangulIntro != null) {
                 {
@@ -168,6 +167,163 @@ fun WritingScreen(
             } else null
         )
 
+        // Pintasan Cepat ke Halaman Khusus Mandiri (Tidak Bertumpuk)
+        Surface(
+            color = Color.White,
+            tonalElevation = 1.dp,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 2.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "🚀 Buka Halaman Khusus Mandiri:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = InkBlack
+                    )
+                    Text(
+                        text = "Responsif & Luas",
+                        fontSize = 10.sp,
+                        color = HaneulBlue,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    contentPadding = PaddingValues(horizontal = 14.dp)
+                ) {
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFEFF6FF),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(Color(0xFF93C5FD))
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    if (onNavigateToDocuments != null) onNavigateToDocuments()
+                                    else mainWritingTab = 4
+                                }
+                                .testTag("quick_link_to_documents")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("📜 Dokumen & Surat", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1D4ED8))
+                            }
+                        }
+                    }
+
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFF0FDF4),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(Color(0xFF86EFAC))
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    if (onNavigateToWordPractice != null) onNavigateToWordPractice()
+                                    else mainWritingTab = 3
+                                }
+                                .testTag("quick_link_to_word_practice")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("📖 Kata Dasar Bergambar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF15803D))
+                            }
+                        }
+                    }
+
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFFFBEB),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCD34D))
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    if (onNavigateToKeyboardChallenge != null) onNavigateToKeyboardChallenge()
+                                    else mainWritingTab = 1
+                                }
+                                .testTag("quick_link_to_keyboard")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("⌨️ Tantangan Ketik 2-Beol-Sik", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB45309))
+                            }
+                        }
+                    }
+
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFAF5FF),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFD8B4FE))
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    if (onNavigateToSyllableCombine != null) onNavigateToSyllableCombine()
+                                    else mainWritingTab = 2
+                                }
+                                .testTag("quick_link_to_syllables")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("🧩 Gabung Suku Kata", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFF7E22CE))
+                            }
+                        }
+                    }
+
+                    item {
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color(0xFFFEF2F2),
+                            border = CardDefaults.outlinedCardBorder().copy(
+                                brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCA5A5))
+                            ),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .clickable {
+                                    if (onNavigateToBatchim != null) onNavigateToBatchim()
+                                    else mainWritingTab = 6
+                                }
+                                .testTag("quick_link_to_batchim")
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("📚 Aturan Batchim", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color(0xFFB91C1C))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         // Tab Navigasi Fitur Utama
         ScrollableTabRow(
             selectedTabIndex = mainWritingTab,
@@ -190,7 +346,19 @@ fun WritingScreen(
                     selected = mainWritingTab == idx,
                     onClick = {
                         onStopSpeak()
-                        mainWritingTab = idx
+                        if (idx == 4 && onNavigateToDocuments != null) {
+                            onNavigateToDocuments()
+                        } else if (idx == 3 && onNavigateToWordPractice != null) {
+                            onNavigateToWordPractice()
+                        } else if (idx == 1 && onNavigateToKeyboardChallenge != null) {
+                            onNavigateToKeyboardChallenge()
+                        } else if (idx == 2 && onNavigateToSyllableCombine != null) {
+                            onNavigateToSyllableCombine()
+                        } else if (idx == 6 && onNavigateToBatchim != null) {
+                            onNavigateToBatchim()
+                        } else {
+                            mainWritingTab = idx
+                        }
                     },
                     text = {
                         Text(

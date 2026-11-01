@@ -111,7 +111,8 @@ fun SpeakingScreen(
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
     onSpeakWithSpeed: ((String, Float) -> Unit)? = null,
-    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit
+    onRecordProgress: (moduleId: String, lessonId: String, title: String, score: Int) -> Unit,
+    onNavigateToRolePlay: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val speechHelper = remember { SpeechRecognitionHelper(context) }
@@ -250,6 +251,34 @@ fun SpeakingScreen(
             subtitle = "Latihan pelafalan suara, perkenalan diri, dan role-play",
             onBack = onBack
         )
+
+        if (onNavigateToRolePlay != null) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = HaneulContainer,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 6.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable { onNavigateToRolePlay() }
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text("🎭", fontSize = 18.sp)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Column {
+                            Text("Buka Layar Penuh Role-Play Hannie ↗", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = HaneulBlue)
+                            Text("Simulasi percakapan interaktif bebas tumpang-tindih", fontSize = 10.sp, color = TextSecondary)
+                        }
+                    }
+                    Text("Mulai ↗", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = HaneulBlue)
+                }
+            }
+        }
 
         TabRow(
             selectedTabIndex = mainTab,

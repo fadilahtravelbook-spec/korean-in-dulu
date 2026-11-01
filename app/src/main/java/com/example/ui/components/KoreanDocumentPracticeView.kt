@@ -161,8 +161,8 @@ fun KoreanDocumentPracticeView(
             .background(Color(0xFFF8FAFC))
     ) {
         if (currentSubTab == 1) {
-            // Mode Latihan Ketik: Header Dokumen Ringkas agar Layar Keyboard & Kalimat Tidak Terpotong
-            var showDocPickerModal by remember { mutableStateOf(false) }
+            // Mode Latihan Ketik: Header Dokumen Ringkas dengan Selektor Dokumen Inline Bebas Tumpang Tindih
+            var isDocSelectorExpanded by remember { mutableStateOf(false) }
 
             Surface(
                 color = Color.White,
@@ -172,110 +172,115 @@ fun KoreanDocumentPracticeView(
                     .fillMaxWidth()
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
+                Column(modifier = Modifier.padding(10.dp)) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Surface(
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(8.dp),
+                                color = HaneulContainer,
+                                modifier = Modifier.padding(end = 8.dp)
+                            ) {
+                                Text(currentDoc.iconEmoji, fontSize = 20.sp, modifier = Modifier.padding(4.dp))
+                            }
+                            Column {
+                                Text(
+                                    text = currentDoc.titleKo,
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = InkBlack,
+                                    maxLines = 1
+                                )
+                                Text(
+                                    text = "${currentDoc.titleId} • ${currentDoc.categoryBadge}",
+                                    fontSize = 10.sp,
+                                    color = TextSecondary,
+                                    maxLines = 1
+                                )
+                            }
+                        }
+
+                        OutlinedButton(
+                            onClick = { isDocSelectorExpanded = !isDocSelectorExpanded },
                             shape = RoundedCornerShape(8.dp),
-                            color = HaneulContainer,
-                            modifier = Modifier.padding(end = 8.dp)
+                            contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
+                            modifier = Modifier.height(32.dp)
                         ) {
-                            Text(currentDoc.iconEmoji, fontSize = 20.sp, modifier = Modifier.padding(4.dp))
-                        }
-                        Column {
+                            Icon(Icons.Default.List, contentDescription = null, modifier = Modifier.size(13.dp), tint = HaneulBlue)
+                            Spacer(modifier = Modifier.width(3.dp))
                             Text(
-                                text = currentDoc.titleKo,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = InkBlack,
-                                maxLines = 1
-                            )
-                            Text(
-                                text = "${currentDoc.titleId} • ${currentDoc.categoryBadge}",
+                                text = if (isDocSelectorExpanded) "Tutup" else "Ganti Dokumen",
                                 fontSize = 10.sp,
-                                color = TextSecondary,
-                                maxLines = 1
+                                color = HaneulBlue,
+                                fontWeight = FontWeight.Bold
                             )
                         }
                     }
 
-                    OutlinedButton(
-                        onClick = { showDocPickerModal = true },
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
-                        modifier = Modifier.height(32.dp)
-                    ) {
-                        Icon(Icons.Default.List, contentDescription = null, modifier = Modifier.size(13.dp), tint = HaneulBlue)
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text("Pilih Dokumen", fontSize = 10.sp, color = HaneulBlue, fontWeight = FontWeight.Bold)
-                    }
-                }
-            }
-
-            if (showDocPickerModal) {
-                AlertDialog(
-                    onDismissRequest = { showDocPickerModal = false },
-                    title = {
-                        Text("Pilih Dokumen untuk Latihan Ketik", fontWeight = FontWeight.Bold, fontSize = 15.sp)
-                    },
-                    text = {
-                        LazyColumn(
-                            verticalArrangement = Arrangement.spacedBy(6.dp),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(max = 350.dp)
-                        ) {
-                            items(documents) { docItem ->
-                                val isSelected = docItem.id == currentDoc.id
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) HaneulContainer else Color(0xFFF8FAFC),
-                                    border = CardDefaults.outlinedCardBorder().copy(
-                                        brush = Brush.horizontalGradient(
-                                            if (isSelected) listOf(HaneulBlue, HaneulBlue)
-                                            else listOf(Color(0xFFE2E8F0), Color(0xFFE2E8F0))
-                                        )
-                                    ),
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clip(RoundedCornerShape(10.dp))
-                                        .clickable {
-                                            selectedDocId = docItem.id
-                                            showDocPickerModal = false
-                                        }
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(10.dp),
-                                        verticalAlignment = Alignment.CenterVertically
+                    // Inline Expandable Document Selector
+                    AnimatedVisibility(visible = isDocSelectorExpanded) {
+                        Column(modifier = Modifier.padding(top = 10.dp)) {
+                            Text(
+                                text = "PILIH DOKUMEN:",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextSecondary,
+                                modifier = Modifier.padding(bottom = 6.dp)
+                            )
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(documents) { docItem ->
+                                    val isSelected = docItem.id == currentDoc.id
+                                    Surface(
+                                        shape = RoundedCornerShape(10.dp),
+                                        color = if (isSelected) HaneulContainer else Color(0xFFF8FAFC),
+                                        border = CardDefaults.outlinedCardBorder().copy(
+                                            brush = Brush.horizontalGradient(
+                                                if (isSelected) listOf(HaneulBlue, HaneulBlue)
+                                                else listOf(Color(0xFFE2E8F0), Color(0xFFE2E8F0))
+                                            )
+                                        ),
+                                        modifier = Modifier
+                                            .clip(RoundedCornerShape(10.dp))
+                                            .clickable {
+                                                selectedDocId = docItem.id
+                                                isDocSelectorExpanded = false
+                                            }
                                     ) {
-                                        Text(docItem.iconEmoji, fontSize = 20.sp)
-                                        Spacer(modifier = Modifier.width(10.dp))
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(docItem.titleKo, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = InkBlack)
-                                            Text(docItem.titleId, fontSize = 10.sp, color = TextSecondary)
-                                        }
-                                        if (isSelected) {
-                                            Icon(Icons.Default.Check, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(18.dp))
+                                        Row(
+                                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(docItem.iconEmoji, fontSize = 16.sp)
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Column {
+                                                Text(
+                                                    text = docItem.titleKo,
+                                                    fontSize = 11.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = if (isSelected) HaneulBlue else InkBlack
+                                                )
+                                                Text(
+                                                    text = docItem.titleId,
+                                                    fontSize = 9.sp,
+                                                    color = TextSecondary
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { showDocPickerModal = false }) {
-                            Text("Tutup", fontWeight = FontWeight.Bold, color = HaneulBlue)
-                        }
                     }
-                )
+                }
             }
         } else {
             // Filter Kategori Dokumen (Sub-Tab Baca & Tulis Sendiri)

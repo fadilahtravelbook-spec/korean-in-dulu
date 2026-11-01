@@ -28,6 +28,7 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Headphones
@@ -72,8 +73,6 @@ import androidx.compose.ui.unit.sp
 import com.example.R
 import com.example.data.model.DailyChallengeItem
 import com.example.data.model.UserProfile
-import com.example.ui.components.DailyLifeHubDialog
-import com.example.ui.components.GrammarHubDialog
 import com.example.ui.components.HannieMascotCard
 import com.example.ui.components.TopStatBar
 import com.example.ui.theme.HaneulBlue
@@ -106,22 +105,6 @@ fun HomeScreen(
     val dailyGoal = userProfile?.dailyGoalMinutes?.takeIf { it > 0 } ?: 15
     val goalProgress = (learningMinutes.toFloat() / dailyGoal.toFloat()).coerceIn(0f, 1f)
 
-    var showGrammarHub by remember { mutableStateOf(false) }
-    var showDailyLifeHub by remember { mutableStateOf(false) }
-
-    if (showGrammarHub) {
-        GrammarHubDialog(
-            onDismiss = { showGrammarHub = false },
-            onSpeak = onSpeak
-        )
-    }
-
-    if (showDailyLifeHub) {
-        DailyLifeHubDialog(
-            onDismiss = { showDailyLifeHub = false },
-            onSpeak = onSpeak
-        )
-    }
 
     val levelTitle = when (level) {
         3 -> "Level 3: Menengah (중급)"
@@ -157,7 +140,8 @@ fun HomeScreen(
             streak = streak,
             xp = xp,
             level = level,
-            onProfileClick = onNavigateToProfile
+            onProfileClick = onNavigateToProfile,
+            onOpenStatsDetail = { onNavigateToModule("stats_detail") }
         )
 
         Box(
@@ -780,7 +764,7 @@ fun HomeScreen(
                                 color = HaneulContainer
                             ) {
                                 Text(
-                                    text = "6 Modul",
+                                    text = "11 Modul Khusus",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = HaneulBlue,
@@ -797,25 +781,80 @@ fun HomeScreen(
                     }
                 }
 
-                // 9. Grid 6 Modul Utama (2 Kolom)
+                // 9. Grid Modul Utama (2 Kolom)
                 item {
                     val modules = listOf(
                         ModuleItem(
+                            id = "korean_documents",
+                            title = "Dokumen & Surat",
+                            korean = "한국 문서 & 편지",
+                            desc = "Format asli surat pribadi, CV kerja, formulir resmi & pesan instan",
+                            icon = Icons.Default.Description,
+                            badgeColor = Color(0xFF1D4ED8),
+                            badgeBg = Color(0xFFDBEAFE),
+                            tag = "📜 Dokumen Asli",
+                            gradientStart = Color(0xFFEFF6FF)
+                        ),
+                        ModuleItem(
+                            id = "word_practice",
+                            title = "Kata Dasar",
+                            korean = "기초 단어 쓰기",
+                            desc = "Latihan menulis kata bergambar: makanan, benda, hewan & emosi",
+                            icon = Icons.Default.Edit,
+                            badgeColor = Color(0xFF047857),
+                            badgeBg = Color(0xFFD1FAE5),
+                            tag = "📖 Kata Bergambar",
+                            gradientStart = Color(0xFFECFDF5)
+                        ),
+                        ModuleItem(
+                            id = "keyboard_challenge",
+                            title = "Tantangan Ketik",
+                            korean = "2벌식 타자 연습",
+                            desc = "Latih kecepatan keyboard 2-Beol-Sik, WPM & posisi jari",
+                            icon = Icons.Default.Keyboard,
+                            badgeColor = Color(0xFFB45309),
+                            badgeBg = Color(0xFFFEF3C7),
+                            tag = "⌨️ WPM & Akurasi",
+                            gradientStart = Color(0xFFFFFBEB)
+                        ),
+                        ModuleItem(
+                            id = "batchim_guide",
+                            title = "Aturan Batchim",
+                            korean = "받침 법칙 & 연음화",
+                            desc = "7 bunyi pokok konsonan akhir & hukum peluluhan suara",
+                            icon = Icons.Default.School,
+                            badgeColor = Color(0xFFDC2626),
+                            badgeBg = Color(0xFFFEE2E2),
+                            tag = "📚 7 Bunyi Pokok",
+                            gradientStart = Color(0xFFFEF2F2)
+                        ),
+                        ModuleItem(
+                            id = "syllable_combine",
+                            title = "Rakit Suku Kata",
+                            korean = "음절 조합 원리",
+                            desc = "Susun balok Hangul: Choseong, Jungseong & Jongseong",
+                            icon = Icons.Default.AutoAwesome,
+                            badgeColor = Color(0xFF7E22CE),
+                            badgeBg = Color(0xFFEDE9FE),
+                            tag = "🧩 Balok Huruf",
+                            gradientStart = Color(0xFFFAF5FF)
+                        ),
+                        ModuleItem(
                             id = "writing",
-                            title = "Ketik & Dokumen",
-                            korean = "한글 타자 & 문서 쓰기",
-                            desc = "Ketik huruf, suku kata, surat (편지), chat KakaoTalk & dokumen Korea asli",
+                            title = "Coretan & Dikte",
+                            korean = "한글 획순 & 받아쓰기",
+                            desc = "Stroke order animasi, coretan kanvas & blind quiz dikte audio",
                             icon = Icons.Default.Keyboard,
                             badgeColor = Color(0xFF2563EB),
                             badgeBg = Color(0xFFDBEAFE),
-                            tag = "📜 Surat & Dokumen",
+                            tag = "✍️ Stroke Order",
                             gradientStart = Color(0xFFEFF6FF)
                         ),
                         ModuleItem(
                             id = "speaking",
                             title = "Berbicara",
                             korean = "말하기 연습",
-                            desc = "Role-play percakapan nyata & evaluasi suara",
+                            desc = "Role-play percakapan nyata & evaluasi suara interaktif",
                             icon = Icons.Default.Mic,
                             badgeColor = Color(0xFFD97706),
                             badgeBg = Color(0xFFFEF3C7),
@@ -826,7 +865,7 @@ fun HomeScreen(
                             id = "listening",
                             title = "Mendengar",
                             korean = "듣기 퀴즈",
-                            desc = "Audio kuis, speed control & keypad",
+                            desc = "Audio kuis, speed control, telinga Korea & keypad",
                             icon = Icons.Default.Headphones,
                             badgeColor = Color(0xFF059669),
                             badgeBg = Color(0xFFD1FAE5),
@@ -904,7 +943,7 @@ fun HomeScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showGrammarHub = true }
+                            .clickable { onNavigateToModule("grammar_hub") }
                             .testTag("open_grammar_hub_card")
                     ) {
                         Box(
@@ -1012,7 +1051,7 @@ fun HomeScreen(
                         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { showDailyLifeHub = true }
+                            .clickable { onNavigateToModule("daily_life_hub") }
                             .testTag("open_daily_life_hub_card")
                     ) {
                         Box(

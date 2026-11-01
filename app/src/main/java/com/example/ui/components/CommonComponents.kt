@@ -69,7 +69,8 @@ fun TopStatBar(
     xp: Int,
     level: Int,
     onProfileClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenStatsDetail: (() -> Unit)? = null
 ) {
     var showStreakDialog by remember { mutableStateOf(false) }
     var showXpDialog by remember { mutableStateOf(false) }
@@ -129,7 +130,9 @@ fun TopStatBar(
                     ),
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .clickable { showStreakDialog = true }
+                        .clickable {
+                            if (onOpenStatsDetail != null) onOpenStatsDetail() else showStreakDialog = true
+                        }
                         .testTag("streak_badge")
                 ) {
                     Row(
@@ -160,7 +163,9 @@ fun TopStatBar(
                     color = NunbitYellowContainer,
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .clickable { showXpDialog = true }
+                        .clickable {
+                            if (onOpenStatsDetail != null) onOpenStatsDetail() else showXpDialog = true
+                        }
                         .testTag("xp_badge")
                 ) {
                     Row(

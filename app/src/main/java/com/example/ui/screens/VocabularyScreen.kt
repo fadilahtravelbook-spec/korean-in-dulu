@@ -93,7 +93,9 @@ fun VocabularyScreen(
     onSubmitSrs: (card: VocabCard, rating: Int) -> Unit,
     onToggleBookmark: (cardId: String) -> Unit,
     onAddCustomVocab: ((korean: String, meaning: String, category: String) -> Unit)? = null,
-    onAddXp: ((Int) -> Unit)? = null
+    onAddXp: ((Int) -> Unit)? = null,
+    onNavigateToAddVocab: (() -> Unit)? = null,
+    onNavigateToGame: (() -> Unit)? = null
 ) {
     var selectedTab by remember { mutableIntStateOf(0) } // 0: Flashcard SRS, 1: Daftar Kosakata, 2: Game Cocokkan Kata, 3: Latihan Ketik
     var selectedTypingIndex by remember { mutableIntStateOf(0) }
@@ -204,7 +206,13 @@ fun VocabularyScreen(
         floatingActionButton = {
             if (selectedTab == 1 && onAddCustomVocab != null) {
                 FloatingActionButton(
-                    onClick = { showAddDialog = true },
+                    onClick = {
+                        if (onNavigateToAddVocab != null) {
+                            onNavigateToAddVocab()
+                        } else {
+                            showAddDialog = true
+                        }
+                    },
                     containerColor = HaneulBlue,
                     contentColor = Color.White,
                     shape = CircleShape,
@@ -293,11 +301,40 @@ fun VocabularyScreen(
                     )
                 }
                 2 -> {
-                    VocabMatchingGameView(
-                        cards = vocabList,
-                        onSpeak = onSpeak,
-                        onRewardXp = onAddXp
-                    )
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        if (onNavigateToGame != null) {
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = HaneulContainer,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .clickable { onNavigateToGame() }
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Text("🎮", fontSize = 20.sp)
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Column {
+                                            Text("Buka Layar Penuh (Timer & Combo)", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = HaneulBlue)
+                                            Text("Mode tantangan berwaktu dengan filter kategori kata", fontSize = 10.sp, color = TextSecondary)
+                                        }
+                                    }
+                                    Text("Buka ↗", fontWeight = FontWeight.Bold, fontSize = 12.sp, color = HaneulBlue)
+                                }
+                            }
+                        }
+                        VocabMatchingGameView(
+                            cards = vocabList,
+                            onSpeak = onSpeak,
+                            onRewardXp = onAddXp
+                        )
+                    }
                 }
                 3 -> {
                     VocabKeyboardTypingView(

@@ -229,6 +229,7 @@ fun HangulIntroScreen(
     onBack: () -> Unit,
     onSpeak: (String) -> Unit,
     onNavigateToWriting: ((String) -> Unit)? = null,
+    onNavigateToDetail: ((String) -> Unit)? = null,
     onAddXp: ((Int) -> Unit)? = null
 ) {
     // 0: Katalog, 1: Kombinasi Blok, 2: Latihan Deck, 3: Kuis
@@ -242,6 +243,14 @@ fun HangulIntroScreen(
 
     // Detail dialog item
     var detailDialogLetter by remember { mutableStateOf<HangulFlashcardItem?>(null) }
+
+    val handleOpenDetail: (HangulFlashcardItem) -> Unit = { item ->
+        if (onNavigateToDetail != null) {
+            onNavigateToDetail(item.character)
+        } else {
+            detailDialogLetter = item
+        }
+    }
 
     // Filtered letters list
     val filteredLetters = remember(selectedCategoryIndex, searchQuery) {
@@ -490,7 +499,7 @@ fun HangulIntroScreen(
                                         item = filteredLetters[i],
                                         showRomanization = showRomanization,
                                         onSpeak = onSpeak,
-                                        onOpenDetail = { detailDialogLetter = it },
+                                        onOpenDetail = handleOpenDetail,
                                         modifier = Modifier.weight(1f)
                                     )
                                     if (i + 1 < filteredLetters.size) {
@@ -498,7 +507,7 @@ fun HangulIntroScreen(
                                             item = filteredLetters[i + 1],
                                             showRomanization = showRomanization,
                                             onSpeak = onSpeak,
-                                            onOpenDetail = { detailDialogLetter = it },
+                                            onOpenDetail = handleOpenDetail,
                                             modifier = Modifier.weight(1f)
                                         )
                                     } else {
@@ -563,7 +572,7 @@ fun HangulIntroScreen(
                         isDeckFlipped = false
                     },
                     onSpeak = onSpeak,
-                    onOpenDetail = { detailDialogLetter = it }
+                    onOpenDetail = handleOpenDetail
                 )
             }
 
