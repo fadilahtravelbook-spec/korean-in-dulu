@@ -49,6 +49,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,6 +73,7 @@ import com.example.ui.theme.SarangRed
 import com.example.ui.theme.TextMuted
 import com.example.ui.theme.TextSecondary
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun VocabMatchingGameScreen(
@@ -107,7 +109,8 @@ fun VocabMatchingGameScreen(
     var maxCombo by remember(roundSeed, selectedCategory) { mutableIntStateOf(0) }
     var elapsedSeconds by remember(roundSeed, selectedCategory) { mutableIntStateOf(0) }
     var hasCompletedRound by remember(roundSeed, selectedCategory) { mutableStateOf(false) }
-    var wrongAttemptAnimation by remember { mutableStateOf(false) }
+    var wrongPair by remember(roundSeed, selectedCategory) { mutableStateOf<Pair<String, String>?>(null) }
+    val coroutineScope = rememberCoroutineScope()
 
     // Timer loop while game is active
     LaunchedEffect(roundSeed, selectedCategory, hasCompletedRound) {
@@ -376,12 +379,13 @@ fun VocabMatchingGameScreen(
                         activeRoundCards.forEach { card ->
                             val isMatched = matchedIds.contains(card.id)
                             val isSelected = selectedKoreanId == card.id
+                            val isWrong = wrongPair?.first == card.id
 
                             val bgColor by animateColorAsState(
                                 targetValue = when {
                                     isMatched -> Color(0xFFDCFCE7)
+                                    isWrong -> Color(0xFFFEE2E2)
                                     isSelected -> HaneulContainer
-                                    wrongAttemptAnimation && isSelected -> Color(0xFFFEE2E2)
                                     else -> Color.White
                                 },
                                 animationSpec = tween(200)
@@ -389,6 +393,7 @@ fun VocabMatchingGameScreen(
 
                             val borderColor = when {
                                 isMatched -> SaessakGreen
+                                isWrong -> SarangRed
                                 isSelected -> HaneulBlue
                                 else -> Color(0xFFCBD5E1)
                             }
@@ -398,9 +403,9 @@ fun VocabMatchingGameScreen(
                                 colors = CardDefaults.cardColors(containerColor = bgColor),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(if (isSelected || isMatched) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
+                                    .border(if (isSelected || isMatched || isWrong) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
                                     .clip(RoundedCornerShape(14.dp))
-                                    .clickable(enabled = !isMatched) {
+                                    .clickable(enabled = !isMatched && wrongPair == null) {
                                         onSpeak(card.korean)
                                         if (selectedMeaningId != null) {
                                             // Check match
@@ -411,10 +416,15 @@ fun VocabMatchingGameScreen(
                                                 selectedKoreanId = null
                                                 selectedMeaningId = null
                                             } else {
+                                                val wrongMeaning = selectedMeaningId ?: ""
                                                 comboStreak = 0
-                                                wrongAttemptAnimation = true
+                                                wrongPair = Pair(card.id, wrongMeaning)
                                                 selectedKoreanId = null
                                                 selectedMeaningId = null
+                                                coroutineScope.launch {
+                                                    delay(450L)
+                                                    wrongPair = null
+                                                }
                                             }
                                         } else {
                                             selectedKoreanId = card.id
@@ -471,10 +481,12 @@ fun VocabMatchingGameScreen(
                         shuffledMeanings.forEach { card ->
                             val isMatched = matchedIds.contains(card.id)
                             val isSelected = selectedMeaningId == card.id
+                            val isWrong = wrongPair?.second == card.id
 
                             val bgColor by animateColorAsState(
                                 targetValue = when {
                                     isMatched -> Color(0xFFDCFCE7)
+                                    isWrong -> Color(0xFFFEE2E2)
                                     isSelected -> Color(0xFFFFEDD5)
                                     else -> Color.White
                                 },
@@ -483,6 +495,7 @@ fun VocabMatchingGameScreen(
 
                             val borderColor = when {
                                 isMatched -> SaessakGreen
+                                isWrong -> SarangRed
                                 isSelected -> Color(0xFFF97316)
                                 else -> Color(0xFFCBD5E1)
                             }
@@ -492,9 +505,9 @@ fun VocabMatchingGameScreen(
                                 colors = CardDefaults.cardColors(containerColor = bgColor),
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .border(if (isSelected || isMatched) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
+                                    .border(if (isSelected || isMatched || isWrong) 2.dp else 1.dp, borderColor, RoundedCornerShape(14.dp))
                                     .clip(RoundedCornerShape(14.dp))
-                                    .clickable(enabled = !isMatched) {
+                                    .clickable(enabled = !isMatched && wrongPair == null) {
                                         if (selectedKoreanId != null) {
                                             // Check match
                                             if (selectedKoreanId == card.id) {
@@ -504,10 +517,15 @@ fun VocabMatchingGameScreen(
                                                 selectedKoreanId = null
                                                 selectedMeaningId = null
                                             } else {
+                                                val wrongKo = selectedKoreanId ?: ""
                                                 comboStreak = 0
-                                                wrongAttemptAnimation = true
+                                                wrongPair = Pair(wrongKo, card.id)
                                                 selectedKoreanId = null
                                                 selectedMeaningId = null
+                                                coroutineScope.launch {
+                                                    delay(450L)
+                                                    wrongPair = null
+                                                }
                                             }
                                         } else {
                                             selectedMeaningId = card.id

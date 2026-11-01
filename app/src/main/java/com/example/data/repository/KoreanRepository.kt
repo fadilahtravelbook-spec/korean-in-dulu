@@ -54,8 +54,23 @@ class KoreanRepository(context: Context) {
     val recentActivityLogs: Flow<List<ActivityLog>> = activityLogDao.getRecentLogs()
     val totalLearningMinutes: Flow<Int> = activityLogDao.getTotalLearningMinutes()
 
+    // Daily challenges for gamification
+    private val _dailyChallenges = MutableStateFlow(
+        listOf(
+            DailyChallengeItem("dc1", "Latihan Menulis 2 Huruf", "Tulis huruf vokal atau konsonan di canvas", 2, 0, 30, false, "writing"),
+            DailyChallengeItem("dc2", "Ulas 3 Kartu Kosakata", "Selesaikan sesi review SRS hari ini", 3, 0, 25, false, "vocab"),
+            DailyChallengeItem("dc3", "Coba Latihan Speaking", "Buat kalimat perkenalan diri dengan suaramu", 1, 0, 35, false, "speaking")
+        )
+    )
+    val dailyChallenges: Flow<List<DailyChallengeItem>> = _dailyChallenges
+
     fun getVocabDueCount(): Flow<Int> {
         return vocabDao.getCardsDueCount(System.currentTimeMillis())
+    }
+
+    suspend fun resetOnboarding() {
+        val cur = userDao.getUserProfileOnce() ?: return
+        userDao.insertOrUpdate(cur.copy(onboarded = false))
     }
 
     suspend fun completeOnboarding(name: String, level: Int, goalMinutes: Int = 15) {
@@ -265,6 +280,94 @@ class KoreanRepository(context: Context) {
         }
     }
 
+    // Koleksi Kosakata Ekstra: Restoran, Belanja, Kesehatan, Kerja, K-Culture, dan Arah
+    val extraVocabCards: List<VocabCard> = listOf(
+        // Kuliner & Restoran (음식 & 식당)
+        VocabCard("v65", "비빔밥", "bibimbap", "Nasi Campur Sayur & Daging", "전주 비빔밥 한 그릇 주세요.", "Tolong satu mangkuk bibimbap Jeonju.", "Makanan & Minuman"),
+        VocabCard("v66", "김치찌개", "kimchijjigae", "Sup Pedas Kimchi & Daging/Tahu", "얼큰한 김치찌개가 먹고 싶어요.", "Saya ingin makan sup kimchi pedas segar.", "Makanan & Minuman"),
+        VocabCard("v67", "삼겹살", "samgyeopsal", "Daging Panggang BBQ Korea", "오늘 저녁에 삼겹살 먹으러 가요.", "Nanti malam ayo pergi makan samgyeopsal.", "Makanan & Minuman"),
+        VocabCard("v68", "불고기", "bulgogi", "Daging Sapi Marinasi Manis Gurih", "불고기 2인분 주문할게요.", "Saya pesan bulgogi untuk 2 porsi.", "Makanan & Minuman"),
+        VocabCard("v69", "떡볶이", "tteokbokki", "Kue Beras Saus Pedas Manis", "포장마차에서 떡볶이를 먹어요.", "Makan tteokbokki di warung tenda pojangmacha.", "Makanan & Minuman"),
+        VocabCard("v70", "김밥", "gimbap", "Nasi Gulung Rumput Laut", "소풍 갈 때 김밥을 싸 가요.", "Membawa bekal gimbap saat piknik.", "Makanan & Minuman"),
+        VocabCard("v71", "물냉면", "mulnaengmyeon", "Mie Dingin Berkuah Es Segar", "여름에는 시원한 물냉면이 최고예요.", "Saat musim panas, mie dingin kuah es adalah yang terbaik.", "Makanan & Minuman"),
+        VocabCard("v72", "메뉴판", "menupan", "Buku / Lembar Menu", "여기 메뉴판 좀 보여주세요.", "Tolong perlihatkan buku menu di sini.", "Makanan & Minuman"),
+        VocabCard("v73", "주문하다", "jumunhada", "Memesan Makanan / Minuman", "사장님, 주문할게요!", "Pemilik warung, saya mau pesan!", "Makanan & Minuman"),
+        VocabCard("v74", "계산하다", "gyesanhada", "Membayar / Menghitung Tagihan", "따로따로 계산해 주세요.", "Tolong hitung bayar terpisah masing-masing.", "Makanan & Minuman"),
+        VocabCard("v75", "숟가락", "sutgarak", "Sendok Makan", "숟가락 하나 더 주세요.", "Tolong minta satu sendok makan lagi.", "Makanan & Minuman"),
+        VocabCard("v76", "젓가락", "jeotgarak", "Sumpit Makan", "젓가락을 떨어뜨렸어요.", "Sumpit makan saya terjatuh.", "Makanan & Minuman"),
+        VocabCard("v77", "덜 맵게", "deol maepge", "Kurang Pedas / Jangan Terlalu Pedas", "찌개 덜 맵게 해 주세요.", "Tolong buat sup jjigae tidak terlalu pedas.", "Makanan & Minuman"),
+        VocabCard("v78", "포장하다", "pojanghada", "Bungkus Bawa Pulang (Takeout)", "남은 음식 포장해 주실 수 있나요?", "Bisakah sisa makanan ini dibungkus bawa pulang?", "Makanan & Minuman"),
+        VocabCard("v79", "반찬", "banchan", "Lauk Pauk Pendamping", "반찬 좀 더 리필해 주세요.", "Tolong isi ulang lauk pauk lagi sebentar.", "Makanan & Minuman"),
+
+        // Belanja & Pasar (쇼핑 & 시장)
+        VocabCard("v80", "얼마예요?", "eolmayeyo?", "Berapa Harganya?", "이 사과 한 바구니에 얼마예요?", "Satu keranjang apel ini berapa harganya?", "Belanja"),
+        VocabCard("v81", "깎아주세요", "kkakkajuseyo", "Tolong Kasih Diskon / Murahan Dikit", "사장님, 조금만 깎아주세요!", "Bos, tolong kasih diskon sedikit dong!", "Belanja"),
+        VocabCard("v82", "입어보다", "ibeoboda", "Mencoba Pakaian (Fitting)", "이 바지 한번 입어봐도 돼요?", "Bolehkah saya mencoba celana ini?", "Belanja"),
+        VocabCard("v83", "사이즈", "saijeu", "Ukuran Baju / Sepatu", "더 큰 사이즈 있나요?", "Apakah ada ukuran yang lebih besar?", "Belanja"),
+        VocabCard("v84", "신용카드", "sinyongkadeu", "Kartu Kredit / Debit", "신용카드로 결제할게요.", "Saya bayar menggunakan kartu kredit.", "Belanja"),
+        VocabCard("v85", "현금", "hyeongeum", "Uang Tunai (Cash)", "현금으로 계산하면 할인돼요?", "Apakah ada diskon jika bayar tunai?", "Belanja"),
+        VocabCard("v86", "환불하다", "hwanbulhada", "Minta Uang Kembali (Refund)", "영수증이 있으면 환불이 가능해요.", "Bisa refund jika memiliki struk belanja.", "Belanja"),
+        VocabCard("v87", "교환하다", "gyohwanhada", "Menukar Barang", "다른 색상으로 교환하고 싶어요.", "Saya ingin menukar dengan warna lain.", "Belanja"),
+        VocabCard("v88", "세일", "se-il", "Diskon / Potongan Harga", "전 품목 50% 세일 중이에요.", "Semua barang sedang diskon 50%.", "Belanja"),
+        VocabCard("v89", "잘 어울려요", "jal eoullyeoyo", "Sangat Cocok / Pas Dipakai", "이 모자가 정말 잘 어울려요!", "Topi ini sungguh sangat cocok untukmu!", "Belanja"),
+        VocabCard("v90", "옷가게", "otgage", "Toko Pakaian", "명동 옷가게에서 쇼핑했어요.", "Berbelanja di toko pakaian Myeongdong.", "Belanja"),
+        VocabCard("v91", "신발", "sinbal", "Sepatu", "발이 편한 신발을 찾고 있어요.", "Saya mencari sepatu yang nyaman di kaki.", "Belanja"),
+
+        // Kesehatan & Apotek (병원 & 약국)
+        VocabCard("v92", "감기", "gamgi", "Flu / Masuk Angin", "감기에 걸려서 목이 아파요.", "Tenggorokan sakit karena terserang flu.", "Kesehatan & Apotek"),
+        VocabCard("v93", "두통", "dutong", "Sakit Kepala / Pusing", "두통이 심해서 약을 먹었어요.", "Minum obat karena sakit kepala berat.", "Kesehatan & Apotek"),
+        VocabCard("v94", "열이 나다", "yeori nada", "Demam / Badan Panas", "어젯밤부터 열이 펄펄 나요.", "Badan demam tinggi sejak kemarin malam.", "Kesehatan & Apotek"),
+        VocabCard("v95", "약국", "yakguk", "Apotek / Toko Obat", "가장 가까운 약국이 어디예요?", "Di mana apotek yang paling dekat?", "Kesehatan & Apotek"),
+        VocabCard("v96", "처방전", "cheobangjeon", "Resep Obat Dokter", "병원에서 처방전을 받았어요.", "Mendapatkan resep obat dari rumah sakit.", "Kesehatan & Apotek"),
+        VocabCard("v97", "알약", "alyak", "Obat Tablet / Pil", "이 알약은 하루 세 번 식후에 드세요.", "Minum obat pil ini 3 kali sehari setelah makan.", "Kesehatan & Apotek"),
+        VocabCard("v98", "반창고", "banchanggo", "Plester Luka", "손을 베여서 반창고를 붙였어요.", "Menempel plester luka karena jari tergores.", "Kesehatan & Apotek"),
+        VocabCard("v99", "소화제", "sohwaje", "Obat Lambung / Pencernaan", "속이 더부룩해서 소화제를 샀어요.", "Membeli obat lambung karena perut kembung.", "Kesehatan & Apotek"),
+        VocabCard("v100", "진통제", "jintongje", "Obat Pereda Nyeri", "진통제 먹고 푹 쉬세요.", "Minum obat pereda nyeri lalu istirahatlah.", "Kesehatan & Apotek"),
+        VocabCard("v101", "마스크", "maseukeu", "Masker Pelindung", "미세먼지가 심하니 마스크를 쓰세요.", "Pakailah masker karena polusi debu pekat.", "Kesehatan & Apotek"),
+        VocabCard("v102", "병원", "byeong-won", "Rumah Sakit / Klinik", "상태가 안 좋으면 병원에 가세요.", "Pergilah ke rumah sakit jika kondisi memburuk.", "Kesehatan & Apotek"),
+        VocabCard("v103", "아프다", "apeuda", "Sakit / Nyeri", "배가 너무 아파서 견딜 수 없어요.", "Perut sangat sakit hingga tak tertahankan.", "Kesehatan & Apotek"),
+
+        // Kerja, Kantor & Pabrik (직장 & 일터)
+        VocabCard("v104", "출근하다", "chulgeunhada", "Berangkat Kerja", "매일 아침 8시 반에 출근해요.", "Berangkat kerja jam 8.30 setiap pagi.", "Kerja & Pabrik"),
+        VocabCard("v105", "퇴근하다", "toegeunhada", "Pulang Kerja", "오늘 정시에 퇴근할 수 있어요.", "Hari ini bisa pulang kerja tepat waktu.", "Kerja & Pabrik"),
+        VocabCard("v106", "야근하다", "yageunhada", "Kerja Lembur Malam", "프로젝트 마감이라 야근해요.", "Lembur karena tenggat waktu proyek.", "Kerja & Pabrik"),
+        VocabCard("v107", "회의", "hoe-ui", "Rapat Pertemuan", "오후 두 시에 기획 회의가 있어요.", "Ada rapat perencanaan jam dua siang.", "Kerja & Pabrik"),
+        VocabCard("v108", "동료", "dongnyo", "Rekan Kerja", "회사 동료들과 점심을 먹어요.", "Makan siang bersama rekan kerja kantor.", "Kerja & Pabrik"),
+        VocabCard("v109", "반장님", "banjangnim", "Mandor / Supervisor", "반장님께서 안전 수칙을 알려주셨어요.", "Mandor memberi tahu aturan keselamatan kerja.", "Kerja & Pabrik"),
+        VocabCard("v110", "월급", "wolgeup", "Gaji Bulanan", "매달 25일은 신나는 월급날이에요.", "Tanggal 25 setiap bulan adalah hari gajian yang menyenangkan.", "Kerja & Pabrik"),
+        VocabCard("v111", "휴가", "hyuga", "Cuti Libur Kerja", "다음 주에 여름 휴가를 떠나요.", "Minggu depan berangkat cuti liburan musim panas.", "Kerja & Pabrik"),
+        VocabCard("v112", "안전모", "anjeonmo", "Helm Pengaman Kerja", "공장 현장에서는 안전모를 꼭 쓰세요.", "Selalu kenakan helm pengaman di area pabrik.", "Kerja & Pabrik"),
+        VocabCard("v113", "장갑", "janggap", "Sarung Tangan Kerja", "작업용 장갑을 착용하세요.", "Pakailah sarung tangan kerja.", "Kerja & Pabrik"),
+        VocabCard("v114", "공장", "gongjang", "Pabrik / Kawasan Industri", "공장 기계를 점검하고 있어요.", "Sedang memeriksa mesin pabrik.", "Kerja & Pabrik"),
+        VocabCard("v115", "조심하세요", "josimhaseyo", "Harap Berhati-hati", "바닥이 미끄러우니 조심하세요.", "Hati-hati karena lantainya licin.", "Kerja & Pabrik"),
+
+        // K-Culture, Drama & Bahasa Gaul (K-컬처 & 신조어)
+        VocabCard("v116", "심쿵", "simkung", "Bikin Deg-degan / Jantung Berdebar", "주인공 미소에 심쿵했어요!", "Tersenyum melihat senyum manis aktor utama!", "K-Pop & Gaul"),
+        VocabCard("v117", "꿀잼", "kkuljaem", "Sangat Seru / Menarik Sekali", "이 한국 드라마 진짜 꿀잼이에요!", "Drama Korea ini sungguh seru banget!", "K-Pop & Gaul"),
+        VocabCard("v118", "노잼", "nojaem", "Garing / Nggak Seru", "그 개그는 너무 노잼이었어요.", "Lelucon tadi garing banget.", "K-Pop & Gaul"),
+        VocabCard("v119", "멘붕", "menbung", "Mental Rusak / Syok / Bengong", "지갑을 잃어버려서 완전 멘붕이에요.", "Benar-benar syok linglung karena dompet hilang.", "K-Pop & Gaul"),
+        VocabCard("v120", "치맥", "chimaek", "Ayam Goreng & Minuman Segar", "불금에는 치맥이 최고예요!", "Di Jumat malam, ayam goreng dan minuman adalah yang terbaik!", "K-Pop & Gaul"),
+        VocabCard("v121", "파이팅", "paiting", "Semangat! / Sukses Selalu!", "오늘 시험 잘 봐요, 파이팅!", "Kerjakan ujian dengan baik hari ini, semangat!", "K-Pop & Gaul"),
+        VocabCard("v122", "인싸", "inssa", "Orang Gaul / Populer / Supel", "성격이 밝아서 완전 인싸예요.", "Kepribadiannya ceria jadi orangnya sangat supel.", "K-Pop & Gaul"),
+        VocabCard("v123", "아싸", "assa", "Penyendiri / Introvert Mandiri", "혼자 책 읽는 아싸 생활이 좋아요.", "Saya suka hidup tenang membaca buku sendiri.", "K-Pop & Gaul"),
+        VocabCard("v124", "최애", "choe-ae", "Bias / Idola Favorit Paling Utama", "케이팝 그룹에서 저의 최애는 지민이에요.", "Di grup K-Pop idola utama favorit saya adalah Jimin.", "K-Pop & Gaul"),
+        VocabCard("v125", "본방사수", "bonbangsasu", "Nonton Tayangan Perdana Langsung", "오늘 밤 10시 드라마 본방사수할게요!", "Nanti malam jam 10 wajib nonton siaran langsung dramanya!", "K-Pop & Gaul"),
+        VocabCard("v126", "극혐", "geukhyeom", "Sangat Tidak Suka / Ilfeel", "새치기하는 사람은 정말 극혐이에요.", "Orang yang menyerobot antrean sungguh bikin ilfeel.", "K-Pop & Gaul"),
+        VocabCard("v127", "감동", "gamdong", "Terharu / Tersentuh Hati", "팬들의 편지에 큰 감동을 받았어요.", "Sangat terharu membaca surat-surat dari para penggemar.", "K-Pop & Gaul"),
+
+        // Arah, Lokasi & Bandara (길 찾기 & 공항)
+        VocabCard("v128", "직진하다", "jikjinhada", "Jalan Lurus Terus", "사거리에서 앞으로 직진하세요.", "Jalan lurus terus di perempatan jalan.", "Arah & Tempat"),
+        VocabCard("v129", "오른쪽", "oreunjjok", "Sebelah Kanan", "약국은 편의점 오른쪽에 있어요.", "Apotek berada di sebelah kanan minimarket.", "Arah & Tempat"),
+        VocabCard("v130", "왼쪽", "oenjjok", "Sebelah Kiri", "신호등에서 왼쪽으로 도세요.", "Beloklah ke kiri di lampu lalu lintas.", "Arah & Tempat"),
+        VocabCard("v131", "건너편", "geonneopyeon", "Seberang Jalan", "길 건너편에 버스 정류장이 있어요.", "Di seberang jalan ada halte bus.", "Arah & Tempat"),
+        VocabCard("v132", "지하철역", "jihacheolyeok", "Stasiun Kereta Bawah Tanah", "가장 가까운 지하철역이 어디예요?", "Di mana stasiun subway paling dekat?", "Arah & Tempat"),
+        VocabCard("v133", "출구", "chulgu", "Pintu Keluar", "지하철 3번 출구로 나오시면 돼요.", "Anda cukup keluar dari pintu keluar nomor 3.", "Arah & Tempat"),
+        VocabCard("v134", "인천공항", "incheongonghang", "Bandara Internasional Incheon", "공항철도를 타면 인천공항에 가요.", "Naik kereta bandara akan sampai di Bandara Incheon.", "Arah & Tempat"),
+        VocabCard("v135", "탑승구", "tapseunggu", "Gerbang Keberangkatan (Gate)", "비행기 탑승구가 몇 번이에요?", "Berapa nomor gerbang keberangkatan pesawat?", "Arah & Tempat"),
+        VocabCard("v136", "여권", "yeogwon", "Paspor Perjalanan", "입국 심사할 때 여권을 보여주세요.", "Tunjukkan paspor saat pemeriksaan imigrasi.", "Arah & Tempat"),
+        VocabCard("v137", "지도", "jido", "Peta Lokasi", "스마트폰 지도를 보고 길을 찾아요.", "Mencari jalan dengan melihat peta di ponsel pintar.", "Arah & Tempat")
+    )
+
     private suspend fun seedInitialDataIfNeeded() {
         val currentProfile = userDao.getUserProfileOnce()
         if (currentProfile == null) {
@@ -416,9 +519,9 @@ class KoreanRepository(context: Context) {
                 VocabCard("num_c12", "층", "cheung", "Satuan Lantai Gedung", "우리 사무실은 삼층에 있어요.", "Kantor kami berada di lantai tiga.", "Angka")
             )
 
-            vocabDao.insertAll(initialCards + dailyLifeCards + numberCards)
+            vocabDao.insertAll(initialCards + dailyLifeCards + numberCards + extraVocabCards)
         } else {
-            // Ensure daily life cards are present in existing user profiles
+            // Ensure daily life, number, and extra vocabulary cards are present in existing user profiles
             val dailyLifeCards = listOf(
                 VocabCard("v21", "화장실", "hwajangsil", "Toilet / Kamar Mandi", "화장실이 어디예요?", "Di mana letak toilet?", "Toilet & Mandi"),
                 VocabCard("v22", "휴지", "hyuji", "Tisu Toilet", "화장실에 휴지가 없어요.", "Di toilet tidak ada tisu.", "Toilet & Mandi"),
@@ -513,7 +616,7 @@ class KoreanRepository(context: Context) {
                 VocabCard("num_c12", "층", "cheung", "Satuan Lantai Gedung", "우리 사무실은 삼층에 있어요.", "Kantor kami berada di lantai tiga.", "Angka")
             )
 
-            vocabDao.insertAll(dailyLifeCards + numberCards)
+            vocabDao.insertAll(dailyLifeCards + numberCards + extraVocabCards)
         }
     }
 
@@ -531,16 +634,6 @@ class KoreanRepository(context: Context) {
         BadgeItem("badge_bookworm", "Pembaca Handal", "Membaca teks cerita Korea dan menjawab quiz", "📚", "Selesaikan bacaan"),
         BadgeItem("badge_kdrama_fan", "K-Immersion", "Menyelesaikan skenario percakapan video interaktif", "🎬", "Latihan video immersion")
     )
-
-    // Daily challenges for gamification
-    private val _dailyChallenges = MutableStateFlow(
-        listOf(
-            DailyChallengeItem("dc1", "Latihan Menulis 2 Huruf", "Tulis huruf vokal atau konsonan di canvas", 2, 0, 30, false, "writing"),
-            DailyChallengeItem("dc2", "Ulas 3 Kartu Kosakata", "Selesaikan sesi review SRS hari ini", 3, 0, 25, false, "vocab"),
-            DailyChallengeItem("dc3", "Coba Latihan Speaking", "Buat kalimat perkenalan diri dengan suaramu", 1, 0, 35, false, "speaking")
-        )
-    )
-    val dailyChallenges: Flow<List<DailyChallengeItem>> = _dailyChallenges
 
     // Role-play conversation steps with Hannie
     val rolePlaySteps: List<RolePlayStep> = listOf(
@@ -631,6 +724,50 @@ class KoreanRepository(context: Context) {
                 RolePlayOption("안녕히 주무세요.", "Selamat tidur.", false, "Ini ucapan selamat tidur di malam hari, bukan sapaan pagi.")
             ),
             hint = "Gunakan salam pagi dan jawab sapaan makan: 좋은 아침이에요! 든든하게 먹었어요."
+        ),
+        RolePlayStep(
+            id = 9,
+            hannieDialogueKo = "어서 오세요! 몇 분이세요? 편하신 안쪽 자리에 앉으세요.",
+            hannieDialogueId = "Selamat datang! Untuk berapa orang? Silakan duduk di meja bagian dalam yang nyaman.",
+            userOptions = listOf(
+                RolePlayOption("두 명이에요. 여기 김치찌개랑 비빔밥 하나씩 주세요!", "Dua orang. Tolong berikan kimchi jjigae dan bibimbap masing-masing satu porsi di sini!", true, "Tepat sekali! Menyebutkan jumlah orang dan memesan menu dengan sopan."),
+                RolePlayOption("저기요, 화장실 비밀번호 뭐예요?", "Permisi, nomor sandi toiletnya berapa?", false, "Belum menjawab jumlah orang dan belum memesan makanan."),
+                RolePlayOption("집에 갈게요.", "Saya mau pulang ke rumah.", false, "Kurang tepat, Anda baru saja masuk ke restoran.")
+            ),
+            hint = "Sebutkan jumlah orang dan pesan makanan: 두 명이에요. 김치찌개 하나 주세요."
+        ),
+        RolePlayStep(
+            id = 10,
+            hannieDialogueKo = "식사는 입에 맞으셨어요? 반찬 더 필요하신 것 있으세요?",
+            hannieDialogueId = "Apakah makanannya cocok di lidah Anda? Apakah ada lauk pauk (banchan) yang perlu ditambah lagi?",
+            userOptions = listOf(
+                RolePlayOption("정말 맛있어요! 여기 김치랑 물 좀 더 리필해 주세요.", "Sangat lezat! Tolong isi ulang kimchi dan air putihnya di sini.", true, "Luar biasa! Di restoran Korea, isi ulang banchan (lauk pendamping) dan air putih gratis."),
+                RolePlayOption("이거 너무 비싸요, 환불해 주세요.", "Ini terlalu mahal, tolong refund uang saya.", false, "Kurang sopan dan tidak sesuai konteks restoran."),
+                RolePlayOption("안녕히 계세요.", "Selamat tinggal.", false, "Anda masih sedang makan di meja.")
+            ),
+            hint = "Puji rasanya dan minta isi ulang lauk: 정말 맛있어요! 반찬 리필해 주세요."
+        ),
+        RolePlayStep(
+            id = 11,
+            hannieDialogueKo = "어디가 불편해서 오셨어요? 증상을 말씀해 주세요.",
+            hannieDialogueId = "Bagian mana yang terasa tidak nyaman? Tolong ceritakan gejalanya kepada saya.",
+            userOptions = listOf(
+                RolePlayOption("어제부터 두통이 심하고 열이 조금 나요. 감기약 좀 주세요.", "Sejak kemarin sakit kepala parah dan agak demam. Tolong berikan obat flu.", true, "Penjelasan gejala yang sangat jelas dan tepat untuk apoteker di apotek Korea."),
+                RolePlayOption("여기 따릉이 자전거 대여소예요?", "Apakah ini tempat sewa sepeda Ttareungi?", false, "Salah tempat, ini apotek bukan tempat sewa sepeda."),
+                RolePlayOption("비빔밥 한 그릇 주세요.", "Tolong satu mangkuk bibimbap.", false, "Ini toko obat/apotek, bukan restoran.")
+            ),
+            hint = "Jelaskan rasa sakit dan minta obat flu: 두통이 심해요. 감기약 주세요."
+        ),
+        RolePlayStep(
+            id = 12,
+            hannieDialogueKo = "실례합니다. 길을 잃어버렸는데 혹시 홍대입구역 3번 출구가 어디인지 아세요?",
+            hannieDialogueId = "Permisi. Saya tersesat, apakah Anda tahu di mana pintu keluar nomor 3 Stasiun Hongdae-ipgu?",
+            userOptions = listOf(
+                RolePlayOption("저기 신호등에서 왼쪽으로 도시면 바로 3번 출구가 보여요!", "Kalau Anda belok kiri di lampu lalu lintas depan sana, langsung terlihat pintu keluar 3!", true, "Petunjuk arah yang sangat ramah, jelas, dan akurat!"),
+                RolePlayOption("저도 몰라요, 저리 가세요.", "Saya juga tidak tahu, pergilah sana.", false, "Kurang ramah kepada orang asing yang meminta tolong."),
+                RolePlayOption("영수증 버려 주세요.", "Tolong buang struk belanja.", false, "Tidak relevan dengan pertanyaan arah jalan.")
+            ),
+            hint = "Berikan petunjuk arah belok kiri: 신호등에서 왼쪽으로 가세요."
         )
     )
 
@@ -935,6 +1072,48 @@ class KoreanRepository(context: Context) {
             ),
             correctIndex = 1,
             explanation = "수고 많으셨습니다 (terima kasih atas jerih payah/kerja keras) + 조심해서 들어가세요 (hati-hati pulang) + 내일 봬요 (sampai jumpa besok)."
+        ),
+        ListeningQuiz(
+            id = "lq13",
+            question = "Dengarkan permintaan pelanggan di rumah makan Korea:",
+            spokenKorean = "여기 김치찌개 2인분 주시고, 아이가 먹을 거니까 덜 맵게 해 주세요.",
+            romanization = "yeogi gimchijjigae i-inbun jusigo, a-iga meogeul geonikka deol maepge hae juseyo.",
+            options = listOf(
+                "Pesan 2 porsi kimchi jjigae dan minta dibuat tidak terlalu pedas karena untuk anak-anak",
+                "Minta tambah sambal cabai ekstra pedas pada sup",
+                "Minta bungkus sisa makanan untuk dibawa pulang",
+                "Menanyakan menu minuman es teh manis"
+            ),
+            correctIndex = 0,
+            explanation = "김치찌개 2인분 (2 porsi kimchi jjigae) + 덜 맵게 해 주세요 (tolong buat kurang pedas/tidak terlalu pedas)."
+        ),
+        ListeningQuiz(
+            id = "lq14",
+            question = "Dengarkan instruksi minum obat dari apoteker berikut:",
+            spokenKorean = "이 알약은 하루 세 번 식후 30분에 따뜻한 물과 함께 복용하세요.",
+            romanization = "i alyag-eun haru se beon sik-hu samsipbune ttatteut-han mulgwa hamkke bogyonghaseyo.",
+            options = listOf(
+                "Obat tetes mata sebelum tidur malam",
+                "Minum obat pil ini 3 kali sehari 30 menit setelah makan bersama air hangat",
+                "Oleskan salep pada kulit yang luka setiap 2 jam",
+                "Hanya diminum jika merasa pusing kepala"
+            ),
+            correctIndex = 1,
+            explanation = "알약 (obat pil/tablet) + 하루 세 번 (3 kali sehari) + 식후 30분 (30 menit setelah makan) + 따뜻한 물 (air hangat)."
+        ),
+        ListeningQuiz(
+            id = "lq15",
+            question = "Dengarkan petunjuk arah jalan berikut:",
+            spokenKorean = "앞으로 100미터 직진하시다가 편의점 골목에서 오른쪽으로 꺾으시면 바로 나와요.",
+            romanization = "apeuro baek-miteo jikjinhasi-daga pyeon-uijeom golmog-eseo oreunjjogeuro kkeokkeusimyeon baro nawayo.",
+            options = listOf(
+                "Naik bus nomor 100 menuju stasiun pusat",
+                "Jalan lurus 100 meter lalu belok kanan di gang minimarket, tempatnya langsung terlihat",
+                "Putar balik di jembatan penyeberangan orang",
+                "Masuk ke dalam stasiun subway di sebelah kiri"
+            ),
+            correctIndex = 1,
+            explanation = "직진하다 (jalan lurus) + 편의점 골목 (gang minimarket) + 오른쪽으로 꺾다 (belok ke kanan)."
         )
     )
 

@@ -85,4 +85,28 @@ class ExampleRobolectricTest {
     assertEquals("(Tidak terdeteksi)", assessment.recognizedText)
     assert(assessment.accuracy in 30..60)
   }
+
+  @Test
+  fun `tts cleaner sanitizes brackets slashes and romanization for natural speech`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val ttsManager = com.example.util.TtsManager(context)
+
+    val cleanSlash = ttsManager.sanitizeKoreanForTts("하나 / 한")
+    assertEquals("하나, 한", cleanSlash)
+
+    val cleanRoman = ttsManager.sanitizeKoreanForTts("행복 [haeng-bok]")
+    assertEquals("행복", cleanRoman)
+
+    val cleanParen = ttsManager.sanitizeKoreanForTts("안녕하세요 (Halo)")
+    assertEquals("안녕하세요", cleanParen)
+  }
+
+  @Test
+  fun `repository contains expanded role play scenarios and listening quizzes`() {
+    val context = ApplicationProvider.getApplicationContext<Context>()
+    val repo = com.example.data.repository.KoreanRepository(context)
+
+    assert(repo.rolePlaySteps.size >= 12)
+    assert(repo.listeningQuizzes.size >= 15)
+  }
 }

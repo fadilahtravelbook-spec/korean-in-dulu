@@ -120,6 +120,58 @@ fun getQuizBreakdown(quiz: ListeningQuiz): List<Pair<String, String>> {
             "헬멧" to "Helm pengaman bersepeda",
             "자전거 도로" to "Jalur jalan khusus sepeda"
         )
+        "lq9" -> listOf(
+            "봉투" to "Kantong kresek / tas belanja",
+            "필요하세요" to "Apakah Anda memerlukan (bentuk sopan)",
+            "백 원" to "100 Won (biaya kantong)",
+            "추가됩니다" to "Dikenakan biaya tambahan"
+        )
+        "lq10" -> listOf(
+            "저기요" to "Permisi (memanggil petugas/orang)",
+            "샤워실" to "Kamar mandi shower",
+            "따뜻한 물" to "Air hangat",
+            "안 나와요" to "Tidak keluar / tidak mengalir",
+            "보일러" to "Mesin boiler pemanas air",
+            "확인해 주세요" to "Tolong dicek / diperiksa"
+        )
+        "lq11" -> listOf(
+            "지하철" to "Kereta subway / MRT",
+            "눈앞에서" to "Tepat di depan mata",
+            "놓치다" to "Ketinggalan / melewatkan",
+            "진짜 짜증나다" to "Benar-benar bikin kesal",
+            "답답해 죽겠어" to "Frustrasi / nyesek setengah mati"
+        )
+        "lq12" -> listOf(
+            "오늘 발표" to "Presentasi hari ini",
+            "준비하느라" to "Karena mempersiapkan",
+            "수고 많으셨습니다" to "Terima kasih banyak atas kerja kerasnya",
+            "조심해서" to "Dengan hati-hati",
+            "들어가시고" to "Silakan pulang ke rumah",
+            "내일 봬요" to "Sampai jumpa besok (sopan)"
+        )
+        "lq13" -> listOf(
+            "김치찌개" to "Sup kimchi jjigae",
+            "2인분" to "2 porsi (i-inbun)",
+            "주시고" to "Tolong berikan dan...",
+            "아이가 먹을 거" to "Karena anak-anak yang akan makan",
+            "덜 맵게" to "Kurang pedas / tidak terlalu pedas",
+            "해 주세요" to "Tolong buatkan"
+        )
+        "lq14" -> listOf(
+            "이 알약" to "Obat pil / tablet ini",
+            "하루 세 번" to "Tiga kali sehari",
+            "식후 30분" to "30 menit setelah makan",
+            "따뜻한 물" to "Air bersuhu hangat",
+            "함께 복용하세요" to "Minumlah / konsumsilah bersama"
+        )
+        "lq15" -> listOf(
+            "앞으로" to "Ke arah depan",
+            "100미터 직진" to "Jalan lurus 100 meter",
+            "편의점 골목" to "Gang minimarket",
+            "오른쪽으로" to "Ke arah kanan",
+            "꺾으시면" to "Jika Anda belok",
+            "바로 나와요" to "Langsung terlihat di depan"
+        )
         else -> listOf(
             quiz.spokenKorean to quiz.explanation
         )
@@ -136,6 +188,13 @@ fun getPhoneticsTip(quiz: ListeningQuiz): String {
         "lq6" -> "Intonasi Pemesanan: Suku kata '주세요' diucapkan dengan nada turun santun melengkung di akhir kalimat."
         "lq7" -> "Hukum Bunyi: '개찰구 밖' memiliki batchim ㄲ yang berbunyi K tegas di akhir kata [박]."
         "lq8" -> "Kosa Kata Transportasi Publik: '따릉이' (Ttareungi) dinamai dari tiruan bunyi bel sepeda 'klining-klining' dalam bahasa Korea."
+        "lq9" -> "Pelafalan Angka Uang: '백 원' dilafalkan [배권] dengan liaison halus antara konsonan ㄱ dan vokal 워."
+        "lq10" -> "Hukum Liquid Vokal: '물' [mul] disambung dengan '이' menjadi [무린/무리가 아니라 '무-리'], lidah menyentuh langit-langit mulut."
+        "lq11" -> "Intonasi Emosi: Penekanan aksen pada '짜증' dan '답답' mencerminkan ekspresi spontan perasaan orang Korea."
+        "lq12" -> "Pengejaan Hormat: '봬요' adalah singkatan halus dari '뵈어요' (bertemu orang yang dihormati)."
+        "lq13" -> "Adverbia '덜': Digunakan sebelum kata sifat (덜 맵게 = kurang pedas, 덜 달게 = kurang manis) saat memesan makanan di resto Korea."
+        "lq14" -> "Istilah Farmasi: '복용하다' adalah istilah baku sopan untuk meminum obat medis dalam anjuran dokter atau apoteker."
+        "lq15" -> "Navigasi Arah: Kata kerja '꺾다' (membelok) dilafalkan tegang ganda [꺼끄시면] saat memberi instruksi arah jalan."
         else -> "Dengarkan perpindahan konsonan akhir (Batchim) ke huruf vokal berikutnya saat penutur asli Korea berbicara santai."
     }
 }

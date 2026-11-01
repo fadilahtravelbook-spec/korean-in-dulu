@@ -26,7 +26,7 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.LocalFireDepartment
-import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.Star
@@ -210,7 +210,7 @@ fun StatsDetailScreen(
                             modifier = Modifier.size(40.dp)
                         ) {
                             Box(contentAlignment = Alignment.Center) {
-                                Icon(Icons.Default.MenuBook, contentDescription = null, tint = SaessakGreen, modifier = Modifier.size(24.dp))
+                                Icon(Icons.AutoMirrored.Filled.MenuBook, contentDescription = null, tint = SaessakGreen, modifier = Modifier.size(24.dp))
                             }
                         }
                         Spacer(modifier = Modifier.height(8.dp))

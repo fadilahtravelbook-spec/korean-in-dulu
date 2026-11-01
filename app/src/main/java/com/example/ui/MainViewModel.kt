@@ -101,9 +101,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun resetOnboarding() {
         viewModelScope.launch {
-            val cur = userProfile.value ?: return@launch
-            val db = com.example.data.local.AppDatabase.getDatabase(getApplication())
-            db.userDao().insertOrUpdate(cur.copy(onboarded = false))
+            repository.resetOnboarding()
         }
     }
 

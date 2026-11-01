@@ -869,7 +869,7 @@ fun HomeScreen(
                             icon = Icons.Default.Headphones,
                             badgeColor = Color(0xFF059669),
                             badgeBg = Color(0xFFD1FAE5),
-                            tag = "🎧 12 Audio Soal",
+                            tag = "🎧 15 Audio Soal",
                             gradientStart = Color(0xFFECFDF5)
                         ),
                         ModuleItem(

@@ -439,6 +439,29 @@ fun RolePlayScreen(
                             fontWeight = if (isListening) FontWeight.Bold else FontWeight.Normal
                         )
 
+                        val isSpeechAvailable = remember { speechHelper.isAvailable() }
+                        if (!isSpeechAvailable) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Layanan pengenalan suara bawaan sistem tidak tersedia.",
+                                fontSize = 10.sp,
+                                color = SarangRed
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OutlinedButton(
+                            onClick = {
+                                isListening = false
+                                recognizedText = opt.textKo
+                                assessmentResult = SpeechRecognitionHelper.evaluatePronunciation(opt.textKo, opt.textKo)
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.testTag("simulate_roleplay_speech_btn")
+                        ) {
+                            Text("Simulasi Ucap Fasih (Evaluasi Cepat)", fontSize = 11.sp, color = HaneulBlue)
+                        }
+
                         if (recognizedText.isNotBlank()) {
                             Spacer(modifier = Modifier.height(8.dp))
                             Surface(

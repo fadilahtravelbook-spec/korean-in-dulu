@@ -196,9 +196,20 @@ class MainActivity : ComponentActivity() {
                                 .fillMaxSize()
                                 .padding(innerPadding)
                         ) {
-                            BackHandler(enabled = currentScreen != "home") {
+                            val navigateBack: () -> Unit = {
                                 viewModel.stopSpeaking()
-                                currentScreen = "home"
+                                currentScreen = when (currentScreen) {
+                                    "hangul_letter_detail" -> "hangul_intro"
+                                    "role_play" -> "speaking"
+                                    "add_custom_vocab", "vocab_matching_game" -> "vocab"
+                                    "custom_reader", "wpm_reading" -> "reading"
+                                    "korean_documents", "word_practice", "keyboard_challenge", "batchim_guide", "syllable_combine" -> "writing"
+                                    else -> "home"
+                                }
+                            }
+
+                            BackHandler(enabled = currentScreen != "home") {
+                                navigateBack()
                             }
 
                             when (currentScreen) {
@@ -223,7 +234,7 @@ class MainActivity : ComponentActivity() {
 
                                 "hangul_intro" -> {
                                     HangulIntroScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onNavigateToWriting = { char ->
                                             initialWritingLetter = char
@@ -245,7 +256,7 @@ class MainActivity : ComponentActivity() {
                                         initialLetter = initialWritingLetter,
                                         onBack = {
                                             initialWritingLetter = null
-                                            currentScreen = "home"
+                                            navigateBack()
                                         },
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
@@ -386,7 +397,7 @@ class MainActivity : ComponentActivity() {
 
                                 "korean_documents" -> {
                                     KoreanDocumentScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onAddXp = { xp -> viewModel.addXp(xp) },
@@ -398,7 +409,7 @@ class MainActivity : ComponentActivity() {
 
                                 "word_practice" -> {
                                     WordPracticeScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onAddXp = { xp -> viewModel.addXp(xp) },
@@ -410,7 +421,7 @@ class MainActivity : ComponentActivity() {
 
                                 "keyboard_challenge" -> {
                                     KeyboardChallengeScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onAddXp = { xp -> viewModel.addXp(xp) },
@@ -422,7 +433,7 @@ class MainActivity : ComponentActivity() {
 
                                 "batchim_guide" -> {
                                     BatchimGuideScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onRecordProgress = { mod, lesson, title, score ->
@@ -433,7 +444,7 @@ class MainActivity : ComponentActivity() {
 
                                 "syllable_combine" -> {
                                     SyllableCombineScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text, speed -> viewModel.speak(text, speed) },
                                         onStopSpeak = { viewModel.stopSpeaking() },
                                         onAddXp = { xp -> viewModel.addXp(xp) },
@@ -445,7 +456,7 @@ class MainActivity : ComponentActivity() {
 
                                 "grammar_hub" -> {
                                     GrammarHubScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onStopSpeak = { viewModel.stopSpeaking() }
                                     )
@@ -453,7 +464,7 @@ class MainActivity : ComponentActivity() {
 
                                 "daily_life_hub" -> {
                                     DailyLifeHubScreen(
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onStopSpeak = { viewModel.stopSpeaking() }
                                     )
@@ -462,7 +473,7 @@ class MainActivity : ComponentActivity() {
                                 "hangul_letter_detail" -> {
                                     HangulLetterDetailScreen(
                                         character = selectedDetailCharacter,
-                                        onBack = { currentScreen = "hangul_intro" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onNavigateToWriting = { char ->
                                             initialWritingLetter = char
@@ -474,7 +485,7 @@ class MainActivity : ComponentActivity() {
                                 "role_play" -> {
                                     RolePlayScreen(
                                         rolePlaySteps = viewModel.repository.rolePlaySteps,
-                                        onBack = { currentScreen = "speaking" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onSpeakWithSpeed = { text, speed -> viewModel.speak(text, speed) },
                                         onRecordProgress = { mod, lesson, title, score ->
@@ -485,7 +496,7 @@ class MainActivity : ComponentActivity() {
 
                                 "add_custom_vocab" -> {
                                     AddCustomVocabScreen(
-                                        onBack = { currentScreen = "vocab" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onAddCustomVocab = { ko, meaning, category ->
                                             viewModel.addCustomVocabCard(ko, meaning, category)
@@ -498,7 +509,7 @@ class MainActivity : ComponentActivity() {
                                 "vocab_matching_game" -> {
                                     VocabMatchingGameScreen(
                                         cards = vocabList,
-                                        onBack = { currentScreen = "vocab" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onRewardXp = { xp -> viewModel.addXp(xp) }
                                     )
@@ -506,7 +517,7 @@ class MainActivity : ComponentActivity() {
 
                                 "custom_reader" -> {
                                     CustomTextReaderScreen(
-                                        onBack = { currentScreen = "reading" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onSaveToVocab = { ko, idMeaning ->
                                             viewModel.addCustomVocabCard(ko, idMeaning, "Kustom")
@@ -517,7 +528,7 @@ class MainActivity : ComponentActivity() {
                                 "wpm_reading" -> {
                                     WpmSpeedReadingScreen(
                                         stories = viewModel.repository.readingStories,
-                                        onBack = { currentScreen = "reading" },
+                                        onBack = navigateBack,
                                         onSpeak = { text -> viewModel.speak(text) },
                                         onRecordProgress = { mod, lesson, title, score ->
                                             viewModel.recordProgress(mod, lesson, title, score)
@@ -531,7 +542,7 @@ class MainActivity : ComponentActivity() {
                                         xp = profile?.xp ?: 100,
                                         level = profile?.level ?: 1,
                                         completedLessons = completedCount,
-                                        onBack = { currentScreen = "home" },
+                                        onBack = navigateBack,
                                         onNavigateToProfile = { currentScreen = "profile" },
                                         onUseStreakFreeze = { /* freeze logic */ }
                                     )

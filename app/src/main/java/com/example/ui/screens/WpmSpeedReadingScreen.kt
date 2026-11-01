@@ -47,6 +47,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -432,6 +433,41 @@ fun WpmSpeedReadingScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = if (isRecording) SarangRed else HaneulBlue
                         )
+
+                        val isSpeechAvailable = remember { speechHelper.isAvailable() }
+                        if (!isSpeechAvailable) {
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Layanan pengenalan suara tidak aktif pada perangkat ini.",
+                                fontSize = 10.sp,
+                                color = SarangRed
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+                        OutlinedButton(
+                            onClick = {
+                                currentStory?.let { story ->
+                                    isRecording = false
+                                    val simulatedSec = 12
+                                    val wordsCount = storyKorean.split(Regex("\\s+")).filter { it.isNotBlank() }.size
+                                    val calculatedWpm = ((wordsCount.toFloat() / simulatedSec) * 60).toInt().coerceIn(40, 160)
+                                    val matchScore = 95
+                                    resultMetric = SpeedReadingResult(
+                                        wpm = calculatedWpm,
+                                        accuracy = matchScore,
+                                        elapsedSeconds = simulatedSec,
+                                        feedback = "Luar biasa! Kecepatan membaca $calculatedWpm WPM dengan pelafalan 95% akurat.",
+                                        recognizedText = storyKorean
+                                    )
+                                    onRecordProgress("reading", story.id, "WPM: $storyTitle", matchScore)
+                                }
+                            },
+                            shape = RoundedCornerShape(10.dp),
+                            modifier = Modifier.testTag("simulate_wpm_reading_btn")
+                        ) {
+                            Text("Simulasi Baca Cepat (Hitung WPM)", fontSize = 11.sp, color = HaneulBlue)
+                        }
                     }
                 }
 

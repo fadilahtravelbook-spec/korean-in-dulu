@@ -43,6 +43,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.automirrored.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Celebration
@@ -212,7 +213,7 @@ fun KoreanDocumentPracticeView(
                             contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp),
                             modifier = Modifier.height(32.dp)
                         ) {
-                            Icon(Icons.Default.List, contentDescription = null, modifier = Modifier.size(13.dp), tint = HaneulBlue)
+                            Icon(Icons.AutoMirrored.Filled.List, contentDescription = null, modifier = Modifier.size(13.dp), tint = HaneulBlue)
                             Spacer(modifier = Modifier.width(3.dp))
                             Text(
                                 text = if (isDocSelectorExpanded) "Tutup" else "Ganti Dokumen",

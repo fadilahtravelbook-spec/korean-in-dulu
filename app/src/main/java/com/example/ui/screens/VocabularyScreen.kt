@@ -753,11 +753,13 @@ fun VocabListView(
     onToggleBookmark: (String) -> Unit,
     onNavigateToTyping: ((VocabCard) -> Unit)? = null
 ) {
-    val categories = listOf("Semua", "Salam", "Makanan", "Keluarga", "Angka", "Kehidupan", "Emosi & Kesal", "Tegur Sapa", "Toilet & Mandi", "Sepeda & Transportasi", "Kustom")
+    val categories = remember(vocabList) {
+        listOf("Semua") + vocabList.map { it.category }.distinct().filter { it.isNotBlank() }
+    }
 
     val filteredList = vocabList.filter { card ->
         (!showOnlyBookmarked || card.isBookmarked) &&
-        (selectedCategory == "Semua" || card.category.contains(selectedCategory, ignoreCase = true)) &&
+        (selectedCategory == "Semua" || card.category.equals(selectedCategory, ignoreCase = true) || card.category.contains(selectedCategory, ignoreCase = true)) &&
         (searchQuery.isBlank() || card.korean.contains(searchQuery) || card.meaning.contains(searchQuery, ignoreCase = true) || card.romanization.contains(searchQuery, ignoreCase = true))
     }
 
