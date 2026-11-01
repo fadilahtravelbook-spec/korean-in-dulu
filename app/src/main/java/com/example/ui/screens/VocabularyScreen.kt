@@ -1169,6 +1169,7 @@ fun VocabKeyboardTypingView(
     val currentCard = cards.getOrElse(currentIndex) { cards.first() }
 
     var isShiftActive by remember { mutableStateOf(false) }
+    var wrongKeyWarning by remember(currentCard.korean) { mutableStateOf<String?>(null) }
     var typedJamos by remember(currentCard.korean) { mutableStateOf(listOf<Char>()) }
     var wordCompleted by remember(currentCard.korean) { mutableStateOf(false) }
 
@@ -1358,6 +1359,34 @@ fun VocabKeyboardTypingView(
                         }
                     }
                 }
+
+                if (wrongKeyWarning != null) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEE2E2),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCA5A5))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Clear, contentDescription = null, tint = SarangRed, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = wrongKeyWarning ?: "",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF991B1B),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
             }
         }
 
@@ -1370,6 +1399,7 @@ fun VocabKeyboardTypingView(
             onKeyPress = { pressedChar ->
                 if (!wordCompleted && nextKey != null) {
                     if (pressedChar == nextKey) {
+                        wrongKeyWarning = null
                         val updated = typedJamos + pressedChar
                         typedJamos = updated
                         if (updated.size >= targetJamos.size) {
@@ -1378,18 +1408,21 @@ fun VocabKeyboardTypingView(
                             onAddXp?.invoke(15)
                         }
                     } else {
-                        typedJamos = typedJamos + pressedChar
+                        val qwerty = HangulKeyboardUtil.getQwertyKeyHint(nextKey)
+                        wrongKeyWarning = "Salah tombol '$pressedChar'. Tekan tuts '$nextKey' (tombol QWERTY [$qwerty])"
                     }
                 }
             },
             onShiftToggle = { isShiftActive = !isShiftActive },
             onBackspace = {
+                wrongKeyWarning = null
                 if (typedJamos.isNotEmpty()) {
                     typedJamos = typedJamos.dropLast(1)
                     wordCompleted = false
                 }
             },
             onReset = {
+                wrongKeyWarning = null
                 typedJamos = emptyList()
                 wordCompleted = false
             },

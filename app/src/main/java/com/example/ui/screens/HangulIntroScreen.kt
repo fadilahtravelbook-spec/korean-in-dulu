@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.FlipCameraAndroid
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Quiz
 import androidx.compose.material.icons.filled.Refresh
@@ -94,6 +95,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.AppSubHeader
 import com.example.ui.components.AudioSpeakerButton
+import com.example.ui.components.HangulKeyboardUtil
 import com.example.ui.components.HannieMascotCard
 import com.example.ui.theme.HaneulBlue
 import com.example.ui.theme.HaneulContainer
@@ -695,9 +697,9 @@ fun HangulSyllableBuilderView(
                         colors = ButtonDefaults.buttonColors(containerColor = HaneulBlue),
                         shape = RoundedCornerShape(12.dp)
                     ) {
-                        Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Keyboard, contentDescription = null, modifier = Modifier.size(16.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Latih Tulis", fontSize = 12.sp)
+                        Text("Ketik di Keyboard", fontSize = 12.sp)
                     }
                 }
             }
@@ -1449,7 +1451,7 @@ fun HangulFlashcardButton(
                         Spacer(modifier = Modifier.height(6.dp))
 
                         Text(
-                            text = "Buka Detail & Stroke ➔",
+                            text = "Buka Detail & Keyboard ➔",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
                             color = primaryColor,
@@ -1723,7 +1725,7 @@ fun HangulDeckPracticeView(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Panduan Goresan & Detail Lengkap", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    Text("Panduan Keyboard & Detail Huruf", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                 }
             }
         }
@@ -1868,9 +1870,9 @@ fun HangulDetailModal(
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.testTag("modal_practice_write_btn")
             ) {
-                Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(16.dp))
+                Icon(Icons.Default.Keyboard, contentDescription = null, modifier = Modifier.size(16.dp))
                 Spacer(modifier = Modifier.width(6.dp))
-                Text("Latihan Tulis di Kanvas")
+                Text("Latihan Ketik di Keyboard")
             }
         },
         dismissButton = {
@@ -1985,33 +1987,53 @@ fun HangulDetailModal(
                     }
                 }
 
-                Column {
-                    Text(
-                        text = "Urutan Goresan (${item.strokeCount} Goresan):",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = InkBlack
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    item.strokeDirections.forEach { step ->
+                // Panduan Posisi Keyboard 2-Beol-Sik
+                val charChar = item.character.firstOrNull() ?: ' '
+                val qwertyKey = HangulKeyboardUtil.getQwertyKeyHint(charChar)
+                val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charChar)
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color(0xFFF1F5F9),
+                    border = CardDefaults.outlinedCardBorder().copy(
+                        brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFCBD5E1))
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Keyboard, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = "Posisi Keyboard 2-Beol-Sik (두벌식):",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = InkBlack
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(vertical = 2.dp),
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Surface(
-                                shape = CircleShape,
-                                color = HaneulContainer,
-                                modifier = Modifier.size(8.dp)
-                            ) {}
-                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = step,
-                                fontSize = 11.sp,
-                                color = TextSecondary,
-                                lineHeight = 15.sp
+                                text = "Tombol QWERTY: [$qwertyKey]",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = HaneulBlue
                             )
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = if (isLeftHand) Color(0xFFDBEAFE) else Color(0xFFFEF3C7)
+                            ) {
+                                Text(
+                                    text = if (isLeftHand) "🖐️ Tangan Kiri (Konsonan)" else "🖐️ Tangan Kanan (Vokal)",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isLeftHand) Color(0xFF1E40AF) else Color(0xFF92400E),
+                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                )
+                            }
                         }
                     }
                 }

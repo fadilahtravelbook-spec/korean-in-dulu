@@ -30,9 +30,12 @@ import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.FastForward
+import androidx.compose.material.icons.filled.Keyboard
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Loop
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Pause
@@ -78,6 +81,7 @@ import com.example.data.model.HangulLetter
 import com.example.ui.components.AppSubHeader
 import com.example.ui.components.BatchimGuideView
 import com.example.ui.components.HangulKeyboardUtil
+import com.example.ui.components.KoreanDocumentPracticeView
 import com.example.ui.components.KoreanKeyboardPracticeView
 import com.example.ui.components.VirtualKorean2BeolSikKeyboard
 import com.example.ui.theme.HaneulBlue
@@ -138,7 +142,7 @@ fun WritingScreen(
     ) {
         // App Header
         AppSubHeader(
-            title = "Menulis & Mengetik Hangul (한글 쓰기 & 타자)",
+            title = "Ketik & Latihan Hangul (한글 타자 & 쓰기)",
             subtitle = "Latihan ketik 2-Beol-Sik, susun suku kata, kuis dikte audio & aturan batchim",
             onBack = onBack,
             trailingAction = if (onNavigateToHangulIntro != null) {
@@ -177,6 +181,7 @@ fun WritingScreen(
                 "🚀 Tantangan Ketik",
                 "🧩 Gabung Suku Kata",
                 "📖 Kata Dasar",
+                "📜 Dokumen & Surat",
                 "🎧 Kuis Dikte Audio",
                 "📚 Aturan Batchim"
             )
@@ -289,6 +294,14 @@ fun WritingScreen(
                 )
             }
             4 -> {
+                KoreanDocumentPracticeView(
+                    ttsSpeed = ttsSpeed,
+                    onSpeak = onSpeak,
+                    onAddXp = onAddXp,
+                    onRecordProgress = onRecordProgress
+                )
+            }
+            5 -> {
                 BlindDictationQuizView(
                     letters = letters,
                     ttsSpeed = ttsSpeed,
@@ -297,7 +310,7 @@ fun WritingScreen(
                     onRecordProgress = onRecordProgress
                 )
             }
-            5 -> {
+            6 -> {
                 BatchimGuideView(
                     onSpeak = { text -> onSpeak(text, ttsSpeed) },
                     onRecordProgress = onRecordProgress
@@ -340,7 +353,7 @@ fun LetterWritingPracticeView(
     val safeLetterIndex = selectedLetterIndex.coerceIn(0, maxOf(0, filteredLetters.size - 1))
     val currentLetter = filteredLetters.getOrElse(safeLetterIndex) { filteredLetters.firstOrNull() ?: letters.first() }
 
-    var isTraceMode by remember { mutableStateOf(true) }
+    var wrongKeyWarning by remember(currentLetter.character) { mutableStateOf<String?>(null) }
     var latestScore by remember { mutableStateOf<Int?>(null) }
     var isShiftActive by remember { mutableStateOf(false) }
     var typedLetterJamos by remember(currentLetter.character) { mutableStateOf(listOf<Char>()) }
@@ -629,7 +642,7 @@ fun LetterWritingPracticeView(
                             color = InkBlack
                         )
                         Text(
-                            text = "${currentLetter.strokeCount} Coretan • ${currentLetter.description}",
+                            text = "Tuts [${HangulKeyboardUtil.getQwertyKeyHint(currentLetter.character.firstOrNull() ?: ' ')}] • ${if (HangulKeyboardUtil.isLeftHandConsonant(currentLetter.character.firstOrNull() ?: ' ')) "Konsonan Kiri" else "Vokal Kanan"} • ${currentLetter.description}",
                             fontSize = 11.sp,
                             color = TextSecondary,
                             lineHeight = 15.sp
@@ -866,7 +879,32 @@ fun LetterWritingPracticeView(
                     }
                 }
 
-                if (!letterCompleted) {
+                if (wrongKeyWarning != null) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEE2E2),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCA5A5))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Clear, contentDescription = null, tint = SarangRed, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = wrongKeyWarning ?: "",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF991B1B),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                } else if (!letterCompleted) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
                         color = Color(0xFFF8FAFC),
@@ -910,6 +948,7 @@ fun LetterWritingPracticeView(
             onKeyPress = { pressedChar ->
                 if (!letterCompleted && nextLetterKey != null) {
                     if (pressedChar == nextLetterKey) {
+                        wrongKeyWarning = null
                         val updated = typedLetterJamos + pressedChar
                         typedLetterJamos = updated
                         if (updated.size >= letterTargetJamos.size) {
@@ -920,20 +959,21 @@ fun LetterWritingPracticeView(
                             onRecordProgress("writing", currentLetter.character, "Ketik ${currentLetter.character}", 100)
                         }
                     } else {
-                        // User pressed another key, let them see what they pressed
-                        val updated = typedLetterJamos + pressedChar
-                        typedLetterJamos = updated
+                        val activeQwerty = HangulKeyboardUtil.getQwertyKeyHint(nextLetterKey)
+                        wrongKeyWarning = "Salah tombol '$pressedChar'. Tekan tuts '$nextLetterKey' (tombol QWERTY [$activeQwerty])"
                     }
                 }
             },
             onShiftToggle = { isShiftActive = !isShiftActive },
             onBackspace = {
+                wrongKeyWarning = null
                 if (typedLetterJamos.isNotEmpty()) {
                     typedLetterJamos = typedLetterJamos.dropLast(1)
                     letterCompleted = false
                 }
             },
             onReset = {
+                wrongKeyWarning = null
                 typedLetterJamos = emptyList()
                 letterCompleted = false
             },
@@ -992,7 +1032,7 @@ fun LetterWritingPracticeView(
 
         Spacer(modifier = Modifier.height(14.dp))
 
-        // Kartu Urutan Goresan Resmi (Stroke Order Steps)
+        // Kartu Prinsip Keyboard Korea 2-Beol-Sik
         Card(
             shape = RoundedCornerShape(16.dp),
             colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -1006,35 +1046,77 @@ fun LetterWritingPracticeView(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = "Urutan Goresan Resmi (Stroke Order):",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp,
-                        color = InkBlack
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Keyboard, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(18.dp))
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Prinsip Keyboard 2-Beol-Sik (두벌식):",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp,
+                            color = InkBlack
+                        )
+                    }
                     Surface(
                         shape = RoundedCornerShape(6.dp),
-                        color = Color(0xFFFEF9C3)
+                        color = HaneulContainer
                     ) {
                         Text(
-                            text = "${currentLetter.strokeCount} Langkah",
+                            text = "Standar Korea",
                             fontSize = 10.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFF854D0E),
+                            color = HaneulBlue,
                             modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
-                currentLetter.strokeGuide.forEachIndexed { i, step ->
-                    Text(
-                        text = "${i + 1}. $step",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        lineHeight = 18.sp,
-                        modifier = Modifier.padding(vertical = 2.dp)
-                    )
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFEFF6FF),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFBFDBFE))
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("🖐️ Tangan Kiri", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color(0xFF1E40AF))
+                            Text("자음 (Konsonan)", fontSize = 10.sp, color = TextSecondary)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("ㄱ ㄴ ㄷ ㄹ ㅁ ㅂ ㅅ ㅇ ㅈ ㅊ ㅋ ㅌ ㅍ ㅎ", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = InkBlack)
+                            Text("Q W E R T A S D F G Z X C V", fontSize = 9.sp, color = TextMuted)
+                        }
+                    }
+
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFFFBEB),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFDE68A))
+                        ),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Column(modifier = Modifier.padding(10.dp)) {
+                            Text("🖐️ Tangan Kanan", fontWeight = FontWeight.Bold, fontSize = 11.sp, color = Color(0xFFB45309))
+                            Text("모음 (Vokal)", fontSize = 10.sp, color = TextSecondary)
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text("ㅏ ㅑ ㅓ ㅕ ㅗ ㅛ ㅜ ㅠ ㅡ ㅣ ㅐ ㅔ", fontSize = 11.sp, fontWeight = FontWeight.SemiBold, color = InkBlack)
+                            Text("Y U I O P H J K L B N M", fontSize = 9.sp, color = TextMuted)
+                        }
+                    }
                 }
+
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "💡 Tips: Gunakan tombol Shift (⇧) untuk mengetik konsonan kembar (ㄲ, ㄸ, ㅃ, ㅆ, ㅉ) dan vokal ganda (ㅒ, ㅖ).",
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                    lineHeight = 15.sp
+                )
             }
         }
 
@@ -1068,12 +1150,12 @@ fun SyllableCombinationWritingView(
     var selConsonant by remember { mutableStateOf("ㄱ") }
     var selVowel by remember { mutableStateOf("ㅏ") }
     var selBatchim by remember { mutableStateOf("") }
-    var isTraceMode by remember { mutableStateOf(true) }
 
     // Hitung blok suku kata Hangul gabungan secara real-time
     val formedChar = remember(selConsonant, selVowel, selBatchim) {
         combineHangul(selConsonant, selVowel, selBatchim)
     }
+    var wrongSyllableWarning by remember(formedChar) { mutableStateOf<String?>(null) }
 
     var isShiftActive by remember { mutableStateOf(false) }
     var typedSyllableJamos by remember(formedChar) { mutableStateOf(listOf<Char>()) }
@@ -1457,6 +1539,34 @@ fun SyllableCombinationWritingView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                if (wrongSyllableWarning != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEE2E2),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCA5A5))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Clear, contentDescription = null, tint = SarangRed, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = wrongSyllableWarning ?: "",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF991B1B),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
                 AnimatedVisibility(visible = syllableCompleted) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
@@ -1494,6 +1604,7 @@ fun SyllableCombinationWritingView(
             onKeyPress = { pressedChar ->
                 if (!syllableCompleted && nextSyllableKey != null) {
                     if (pressedChar == nextSyllableKey) {
+                        wrongSyllableWarning = null
                         val updated = typedSyllableJamos + pressedChar
                         typedSyllableJamos = updated
                         if (updated.size >= syllableTargetJamos.size) {
@@ -1503,19 +1614,21 @@ fun SyllableCombinationWritingView(
                             onRecordProgress("writing", formedChar, "Ketik Suku Kata $formedChar", 100)
                         }
                     } else {
-                        val updated = typedSyllableJamos + pressedChar
-                        typedSyllableJamos = updated
+                        val qwerty = HangulKeyboardUtil.getQwertyKeyHint(nextSyllableKey)
+                        wrongSyllableWarning = "Salah tombol '$pressedChar'. Tekan tuts '$nextSyllableKey' (tombol QWERTY [$qwerty])"
                     }
                 }
             },
             onShiftToggle = { isShiftActive = !isShiftActive },
             onBackspace = {
+                wrongSyllableWarning = null
                 if (typedSyllableJamos.isNotEmpty()) {
                     typedSyllableJamos = typedSyllableJamos.dropLast(1)
                     syllableCompleted = false
                 }
             },
             onReset = {
+                wrongSyllableWarning = null
                 typedSyllableJamos = emptyList()
                 syllableCompleted = false
             },
@@ -1685,6 +1798,7 @@ fun WordWritingPracticeView(
 
         // State Ketik Kata
         var isShiftWord by remember { mutableStateOf(false) }
+        var wrongWordWarning by remember(currentWord.word) { mutableStateOf<String?>(null) }
         var typedWordJamos by remember(currentWord.word) { mutableStateOf(listOf<Char>()) }
         var wordCompleted by remember(currentWord.word) { mutableStateOf(false) }
         val wordTargetJamos = remember(currentWord.word) {
@@ -1837,6 +1951,34 @@ fun WordWritingPracticeView(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
+                if (wrongWordWarning != null) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = Color(0xFFFEE2E2),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFCA5A5))
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(Icons.Default.Clear, contentDescription = null, tint = SarangRed, modifier = Modifier.size(16.dp))
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = wrongWordWarning ?: "",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = Color(0xFF991B1B),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                }
+
                 AnimatedVisibility(visible = wordCompleted) {
                     Surface(
                         shape = RoundedCornerShape(10.dp),
@@ -1874,6 +2016,7 @@ fun WordWritingPracticeView(
             onKeyPress = { pressedChar ->
                 if (!wordCompleted && nextWordKey != null) {
                     if (pressedChar == nextWordKey) {
+                        wrongWordWarning = null
                         val updated = typedWordJamos + pressedChar
                         typedWordJamos = updated
                         if (updated.size >= wordTargetJamos.size) {
@@ -1883,19 +2026,21 @@ fun WordWritingPracticeView(
                             onRecordProgress("writing", currentWord.word, "Ketik Kata ${currentWord.word}", 100)
                         }
                     } else {
-                        val updated = typedWordJamos + pressedChar
-                        typedWordJamos = updated
+                        val qwerty = HangulKeyboardUtil.getQwertyKeyHint(nextWordKey)
+                        wrongWordWarning = "Salah tombol '$pressedChar'. Tekan tuts '$nextWordKey' (tombol QWERTY [$qwerty])"
                     }
                 }
             },
             onShiftToggle = { isShiftWord = !isShiftWord },
             onBackspace = {
+                wrongWordWarning = null
                 if (typedWordJamos.isNotEmpty()) {
                     typedWordJamos = typedWordJamos.dropLast(1)
                     wordCompleted = false
                 }
             },
             onReset = {
+                wrongWordWarning = null
                 typedWordJamos = emptyList()
                 wordCompleted = false
             },
@@ -1967,7 +2112,7 @@ fun BlindDictationQuizView(
                 Spacer(modifier = Modifier.height(14.dp))
 
                 Text(
-                    text = "Dengarkan audio, lalu tuliskan hurufnya di kanvas!",
+                    text = "Dengarkan audio, lalu ketikkan hurufnya menggunakan Keyboard 2-Beol-Sik!",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = InkBlack,

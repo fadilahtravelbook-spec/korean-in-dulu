@@ -18,6 +18,7 @@ import androidx.compose.material.icons.automirrored.filled.MenuBook
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -129,8 +130,8 @@ class MainActivity : ComponentActivity() {
                                             viewModel.stopSpeaking()
                                             currentScreen = "writing"
                                         },
-                                        icon = { Icon(Icons.Default.Edit, contentDescription = "Menulis") },
-                                        label = { Text("Menulis", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                                        icon = { Icon(Icons.Default.Keyboard, contentDescription = "Ketik") },
+                                        label = { Text("Ketik", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
                                         colors = NavigationBarItemDefaults.colors(
                                             selectedIconColor = HaneulBlue,
                                             selectedTextColor = HaneulBlue,

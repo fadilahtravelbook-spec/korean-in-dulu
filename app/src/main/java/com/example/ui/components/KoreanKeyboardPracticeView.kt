@@ -229,13 +229,16 @@ object HangulKeyboardUtil {
         }
 
         for (ch in jamoList) {
-            if (ch == ' ') {
+            val isConsonant = isLeftHandConsonant(ch)
+            val isVowel = JUNGSEONG.contains(ch)
+
+            // Karakter spasi, tanda baca (. , ! ? ~ dll) atau non-Hangul langsung di-append
+            if (!isConsonant && !isVowel) {
                 flush()
-                sb.append(' ')
+                sb.append(ch)
                 continue
             }
 
-            val isConsonant = isLeftHandConsonant(ch)
             if (isConsonant) {
                 if (choseong == null) {
                     choseong = ch
@@ -346,7 +349,56 @@ object HangulKeyboardUtil {
         'ㅜ' -> "N"
         'ㅡ' -> "M"
         ' ' -> "Space"
-        else -> ""
+        '.' -> "."
+        ',' -> ","
+        '!' -> "!"
+        '?' -> "?"
+        '~' -> "~"
+        '-' -> "-"
+        in '0'..'9' -> c.toString()
+        else -> c.toString()
+    }
+
+    // Mapping tombol QWERTY fisik ke tuts 2-Beol-Sik Korea
+    fun mapQwertyToHangul(keyChar: Char, isShift: Boolean): Char? {
+        val upper = keyChar.uppercaseChar()
+        return when (upper) {
+            'Q' -> if (isShift) 'ㅃ' else 'ㅂ'
+            'W' -> if (isShift) 'ㅉ' else 'ㅈ'
+            'E' -> if (isShift) 'ㄸ' else 'ㄷ'
+            'R' -> if (isShift) 'ㄲ' else 'ㄱ'
+            'T' -> if (isShift) 'ㅆ' else 'ㅅ'
+            'Y' -> 'ㅛ'
+            'U' -> 'ㅕ'
+            'I' -> 'ㅑ'
+            'O' -> if (isShift) 'ㅒ' else 'ㅐ'
+            'P' -> if (isShift) 'ㅖ' else 'ㅔ'
+            'A' -> 'ㅁ'
+            'S' -> 'ㄴ'
+            'D' -> 'ㅇ'
+            'F' -> 'ㄹ'
+            'G' -> 'ㅎ'
+            'H' -> 'ㅗ'
+            'J' -> 'ㅓ'
+            'K' -> 'ㅏ'
+            'L' -> 'ㅣ'
+            'Z' -> 'ㅋ'
+            'X' -> 'ㅌ'
+            'C' -> 'ㅊ'
+            'V' -> 'ㅍ'
+            'B' -> 'ㅠ'
+            'N' -> 'ㅜ'
+            'M' -> 'ㅡ'
+            ' ' -> ' '
+            '.' -> '.'
+            ',' -> ','
+            '!' -> '!'
+            '?' -> '?'
+            '~' -> '~'
+            '-' -> '-'
+            in '0'..'9' -> keyChar
+            else -> null
+        }
     }
 }
 
@@ -1078,6 +1130,14 @@ fun VirtualKorean2BeolSikKeyboard(
     onReset: () -> Unit,
     onSpeak: () -> Unit
 ) {
+    // Shift detection
+    val shiftedJamos = setOf('ㅃ', 'ㅉ', 'ㄸ', 'ㄲ', 'ㅆ', 'ㅒ', 'ㅖ')
+    val isShiftNeeded = highlightChar in shiftedJamos
+    val shouldHighlightShift = isShiftActive || isShiftNeeded
+
+    // Baris 0: Angka & Simbol Umum (1 2 3 4 5 6 7 8 9 0 ~ -)
+    val numberRow = listOf('1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '~', '-')
+
     // Definisi Baris Tuts Keyboard
     // Baris 1: QWERTY Q-P
     val row1 = listOf(
@@ -1131,6 +1191,24 @@ fun VirtualKorean2BeolSikKeyboard(
                 .padding(vertical = 10.dp, horizontal = 4.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            // Baris 0: Angka & Simbol Umum
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(2.dp, Alignment.CenterHorizontally)
+            ) {
+                numberRow.forEach { numChar ->
+                    val isHighlighted = highlightChar == numChar
+                    KeyboardNumberKeyButton(
+                        char = numChar,
+                        isHighlighted = isHighlighted,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onKeyPress(numChar) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
             // Baris 1
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1138,7 +1216,7 @@ fun VirtualKorean2BeolSikKeyboard(
             ) {
                 row1.forEach { (normal, shifted) ->
                     val charToEmit = if (isShiftActive) shifted else normal
-                    val isHighlighted = highlightChar == charToEmit || (isShiftActive && highlightChar == shifted)
+                    val isHighlighted = highlightChar == charToEmit || (!isShiftActive && highlightChar == shifted)
                     val isLeftHand = HangulKeyboardUtil.isLeftHandConsonant(charToEmit)
 
                     KeyboardKeyButton(
@@ -1188,7 +1266,7 @@ fun VirtualKorean2BeolSikKeyboard(
                 // Tombol Shift
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = if (isShiftActive) NunbitYellow else Color(0xFFE2E8F0),
+                    color = if (shouldHighlightShift) NunbitYellow else Color(0xFFE2E8F0),
                     modifier = Modifier
                         .weight(1.3f)
                         .height(44.dp)
@@ -1197,7 +1275,7 @@ fun VirtualKorean2BeolSikKeyboard(
                         .testTag("keyboard_shift_btn"),
                     border = CardDefaults.outlinedCardBorder().copy(
                         brush = Brush.horizontalGradient(
-                            if (isShiftActive) listOf(Color(0xFFD97706), Color(0xFFB45309))
+                            if (shouldHighlightShift) listOf(Color(0xFFD97706), Color(0xFFB45309))
                             else listOf(Color(0xFFCBD5E1), Color(0xFF94A3B8))
                         )
                     )
@@ -1207,14 +1285,14 @@ fun VirtualKorean2BeolSikKeyboard(
                             Icon(
                                 Icons.Default.KeyboardArrowUp,
                                 contentDescription = "Shift",
-                                tint = if (isShiftActive) Color(0xFF78350F) else InkBlack,
+                                tint = if (shouldHighlightShift) Color(0xFF78350F) else InkBlack,
                                 modifier = Modifier.size(16.dp)
                             )
                             Text(
-                                "⇧",
-                                fontSize = 12.sp,
+                                if (isShiftNeeded && !isShiftActive) "⇧ Shift!" else "⇧",
+                                fontSize = if (isShiftNeeded && !isShiftActive) 9.sp else 12.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = if (isShiftActive) Color(0xFF78350F) else InkBlack
+                                color = if (shouldHighlightShift) Color(0xFF78350F) else InkBlack
                             )
                         }
                     }
@@ -1263,7 +1341,7 @@ fun VirtualKorean2BeolSikKeyboard(
 
             Spacer(modifier = Modifier.height(5.dp))
 
-            // Baris 4: Spasi & Kontrol Tambahan
+            // Baris 4: Kontrol, Tanda Baca & Spasi
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
@@ -1274,8 +1352,8 @@ fun VirtualKorean2BeolSikKeyboard(
                     shape = RoundedCornerShape(8.dp),
                     color = Color(0xFFE2E8F0),
                     modifier = Modifier
-                        .weight(1.2f)
-                        .height(40.dp)
+                        .weight(1.1f)
+                        .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onReset() }
                 ) {
@@ -1284,19 +1362,28 @@ fun VirtualKorean2BeolSikKeyboard(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text("Reset", fontSize = 11.sp, color = InkBlack, fontWeight = FontWeight.Bold)
+                        Icon(Icons.Default.Refresh, contentDescription = null, tint = TextSecondary, modifier = Modifier.size(13.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("Reset", fontSize = 10.sp, color = InkBlack, fontWeight = FontWeight.Bold)
                     }
                 }
+
+                // Tuts Koma (,)
+                KeyboardPunctuationKeyButton(
+                    char = ',',
+                    hint = ",",
+                    isHighlighted = highlightChar == ',',
+                    modifier = Modifier.weight(0.85f),
+                    onClick = { onKeyPress(',') }
+                )
 
                 // Spasi (Spacebar)
                 Surface(
                     shape = RoundedCornerShape(8.dp),
-                    color = Color.White,
+                    color = if (highlightChar == ' ') NunbitYellowContainer else Color.White,
                     modifier = Modifier
-                        .weight(3.5f)
-                        .height(40.dp)
+                        .weight(2.6f)
+                        .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onKeyPress(' ') }
                         .testTag("keyboard_space_btn"),
@@ -1317,13 +1404,40 @@ fun VirtualKorean2BeolSikKeyboard(
                     }
                 }
 
+                // Tuts Titik (.)
+                KeyboardPunctuationKeyButton(
+                    char = '.',
+                    hint = ".",
+                    isHighlighted = highlightChar == '.',
+                    modifier = Modifier.weight(0.85f),
+                    onClick = { onKeyPress('.') }
+                )
+
+                // Tuts Tanda Tanya (?)
+                KeyboardPunctuationKeyButton(
+                    char = '?',
+                    hint = "?",
+                    isHighlighted = highlightChar == '?',
+                    modifier = Modifier.weight(0.85f),
+                    onClick = { onKeyPress('?') }
+                )
+
+                // Tuts Tanda Seru (!)
+                KeyboardPunctuationKeyButton(
+                    char = '!',
+                    hint = "!",
+                    isHighlighted = highlightChar == '!',
+                    modifier = Modifier.weight(0.85f),
+                    onClick = { onKeyPress('!') }
+                )
+
                 // Tombol Lafal Suara
                 Surface(
                     shape = RoundedCornerShape(8.dp),
                     color = HaneulContainer,
                     modifier = Modifier
-                        .weight(1.2f)
-                        .height(40.dp)
+                        .weight(1.1f)
+                        .height(42.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .clickable { onSpeak() }
                 ) {
@@ -1332,12 +1446,116 @@ fun VirtualKorean2BeolSikKeyboard(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(15.dp))
-                        Spacer(modifier = Modifier.width(3.dp))
-                        Text("Lafal", fontSize = 11.sp, color = HaneulBlue, fontWeight = FontWeight.Bold)
+                        Icon(Icons.AutoMirrored.Filled.VolumeUp, contentDescription = null, tint = HaneulBlue, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("Lafal", fontSize = 10.sp, color = HaneulBlue, fontWeight = FontWeight.Bold)
                     }
                 }
             }
+        }
+    }
+}
+
+/**
+ * Tombol Tuts Angka & Simbol Keyboard (Number/Symbol Key)
+ */
+@Composable
+fun KeyboardNumberKeyButton(
+    char: Char,
+    isHighlighted: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (isHighlighted) NunbitYellowContainer else Color.White,
+        animationSpec = tween(150),
+        label = "numKeyBg"
+    )
+
+    val borderColor = if (isHighlighted) NunbitYellow else Color(0xFFCBD5E1)
+    val textColor = if (isHighlighted) Color(0xFF78350F) else InkBlack
+
+    Surface(
+        shape = RoundedCornerShape(6.dp),
+        color = bgColor,
+        modifier = modifier
+            .height(34.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .clickable { onClick() }
+            .testTag("key_$char"),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = Brush.horizontalGradient(
+                if (isHighlighted) listOf(NunbitYellow, Color(0xFFD97706))
+                else listOf(borderColor, borderColor)
+            )
+        )
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = char.toString(),
+                fontSize = 13.sp,
+                fontWeight = if (isHighlighted) FontWeight.Black else FontWeight.Bold,
+                color = textColor
+            )
+        }
+    }
+}
+
+/**
+ * Tombol Tuts Tanda Baca Keyboard (Punctuation Key)
+ */
+@Composable
+fun KeyboardPunctuationKeyButton(
+    char: Char,
+    hint: String,
+    isHighlighted: Boolean,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    val bgColor by animateColorAsState(
+        targetValue = if (isHighlighted) NunbitYellowContainer else Color.White,
+        animationSpec = tween(150),
+        label = "punctKeyBg"
+    )
+
+    val borderColor = if (isHighlighted) NunbitYellow else Color(0xFFCBD5E1)
+    val textColor = if (isHighlighted) Color(0xFF78350F) else InkBlack
+
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = bgColor,
+        modifier = modifier
+            .height(42.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .clickable { onClick() }
+            .testTag("key_$char"),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = Brush.horizontalGradient(
+                if (isHighlighted) listOf(NunbitYellow, Color(0xFFD97706))
+                else listOf(borderColor, borderColor)
+            )
+        )
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = char.toString(),
+                fontSize = 15.sp,
+                fontWeight = if (isHighlighted) FontWeight.Black else FontWeight.Bold,
+                color = textColor
+            )
+            Text(
+                text = hint,
+                fontSize = 8.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextMuted
+            )
         }
     }
 }

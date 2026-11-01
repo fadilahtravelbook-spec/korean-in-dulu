@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Headphones
+import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.PlayCircle
@@ -558,8 +559,8 @@ fun HomeScreen(
                                         Icon(Icons.Default.PlayCircle, contentDescription = null, tint = HaneulBlue)
                                         Spacer(modifier = Modifier.width(10.dp))
                                         Column {
-                                            Text("Selesaikan 1 Sesi Menulis Hangul", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = InkBlack)
-                                            Text("Latih goresan huruf untuk mendapatkan +15 XP", fontSize = 11.sp, color = TextSecondary)
+                                            Text("Selesaikan 1 Sesi Latihan Ketik Hangul", fontWeight = FontWeight.Bold, fontSize = 13.sp, color = InkBlack)
+                                            Text("Latih pengetikan keyboard 2-Beol-Sik untuk mendapatkan +15 XP", fontSize = 11.sp, color = TextSecondary)
                                         }
                                     }
                                 }
@@ -801,13 +802,13 @@ fun HomeScreen(
                     val modules = listOf(
                         ModuleItem(
                             id = "writing",
-                            title = "Menulis & Keyboard",
-                            korean = "한글 쓰기 & 타자",
-                            desc = "Latihan ketik 2-beol-sik, coretan huruf, kanvas & dikte",
-                            icon = Icons.Default.Edit,
+                            title = "Ketik & Dokumen",
+                            korean = "한글 타자 & 문서 쓰기",
+                            desc = "Ketik huruf, suku kata, surat (편지), chat KakaoTalk & dokumen Korea asli",
+                            icon = Icons.Default.Keyboard,
                             badgeColor = Color(0xFF2563EB),
                             badgeBg = Color(0xFFDBEAFE),
-                            tag = "⌨️ Ketik & Coretan",
+                            tag = "📜 Surat & Dokumen",
                             gradientStart = Color(0xFFEFF6FF)
                         ),
                         ModuleItem(
